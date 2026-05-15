@@ -108,7 +108,7 @@ async def run_agent(
         final_text = "".join(text_parts)
         if not tool_calls:
             conversation.append_assistant(final_text)
-            result = AgentResult(
+            agent_result = AgentResult(
                 final_text=final_text,
                 tool_results=all_tool_results,
                 iterations=iteration,
@@ -116,9 +116,9 @@ async def run_agent(
             await _emit_callback(
                 "on_complete",
                 callbacks.on_complete if callbacks else None,
-                result,
+                agent_result,
             )
-            return result
+            return agent_result
 
         conversation.append_assistant(final_text or None, tool_calls)
         for tool_call in tool_calls:
@@ -130,7 +130,7 @@ async def run_agent(
                 stdin_is_tty=stdin_is_tty,
             )
             if not approval.approved:
-                result = ToolResult(
+                tool_result = ToolResult(
                     tool_call_id=tool_call["id"],
                     content=approval.reason or "Tool call denied",
                     is_error=True,
@@ -138,13 +138,13 @@ async def run_agent(
             else:
                 arguments = dict(tool_call["arguments"])
                 arguments["_tool_call_id"] = tool_call["id"]
-                result = await tool.execute(arguments, tool_context)
-            all_tool_results.append(result)
-            conversation.append_tool_result(result)
+                tool_result = await tool.execute(arguments, tool_context)
+            all_tool_results.append(tool_result)
+            conversation.append_tool_result(tool_result)
             await _emit_callback(
                 "on_tool_result",
                 callbacks.on_tool_result if callbacks else None,
-                result,
+                tool_result,
             )
 
     raise AgentLoopError(f"Agent exceeded max iterations: {max_iterations}")
