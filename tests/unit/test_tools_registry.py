@@ -29,3 +29,10 @@ def test_tool_registry_registers_and_gets_tool() -> None:
 
     assert registry.get("fake") is tool
 
+
+def test_tool_registry_rejects_duplicate_names() -> None:
+    registry = ToolRegistry()
+    registry.register(FakeTool(parameters={"type": "object"}))
+
+    with pytest.raises(ToolExecutionError, match="Duplicate tool"):
+        registry.register(FakeTool(parameters={"type": "object"}))
