@@ -1,0 +1,113 @@
+"""OpenAI-compatible streaming provider."""
+
+from __future__ import annotations
+
+import os
+from collections.abc import AsyncIterator, Mapping
+from typing import Any
+
+from openai import AsyncOpenAI
+
+from codegopher.core.errors import ProviderError
+from codegopher.core.types import Message, StreamEvent, ToolSchema
+from codegopher.providers.base import ProviderCapabilities
+from codegopher.utils.json import JsonPayloadError, loads_object
+
+
+def _get(value: Any, key: str, default: Any = None) -> Any:
+    if isinstance(value, dict):
+        return value.get(key, default)
+    return getattr(value, key, default)
+
+
+class OpenAICompatProvider:
+    capabilities = ProviderCapabilities(streaming=True, tool_calls=True, token_counting=True)
+
+    def __init__(
+        self,
+        *,
+        base_url: str | None = None,
+        api_key_env: str | None = "OPENAI_API_KEY",
+        environ: Mapping[str, str] | None = None,
+        client: Any | None = None,
+    ) -> None:
+        env = environ or os.environ
+        self.api_key_env = api_key_env or "OPENAI_API_KEY"
+        self.api_key = env.get(self.api_key_env)
+        if not self.api_key:
+            raise ProviderError(f"Missing API key: expected environment variable {self.api_key_env}")
+        self.base_url = base_url
+        self._client: Any = client or AsyncOpenAI(api_key=self.api_key, base_url=base_url)
+
+    async def stream(
+        self,
+        messages: list[Message],
+        tools: list[ToolSchema],
+        *,
+        model: str,
+        temperature: float,
+        max_output_tokens: int,
+    ) -> AsyncIterator[StreamEvent]:
+        try:
+            request_args: dict[str, Any] = {
+                "model": model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_output_tokens,
+                "stream": True,
+            }
+            if tools:
+                request_args["tools"] = tools
+                request_args["tool_choice"] = "auto"
+            stream = await self._client.chat.completions.create(**request_args)
+        except Exception as exc:
+            yield {"type": "error", "message": f"Provider request failed: {exc}"}
+            yield {"type": "done"}
+            return
+        tool_buffers: dict[int, dict[str, str]] = {}
+        reasoning_parts: list[str] = []
+        content_yielded = False
+        try:
+            async for chunk in stream:
+                choices = _get(chunk, "choices", [])
+                if not choices:
+                    continue
+                delta = _get(choices[0], "delta", {})
+                content = _get(delta, "content")
+                if content:
+                    content_yielded = True
+                    yield {"type": "text_delta", "content": str(content)}
+                reasoning = _get(delta, "reasoning_content")
+                if reasoning:
+                    reasoning_parts.append(str(reasoning))
+                for raw_tool_call in _get(delta, "tool_calls", []) or []:
+                    index = int(_get(raw_tool_call, "index", 0))
+                    buffer = tool_buffers.setdefault(index, {"id": "", "name": "", "arguments": ""})
+                    if tool_id := _get(raw_tool_call, "id"):
+                        buffer["id"] = str(tool_id)
+                    function = _get(raw_tool_call, "function", {})
+                    if name := _get(function, "name"):
+                        buffer["name"] = str(name)
+                    if arguments := _get(function, "arguments"):
+                        buffer["arguments"] += str(arguments)
+        except Exception as exc:
+            yield {"type": "error", "message": f"Provider stream failed: {exc}"}
+            yield {"type": "done"}
+            return
+        if not content_yielded and reasoning_parts and not tool_buffers:
+            yield {"type": "text_delta", "content": "".join(reasoning_parts)}
+        for buffer in tool_buffers.values():
+            try:
+                arguments = loads_object(buffer["arguments"] or "{}", source="tool arguments")
+            except JsonPayloadError as exc:
+                yield {"type": "error", "message": str(exc)}
+                continue
+            yield {
+                "type": "tool_call",
+                "tool_call": {
+                    "id": buffer["id"],
+                    "name": buffer["name"],
+                    "arguments": arguments,
+                },
+            }
+        yield {"type": "done"}

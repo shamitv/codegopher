@@ -1,1 +1,1 @@
-"""MCP (Model Context Protocol) client integration."""
+"""Reserved package for future Model Context Protocol integration."""

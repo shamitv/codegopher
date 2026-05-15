@@ -1,6 +1,6 @@
 # CodeGopher Product Intro
 
-CodeGopher is a planned Python-native AI coding agent for the terminal. It is designed for developers who want a local, scriptable assistant that can inspect projects, run focused tools, explain code, and make approved changes without requiring a hosted workspace or background server.
+CodeGopher is a Python-native AI coding agent for the terminal. It is designed for developers who want a local, scriptable assistant that can inspect projects, run focused tools, explain code, and make approved changes without requiring a hosted workspace or background server.
 
 The product goal is simple: keep the agent close to the developer's shell, make every risky action visible, and support multiple model providers through a clean provider layer.
 
@@ -29,7 +29,7 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 
 ## Feature Status
 
-CodeGopher is in early alpha scaffold state. The first implementation target is a working headless v0.1 loop with a narrow set of file and shell tools. Larger product features are planned, not yet implemented:
+CodeGopher is in early alpha with a working headless v0.1 loop and a narrow set of file and shell tools. Larger product features remain roadmap items:
 
 - Interactive Textual TUI.
 - Session and persistent memory.

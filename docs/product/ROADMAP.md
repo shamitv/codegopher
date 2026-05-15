@@ -29,6 +29,7 @@ Planned capabilities:
 - File mention expansion with `@path` and `@glob`.
 - Shell passthrough with explicit approval.
 - Session save and resume.
+- Thinking-content rendering: models that emit chain-of-thought in a `reasoning_content` field (e.g. Qwen3, o-series) should have their thinking displayed distinctly from the final response — collapsed by default in the TUI, dimmed or prefixed in headless `--debug` output, and excluded from `--json` final text.
 
 ## v0.3 - Context, Memory, And Skills
 

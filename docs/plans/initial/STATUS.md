@@ -4,15 +4,15 @@ Last reviewed: 2026-05-15
 
 ## Readiness Summary
 
-- Product/documentation readiness: high. The product intro, roadmap, and v0.1 implementation plan are separated and internally consistent.
-- Codebase readiness for starting implementation: moderate. The package scaffold and metadata exist, but almost all runtime modules are placeholders.
-- Runtime readiness: very low. The declared CLI entry point does not exist yet, so the package cannot run.
+- Product/documentation readiness: complete. Product intro, roadmap, initial plan, contributing guide, and release checklist are all present and current.
+- Codebase readiness: complete for the v0.1 headless slice. All 116 implementation tasks (C001–C116) and all 18 sample-project tasks (S001–S018) are done.
+- Runtime readiness: complete. The wheel builds, installs, and passes smoke tests.
 
 Practical readiness estimate:
 
-- 80% ready as a planning artifact.
-- 20% ready as an implementation scaffold.
-- 0-5% complete as a working v0.1 product.
+- 100% ready as a planning artifact for v0.1.
+- 100% implemented for the scoped v0.1 headless vertical slice.
+- All TODO items checked. Future roadmap features remain out of scope for this slice.
 
 ## Current Repository State
 
@@ -21,40 +21,31 @@ Practical readiness estimate:
 | Package layout | Present | `src/codegopher` exists with intended top-level packages. |
 | Packaging metadata | Present | `pyproject.toml` defines Hatch build settings, dependencies, and scripts. |
 | Documentation split | Present | Product intro, roadmap, and initial plan are now separate docs. |
-| CLI entry point | Missing | `pyproject.toml` and `__main__.py` reference `codegopher.cli.main:app`, but `cli/main.py` does not exist. |
-| Config system | Not started | No settings models, TOML loading, or env override logic exist. |
-| Provider layer | Not started | No provider protocol, OpenAI-compatible adapter, registry, or capability checks exist. |
-| Tool system | Not started | No tool protocol, registry, file tools, shell tool, or tool context exist. |
-| Approval policy | Not started | `ApprovalMode` and `should_prompt` are documented but not implemented. |
-| Prior-read enforcement | Not started | Path tracking and write gates are documented but not implemented. |
-| Agent loop | Not started | No conversation state, loop orchestration, or tool-call execution exists. |
-| Tests | Empty | Test packages exist, but there are no test cases yet. |
-| Local test environment | Not ready | `pytest` was not available in the current Python environment during review. |
+| CLI entry point | Implemented | `codegopher`, `cgopher`, and `python -m codegopher` run the headless CLI. |
+| Config system | Implemented | Settings schema, TOML loading, environment overrides, and CLI overrides exist. |
+| Provider layer | Implemented | Provider protocol, registry, mock provider, and OpenAI-compatible streaming adapter exist. |
+| Tool system | Implemented | File read/search/write/edit tools and shell command tool are registered. |
+| Approval policy | Implemented | `review`, `auto`, and `yolo` decisions are covered by tests. |
+| Prior-read enforcement | Implemented | Existing-file writes require a read; new files require parent inspection. |
+| Agent loop | Implemented | Async loop streams text, executes tools, records tool results, and enforces max iterations. |
+| Tests | Implemented | 109 tests: unit (28 modules) + integration (headless CLI). |
+| Sample fixture projects | Implemented | basic_python_package, buggy_cli_app, configured_project, edit_safety_project + helpers. |
+| CONTRIBUTING guide | Implemented | `CONTRIBUTING.md` documents commit and test expectations. |
+| Release checklist | Implemented | `docs/release/CHECKLIST.md` documents the PyPI publish sequence. |
+| Local test environment | Ready | `.venv` used for pytest, ruff, mypy, Hatch build, and wheel smoke tests. |
 
 ## Verified Facts
 
-- `pyproject.toml` parses with Python `tomllib`.
-- `PYTHONPATH=src python -c "import codegopher; print(codegopher.__version__)"` imports the package metadata.
-- `PYTHONPATH=src python -m codegopher` fails because `codegopher.cli.main` is missing.
-- A source search found no implemented `class` or `def` definitions under `src/` beyond import references and docstrings.
+- `ruff check src/ tests/` passes.
+- `mypy src/` passes.
+- `python -m pytest` passes with 109 tests.
+- `python -m hatch build` produces an sdist and wheel.
+- The built wheel installs in a clean virtual environment and exposes `codegopher`/`cgopher`.
 
 ## Immediate Blockers
 
-1. Create `src/codegopher/cli/main.py` so the package entry points can run.
-2. Add a minimal smoke test setup so basic imports and CLI behavior are checked continuously.
-3. Install or create the development environment so `pytest`, `ruff`, and `mypy` can run.
-4. Implement shared settings, provider, tool, and approval primitives before feature-specific tools.
+No v0.1 implementation blockers remain.
 
 ## Implementation Recommendation
 
-Start with the commit-sized sequence in `TODO.md`. The first milestone should make the project importable, runnable, and testable before any model-provider or file-mutation behavior is added.
-
-The first reliable checkpoint should be:
-
-```bash
-PYTHONPATH=src python -m codegopher
-PYTHONPATH=src python -m codegopher -p "hello" --dry-run
-python -m pytest
-```
-
-At that point, later work can add provider streaming, tool execution, and write behavior behind tests and small rollback-friendly commits.
+Next implementation should move to the post-v0.1 roadmap: richer UI, memory, skills, MCP, additional providers, and sandboxing.

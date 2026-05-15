@@ -1,1 +1,1 @@
-"""CLI layer — Textual TUI and Click entrypoint."""
+"""CLI package for the current Click entry point."""

@@ -1,1 +1,1 @@
-"""Textual widgets for the CodeGopher TUI."""
+"""Reserved package for future interactive widgets."""
