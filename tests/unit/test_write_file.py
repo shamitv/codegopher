@@ -19,3 +19,14 @@ async def test_write_file_creates_new_file_after_parent_inspection(tmp_path: Pat
     assert (tmp_path / "created.txt").read_text(encoding="utf-8") == "hello"
     assert WriteFileTool.requires_approval is True
 
+
+@pytest.mark.asyncio
+async def test_write_file_rejects_new_file_without_parent_inspection(tmp_path: Path) -> None:
+    result = await WriteFileTool().execute(
+        {"path": "created.txt", "content": "hello"},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is True
+    assert "list_dir must inspect parent directory" in result.content
+    assert not (tmp_path / "created.txt").exists()
