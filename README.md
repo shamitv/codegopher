@@ -1,14 +1,32 @@
 # CodeGopher
 
-> A planned Python-native, provider-agnostic AI coding agent for your terminal.
+> A Python-native, provider-agnostic AI coding agent for your terminal.
 
-CodeGopher is currently an early scaffold. The first implementation target is a headless command that can run a prompt, stream through a model provider, execute approved tools, and return a result.
+CodeGopher v0.1 is a headless command that can run a prompt, stream through an OpenAI-compatible model provider, execute approved tools, and return a result.
 
 ## Target v0.1 Experience
 
 ```bash
-pip install codegopher
 cgopher -p "What does this project do?"
+cgopher -p "read this test log and summarize it" < test.log
+```
+
+Use `--json` for machine-readable output, `--approval-mode yolo` for unprompted local execution, and `--base-url` to target an OpenAI-compatible endpoint.
+
+## Development
+
+Install the package with development tools:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Useful Hatch scripts:
+
+```bash
+hatch run test
+hatch run lint
+hatch run typecheck
 ```
 
 ## Planned Direction
