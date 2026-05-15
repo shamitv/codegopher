@@ -1,0 +1,95 @@
+"""Core headless agent loop."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from pydantic import BaseModel
+
+from codegopher.config.schema import Settings
+from codegopher.core.approval import ApprovalRequest, resolve_approval
+from codegopher.core.context import build_messages
+from codegopher.core.conversation import Conversation
+from codegopher.core.errors import AgentLoopError, ProviderError
+from codegopher.core.types import ToolCall
+from codegopher.providers.base import Provider
+from codegopher.tools.base import ToolContext, ToolResult
+from codegopher.tools.registry import ToolRegistry
+from codegopher.utils.json import dumps_json
+
+
+class AgentResult(BaseModel):
+    final_text: str
+    tool_results: list[ToolResult] = []
+    iterations: int
+
+
+async def run_agent(
+    *,
+    prompt: str,
+    provider: Provider,
+    registry: ToolRegistry,
+    settings: Settings,
+    cwd: Path,
+    max_iterations: int = 8,
+    stdin_is_tty: bool = False,
+) -> AgentResult:
+    if not provider.capabilities.tool_calls:
+        raise ProviderError("Provider does not support tool calls")
+
+    conversation = Conversation()
+    conversation.append_user(prompt)
+    tool_context = ToolContext(cwd=cwd)
+    all_tool_results: list[ToolResult] = []
+
+    for iteration in range(1, max_iterations + 1):
+        text_parts: list[str] = []
+        tool_calls: list[ToolCall] = []
+        async for event in provider.stream(
+            build_messages(
+                conversation,
+                cwd=cwd,
+                registry=registry,
+                approval_mode=settings.approval_mode,
+            ),
+            registry.schemas(),
+            model=settings.model.name,
+            temperature=settings.model.temperature,
+            max_output_tokens=settings.model.max_output_tokens,
+        ):
+            if event["type"] == "text_delta":
+                text_parts.append(event["content"])
+            elif event["type"] == "tool_call":
+                tool_calls.append(event["tool_call"])
+            elif event["type"] == "error":
+                raise ProviderError(event["message"])
+
+        final_text = "".join(text_parts)
+        if not tool_calls:
+            conversation.append_assistant(final_text)
+            return AgentResult(final_text=final_text, tool_results=all_tool_results, iterations=iteration)
+
+        conversation.append_assistant(final_text or None, tool_calls)
+        for tool_call in tool_calls:
+            tool = registry.get(tool_call["name"])
+            approval = resolve_approval(
+                settings.approval_mode,
+                tool,
+                ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"])),
+                stdin_is_tty=stdin_is_tty,
+            )
+            if not approval.approved:
+                result = ToolResult(
+                    tool_call_id=tool_call["id"],
+                    content=approval.reason or "Tool call denied",
+                    is_error=True,
+                )
+            else:
+                arguments = dict(tool_call["arguments"])
+                arguments["_tool_call_id"] = tool_call["id"]
+                result = await tool.execute(arguments, tool_context)
+            all_tool_results.append(result)
+            conversation.append_tool_result(result)
+
+    raise AgentLoopError(f"Agent exceeded max iterations: {max_iterations}")
+
