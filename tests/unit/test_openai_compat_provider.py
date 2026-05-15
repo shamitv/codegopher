@@ -141,3 +141,34 @@ async def test_openai_compat_provider_parses_streamed_tool_calls() -> None:
         },
         {"type": "done"},
     ]
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_reports_malformed_tool_arguments() -> None:
+    client = FakeClient(
+        AsyncStream(
+            [
+                {
+                    "choices": [
+                        {
+                            "delta": {
+                                "tool_calls": [
+                                    {
+                                        "index": 0,
+                                        "id": "call-1",
+                                        "function": {"name": "echo", "arguments": "{"},
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        )
+    )
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    events = [event async for event in provider.stream([], [], model="m", temperature=0, max_output_tokens=1)]
+
+    assert events[0]["type"] == "error"
+    assert "Malformed JSON" in events[0]["message"]

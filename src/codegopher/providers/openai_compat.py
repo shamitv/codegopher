@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from collections.abc import AsyncIterator
 from collections.abc import Mapping
@@ -13,6 +12,7 @@ from openai import AsyncOpenAI
 from codegopher.core.errors import ProviderError
 from codegopher.core.types import Message, StreamEvent, ToolSchema
 from codegopher.providers.base import ProviderCapabilities
+from codegopher.utils.json import JsonPayloadError, loads_object
 
 
 def _get(value: Any, key: str, default: Any = None) -> Any:
@@ -78,12 +78,17 @@ class OpenAICompatProvider:
                 if arguments := _get(function, "arguments"):
                     buffer["arguments"] += str(arguments)
         for buffer in tool_buffers.values():
+            try:
+                arguments = loads_object(buffer["arguments"] or "{}", source="tool arguments")
+            except JsonPayloadError as exc:
+                yield {"type": "error", "message": str(exc)}
+                continue
             yield {
                 "type": "tool_call",
                 "tool_call": {
                     "id": buffer["id"],
                     "name": buffer["name"],
-                    "arguments": json.loads(buffer["arguments"] or "{}"),
+                    "arguments": arguments,
                 },
             }
         yield {"type": "done"}
