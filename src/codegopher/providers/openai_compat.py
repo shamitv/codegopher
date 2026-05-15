@@ -14,6 +14,12 @@ from codegopher.core.types import Message, StreamEvent, ToolSchema
 from codegopher.providers.base import ProviderCapabilities
 
 
+def _get(value: Any, key: str, default: Any = None) -> Any:
+    if isinstance(value, dict):
+        return value.get(key, default)
+    return getattr(value, key, default)
+
+
 class OpenAICompatProvider:
     capabilities = ProviderCapabilities(streaming=True, tool_calls=True, token_counting=True)
 
@@ -51,6 +57,12 @@ class OpenAICompatProvider:
             max_tokens=max_output_tokens,
             stream=True,
         )
-        async for _chunk in stream:
-            pass
+        async for chunk in stream:
+            choices = _get(chunk, "choices", [])
+            if not choices:
+                continue
+            delta = _get(choices[0], "delta", {})
+            content = _get(delta, "content")
+            if content:
+                yield {"type": "text_delta", "content": str(content)}
         yield {"type": "done"}

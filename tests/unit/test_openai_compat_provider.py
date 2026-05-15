@@ -6,31 +6,37 @@ from codegopher.core.errors import ProviderError
 from codegopher.providers.openai_compat import OpenAICompatProvider
 
 
-class EmptyAsyncStream:
-    def __aiter__(self) -> "EmptyAsyncStream":
+class AsyncStream:
+    def __init__(self, items: list[object] | None = None) -> None:
+        self.items = list(items or [])
+
+    def __aiter__(self) -> "AsyncStream":
         return self
 
     async def __anext__(self) -> object:
-        raise StopAsyncIteration
+        if not self.items:
+            raise StopAsyncIteration
+        return self.items.pop(0)
 
 
 class FakeCompletions:
-    def __init__(self) -> None:
+    def __init__(self, stream: AsyncStream | None = None) -> None:
         self.kwargs = {}
+        self.stream = stream or AsyncStream()
 
     async def create(self, **kwargs):
         self.kwargs = kwargs
-        return EmptyAsyncStream()
+        return self.stream
 
 
 class FakeChat:
-    def __init__(self) -> None:
-        self.completions = FakeCompletions()
+    def __init__(self, stream: AsyncStream | None = None) -> None:
+        self.completions = FakeCompletions(stream)
 
 
 class FakeClient:
-    def __init__(self) -> None:
-        self.chat = FakeChat()
+    def __init__(self, stream: AsyncStream | None = None) -> None:
+        self.chat = FakeChat(stream)
 
 
 def test_openai_compat_provider_resolves_api_key() -> None:
@@ -66,3 +72,24 @@ async def test_openai_compat_provider_builds_request() -> None:
     assert client.chat.completions.kwargs["temperature"] == 0.2
     assert client.chat.completions.kwargs["max_tokens"] == 128
     assert client.chat.completions.kwargs["stream"] is True
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_parses_text_deltas() -> None:
+    client = FakeClient(
+        AsyncStream(
+            [
+                {"choices": [{"delta": {"content": "hel"}}]},
+                {"choices": [{"delta": {"content": "lo"}}]},
+            ]
+        )
+    )
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    events = [event async for event in provider.stream([], [], model="m", temperature=0, max_output_tokens=1)]
+
+    assert events == [
+        {"type": "text_delta", "content": "hel"},
+        {"type": "text_delta", "content": "lo"},
+        {"type": "done"},
+    ]
