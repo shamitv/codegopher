@@ -108,9 +108,23 @@ def load_settings(
     project_root = cwd or Path.cwd()
     home_root = home or Path.home()
     env = environ or os.environ
+    home_config = _load_toml(home_root / ".codegopher" / "settings.toml")
+    project_config = _load_toml(project_root / ".codegopher" / "settings.toml")
+    env_config = _env_overrides(env)
+    cli_config = _cli_overrides(cli_overrides)
+
     data: dict[str, Any] = {}
-    data = _merge(data, _load_toml(home_root / ".codegopher" / "settings.toml"))
-    data = _merge(data, _load_toml(project_root / ".codegopher" / "settings.toml"))
-    data = _merge(data, _env_overrides(env))
-    data = _merge(data, _cli_overrides(cli_overrides))
-    return _validate(data, source="configuration files")
+    data = _merge(data, home_config)
+    data = _merge(data, project_config)
+    data = _merge(data, env_config)
+    data = _merge(data, cli_config)
+
+    sources: list[str] = []
+    if home_config or project_config:
+        sources.append("configuration files")
+    if env_config:
+        sources.append("environment variables")
+    if cli_config:
+        sources.append("CLI overrides")
+
+    return _validate(data, source=", ".join(sources) or "defaults")
