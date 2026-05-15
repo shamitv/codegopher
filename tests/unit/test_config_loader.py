@@ -59,3 +59,25 @@ def test_load_settings_merges_nested_config_deterministically(tmp_path: Path) ->
     assert settings.model.provider == "openai"
     assert settings.model.name == "project-model"
     assert settings.model.temperature == 0.4
+
+
+def test_load_settings_applies_environment_overrides(tmp_path: Path) -> None:
+    settings = load_settings(
+        cwd=tmp_path,
+        home=tmp_path,
+        environ={
+            "CODEGOPHER_MODEL": "env-model",
+            "CODEGOPHER_PROVIDER": "local",
+            "CODEGOPHER_APPROVAL_MODE": "yolo",
+            "CODEGOPHER_BASE_URL": "http://127.0.0.1:8000/v1",
+            "CODEGOPHER_API_KEY_ENV": "LOCAL_API_KEY",
+            "CODEGOPHER_DEBUG": "true",
+        },
+    )
+
+    assert settings.model.provider == "local"
+    assert settings.model.name == "env-model"
+    assert settings.approval_mode.value == "yolo"
+    assert settings.debug is True
+    assert settings.providers["local"][0].base_url == "http://127.0.0.1:8000/v1"
+    assert settings.providers["local"][0].api_key_env == "LOCAL_API_KEY"
