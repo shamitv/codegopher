@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from codegopher.config.schema import ApprovalMode, Settings
-from codegopher.core.agent import run_agent
+from codegopher.core.agent import AgentResult, run_agent
 from codegopher.core.errors import AgentLoopError
 from codegopher.providers.mock import MockProvider
 from codegopher.tools.registry import create_default_registry
@@ -195,3 +195,13 @@ async def test_agent_loop_writes_after_prior_read(tmp_path: Path) -> None:
     assert result.final_text == "updated"
     assert [tool_result.is_error for tool_result in result.tool_results] == [False, False]
     assert (tmp_path / "existing.txt").read_text(encoding="utf-8") == "new"
+
+
+def test_agent_result_has_structured_cli_shape() -> None:
+    result = AgentResult(final_text="done", iterations=1)
+
+    assert result.model_dump() == {
+        "final_text": "done",
+        "tool_results": [],
+        "iterations": 1,
+    }

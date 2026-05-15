@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from codegopher.config.schema import Settings
 from codegopher.core.approval import ApprovalRequest, resolve_approval
@@ -20,7 +20,7 @@ from codegopher.utils.json import dumps_json
 
 class AgentResult(BaseModel):
     final_text: str
-    tool_results: list[ToolResult] = []
+    tool_results: list[ToolResult] = Field(default_factory=list)
     iterations: int
 
 
@@ -92,4 +92,3 @@ async def run_agent(
             conversation.append_tool_result(result)
 
     raise AgentLoopError(f"Agent exceeded max iterations: {max_iterations}")
-
