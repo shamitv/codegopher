@@ -6,6 +6,7 @@ import pytest
 
 from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
+from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.mock import MockProvider
@@ -227,6 +228,184 @@ async def test_agent_loop_denies_required_tool_when_non_tty(tmp_path: Path) -> N
     assert result.tool_results[0].is_error is True
     assert "stdin is not a TTY" in result.tool_results[0].content
     assert not (tmp_path / "new.txt").exists()
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_uses_approval_callback_for_required_tools(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    approvals: list[ApprovalRequest] = []
+
+    async def on_approval_request(request: ApprovalRequest) -> ApprovalResult:
+        approvals.append(request)
+        return ApprovalResult(approved=True)
+
+    result = await run_agent(
+        prompt="Write",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_approval_request=on_approval_request),
+    )
+
+    assert len(approvals) == 1
+    assert approvals[0].tool_name == "write_file"
+    assert '"path": "new.txt"' in approvals[0].arguments_preview
+    assert '"content": "hello"' in approvals[0].arguments_preview
+    assert "list_dir must inspect parent directory" in result.tool_results[0].content
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_approval_callback_can_deny_tool_execution(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "denied"}, {"type": "done"}],
+        ]
+    )
+
+    async def on_approval_request(_request: ApprovalRequest) -> ApprovalResult:
+        return ApprovalResult(approved=False, reason="no thanks")
+
+    result = await run_agent(
+        prompt="Write",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_approval_request=on_approval_request),
+    )
+
+    assert result.tool_results[0].is_error is True
+    assert result.tool_results[0].content == "no thanks"
+    assert not (tmp_path / "new.txt").exists()
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_auto_mode_approval_callback_prompts_for_read_tools(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    approvals: list[str] = []
+
+    async def on_approval_request(request: ApprovalRequest) -> ApprovalResult:
+        approvals.append(request.tool_name)
+        return ApprovalResult(approved=True)
+
+    await run_agent(
+        prompt="Read",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.auto),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_approval_request=on_approval_request),
+    )
+
+    assert approvals == ["read_file"]
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_yolo_mode_skips_approval_callback(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    async def on_approval_request(_request: ApprovalRequest) -> ApprovalResult:
+        raise AssertionError("approval should not be requested")
+
+    await run_agent(
+        prompt="Read",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_approval_request=on_approval_request),
+    )
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_wraps_approval_callback_failures(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+        ]
+    )
+
+    async def on_approval_request(_request: ApprovalRequest) -> ApprovalResult:
+        raise RuntimeError("approval exploded")
+
+    with pytest.raises(AgentLoopError, match="on_approval_request failed: approval exploded"):
+        await run_agent(
+            prompt="Write",
+            provider=provider,
+            registry=create_default_registry(),
+            settings=Settings(),
+            cwd=tmp_path,
+            callbacks=AgentCallbacks(on_approval_request=on_approval_request),
+        )
 
 
 @pytest.mark.asyncio
