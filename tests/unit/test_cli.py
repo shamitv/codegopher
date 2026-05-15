@@ -8,6 +8,7 @@ import codegopher.cli.main as cli_main
 from codegopher.cli.main import app
 from codegopher.config.schema import ModelConfig, ProviderEntry, Settings
 from codegopher.core.agent import AgentResult
+from codegopher.providers.mock import MockProvider
 from codegopher.providers.openai_compat import OpenAICompatProvider
 
 
@@ -86,6 +87,43 @@ def test_cli_json_output_shape() -> None:
         "tool_results": [],
         "iterations": 1,
     }
+
+
+def test_cli_debug_output_includes_reasoning(monkeypatch) -> None:
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "thinking"},
+                {"type": "text_delta", "content": "answer"},
+                {"type": "done"},
+            ]
+        ]
+    )
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+
+    result = CliRunner().invoke(app, ["-p", "hello", "--debug"])
+
+    assert result.exit_code == 0
+    assert result.output == "Reasoning:\nthinking\nanswer\n"
+
+
+def test_cli_json_debug_output_excludes_reasoning(monkeypatch) -> None:
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "thinking"},
+                {"type": "text_delta", "content": "answer"},
+                {"type": "done"},
+            ]
+        ]
+    )
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+
+    result = CliRunner().invoke(app, ["-p", "hello", "--debug", "--json"])
+
+    assert result.exit_code == 0
+    assert json.loads(result.output)["final_text"] == "answer"
+    assert "thinking" not in result.output
 
 
 def test_cli_reports_configuration_errors() -> None:

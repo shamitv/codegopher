@@ -10,7 +10,7 @@ import click
 
 from codegopher.config.loader import CliOverrides, load_settings
 from codegopher.config.schema import Settings
-from codegopher.core.agent import AgentResult, run_agent
+from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
@@ -21,10 +21,18 @@ def _build_provider(settings: Settings) -> Provider:
     return build_provider(settings)
 
 
-def _emit_result(result: AgentResult, *, as_json: bool) -> None:
+def _emit_result(
+    result: AgentResult,
+    *,
+    as_json: bool,
+    reasoning_parts: list[str] | None = None,
+) -> None:
     if as_json:
         click.echo(json.dumps(result.model_dump(), ensure_ascii=False))
     else:
+        if reasoning_parts:
+            click.echo("Reasoning:")
+            click.echo("".join(reasoning_parts))
         click.echo(result.final_text)
 
 
@@ -70,6 +78,11 @@ def app(
     if prompt:
         stdin = click.get_text_stream("stdin")
         full_prompt = prompt
+        reasoning_parts: list[str] = []
+
+        async def on_reasoning_delta(content: str) -> None:
+            reasoning_parts.append(content)
+
         if not stdin.isatty():
             stdin_text = stdin.read()
             if stdin_text:
@@ -83,11 +96,18 @@ def app(
                     settings=settings,
                     cwd=Path.cwd(),
                     stdin_is_tty=stdin.isatty(),
+                    callbacks=AgentCallbacks(on_reasoning_delta=on_reasoning_delta)
+                    if debug
+                    else None,
                 )
             )
         except (ProviderError, AgentLoopError) as exc:
             raise click.ClickException(str(exc)) from exc
-        _emit_result(result, as_json=as_json)
+        _emit_result(
+            result,
+            as_json=as_json,
+            reasoning_parts=reasoning_parts if debug and not as_json else None,
+        )
         return
 
     if not _streams_are_interactive():
