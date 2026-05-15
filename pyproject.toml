@@ -23,25 +23,16 @@ classifiers = [
 ]
 
 dependencies = [
-    # LLM providers
+    # OpenAI-compatible provider
     "openai>=1.35",
-    "anthropic>=0.30",
-    "google-genai>=2.0",
-    # TUI
-    "textual>=0.70",
-    "rich>=13.7",
     # CLI
     "click>=8.1",
     # Config validation
     "pydantic>=2.7",
     # HTTP
     "httpx>=0.27",
-    # Web content extraction
-    "trafilatura>=1.9",
-    # MCP client
-    "mcp>=1.0",
-    # Git
-    "gitpython>=3.1",
+    # Console output
+    "rich>=13.7",
     # Token estimation
     "tiktoken>=0.7",
 ]
