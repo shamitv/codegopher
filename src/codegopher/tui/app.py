@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from textual.app import App, ComposeResult
-from textual.binding import BindingType
 from textual.containers import Vertical
 from textual.widgets import Footer, Header, Input, RichLog, Static
 
 from codegopher.config.schema import Settings
+
+if TYPE_CHECKING:
+    from textual.binding import BindingType
 
 
 class CodeGopherApp(App[None]):
@@ -86,4 +88,3 @@ class CodeGopherApp(App[None]):
         provider = self.settings.model.provider
         approval = self.settings.approval_mode.value
         return f"Model: {model} | Provider: {provider} | Approval: {approval} | CWD: {self.cwd}"
-
