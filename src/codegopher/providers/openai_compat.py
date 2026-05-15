@@ -65,8 +65,6 @@ class OpenAICompatProvider:
             yield {"type": "done"}
             return
         tool_buffers: dict[int, dict[str, str]] = {}
-        reasoning_parts: list[str] = []
-        content_yielded = False
         try:
             async for chunk in stream:
                 choices = _get(chunk, "choices", [])
@@ -75,11 +73,10 @@ class OpenAICompatProvider:
                 delta = _get(choices[0], "delta", {})
                 content = _get(delta, "content")
                 if content:
-                    content_yielded = True
                     yield {"type": "text_delta", "content": str(content)}
                 reasoning = _get(delta, "reasoning_content")
                 if reasoning:
-                    reasoning_parts.append(str(reasoning))
+                    yield {"type": "reasoning_delta", "content": str(reasoning)}
                 for raw_tool_call in _get(delta, "tool_calls", []) or []:
                     index = int(_get(raw_tool_call, "index", 0))
                     buffer = tool_buffers.setdefault(index, {"id": "", "name": "", "arguments": ""})
@@ -94,8 +91,6 @@ class OpenAICompatProvider:
             yield {"type": "error", "message": f"Provider stream failed: {exc}"}
             yield {"type": "done"}
             return
-        if not content_yielded and reasoning_parts and not tool_buffers:
-            yield {"type": "text_delta", "content": "".join(reasoning_parts)}
         for buffer in tool_buffers.values():
             try:
                 arguments = loads_object(buffer["arguments"] or "{}", source="tool arguments")
