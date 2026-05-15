@@ -43,3 +43,17 @@ def prompt_for_approval(
     if answer in {"y", "yes"}:
         return ApprovalResult(approved=True)
     return ApprovalResult(approved=False, reason="Denied by user")
+
+
+def resolve_approval(
+    mode: ApprovalMode,
+    tool: ApprovableTool,
+    request: ApprovalRequest,
+    *,
+    stdin_is_tty: bool,
+) -> ApprovalResult:
+    if not should_prompt(mode, tool):
+        return ApprovalResult(approved=True)
+    if not stdin_is_tty:
+        return ApprovalResult(approved=False, reason="Approval required but stdin is not a TTY")
+    return prompt_for_approval(request)

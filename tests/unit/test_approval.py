@@ -9,6 +9,7 @@ from codegopher.core.approval import (
     ApprovalRequest,
     ApprovalResult,
     prompt_for_approval,
+    resolve_approval,
     should_prompt,
 )
 
@@ -51,3 +52,26 @@ def test_prompt_for_approval_accepts_yes() -> None:
 
     assert result.approved is True
     assert messages[0] == "Tool requested: read_file"
+
+
+def test_resolve_approval_denies_when_non_tty_and_prompt_required() -> None:
+    result = resolve_approval(
+        ApprovalMode.review,
+        FakeTool(requires_approval=True),
+        ApprovalRequest("write_file", "{}"),
+        stdin_is_tty=False,
+    )
+
+    assert result.approved is False
+    assert "stdin is not a TTY" in str(result.reason)
+
+
+def test_resolve_approval_allows_yolo_without_tty() -> None:
+    result = resolve_approval(
+        ApprovalMode.yolo,
+        FakeTool(requires_approval=True),
+        ApprovalRequest("write_file", "{}"),
+        stdin_is_tty=False,
+    )
+
+    assert result.approved is True
