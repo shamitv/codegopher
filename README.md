@@ -13,6 +13,14 @@ cgopher -p "read this test log and summarize it" < test.log
 
 Use `--json` for machine-readable output, `--approval-mode yolo` for unprompted local execution, and `--base-url` to target an OpenAI-compatible endpoint.
 
+## Implemented v0.1 Features
+
+- Headless Click CLI via `codegopher`, `cgopher`, and `python -m codegopher`.
+- Pydantic settings with CLI, environment, project, user, and default precedence.
+- OpenAI-compatible streaming provider with streamed tool-call parsing.
+- Approval-aware file and shell tools with prior-read and parent-inspection gates.
+- JSON output for automation and focused unit/integration test coverage.
+
 ## Development
 
 Install the package with development tools:
