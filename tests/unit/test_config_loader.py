@@ -37,3 +37,25 @@ def test_load_settings_reads_project_toml(tmp_path: Path) -> None:
     settings = load_settings(cwd=project, home=tmp_path)
 
     assert settings.approval_mode.value == "auto"
+
+
+def test_load_settings_merges_nested_config_deterministically(tmp_path: Path) -> None:
+    user_config = tmp_path / ".codegopher"
+    user_config.mkdir()
+    (user_config / "settings.toml").write_text(
+        '[model]\nprovider = "openai"\nname = "user-model"\ntemperature = 0.4\n',
+        encoding="utf-8",
+    )
+    project = tmp_path / "project"
+    project_config = project / ".codegopher"
+    project_config.mkdir(parents=True)
+    (project_config / "settings.toml").write_text(
+        '[model]\nname = "project-model"\n',
+        encoding="utf-8",
+    )
+
+    settings = load_settings(cwd=project, home=tmp_path)
+
+    assert settings.model.provider == "openai"
+    assert settings.model.name == "project-model"
+    assert settings.model.temperature == 0.4
