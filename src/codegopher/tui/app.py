@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -11,7 +12,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 
-from codegopher.config.schema import Settings
+from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.errors import AgentLoopError, ProviderError
@@ -20,6 +21,7 @@ from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.base import ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
+from codegopher.tui.commands import COMMAND_DEFINITIONS, SlashCommand, parse_slash_command
 
 if TYPE_CHECKING:
     from textual.binding import BindingType
@@ -75,15 +77,21 @@ class CodeGopherApp(App[None]):
         cwd: Path,
         provider_factory: Callable[[Settings], Provider] = build_provider,
         registry_factory: Callable[[], ToolRegistry] = create_default_registry,
+        monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         super().__init__()
         self.settings = settings
         self.cwd = cwd
         self.provider_factory = provider_factory
         self.registry_factory = registry_factory
+        self.monotonic = monotonic
+        self.started_at = monotonic()
         self.chat_messages: list[str] = []
         self.status_message = self._startup_status()
         self.turn_running = False
+        self.turn_count = 0
+        self.tool_count = 0
+        self.approval_count = 0
         self._active_assistant_message = ""
         self._tool_call_names: dict[str, str] = {}
         self._pending_approval: asyncio.Future[ApprovalResult] | None = None
@@ -117,7 +125,14 @@ class CodeGopherApp(App[None]):
         if not prompt:
             self.set_status("Enter a prompt to continue")
             return
+
+        command = parse_slash_command(prompt)
+        if command is not None:
+            self._handle_slash_command(command)
+            return
+
         self.append_user_message(prompt)
+        self.turn_count += 1
         self._set_turn_running(True)
         self._active_assistant_message = ""
         self._tool_call_names = {}
@@ -174,6 +189,7 @@ class CodeGopherApp(App[None]):
         )
 
     async def _on_agent_tool_call(self, tool_call: ToolCall) -> None:
+        self.tool_count += 1
         self._tool_call_names[tool_call["id"]] = tool_call["name"]
         arguments = self._summarize_arguments(tool_call["arguments"])
         suffix = f" {arguments}" if arguments else ""
@@ -190,6 +206,7 @@ class CodeGopherApp(App[None]):
         self.set_status(f"Tool {state}: {tool_name}")
 
     async def _on_agent_approval_request(self, request: ApprovalRequest) -> ApprovalResult:
+        self.approval_count += 1
         loop = asyncio.get_running_loop()
         future: asyncio.Future[ApprovalResult] = loop.create_future()
         self._pending_approval = future
@@ -211,6 +228,96 @@ class CodeGopherApp(App[None]):
     def _append_chat_message(self, message: str) -> None:
         self.chat_messages.append(message)
         self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
+
+    def _handle_slash_command(self, command: SlashCommand) -> None:
+        if command.name == "help":
+            self._handle_help_command(command)
+        elif command.name == "clear":
+            self._handle_clear_command(command)
+        elif command.name == "model":
+            self._handle_model_command(command)
+        elif command.name == "mode":
+            self._handle_mode_command(command)
+        elif command.name == "stats":
+            self._handle_stats_command(command)
+        else:
+            unknown = command.raw.split(maxsplit=1)[0]
+            self._command_error(f"Unknown slash command: {unknown}")
+
+    def _handle_help_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /help")
+            return
+        lines = ["Slash commands:"]
+        lines.extend(
+            f"{definition.usage} - {definition.description}"
+            for definition in COMMAND_DEFINITIONS
+        )
+        self.append_system_message("\n".join(lines))
+        self.set_status("Displayed help")
+
+    def _handle_clear_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /clear")
+            return
+        self.chat_messages.clear()
+        self._active_assistant_message = ""
+        self.query_one("#chat-history", RichLog).clear()
+        self.query_one("#assistant-stream", Static).update("")
+        self.set_status("Chat history cleared")
+
+    def _handle_model_command(self, command: SlashCommand) -> None:
+        if not command.arguments:
+            message = (
+                f"Model: {self.settings.model.name} | "
+                f"Provider: {self.settings.model.provider}"
+            )
+            self.append_system_message(message)
+            self.set_status("Displayed active model")
+            return
+
+        self.settings.model.name = command.arguments
+        message = (
+            f"Model updated: {self.settings.model.name} | "
+            f"Provider: {self.settings.model.provider}"
+        )
+        self.append_system_message(message)
+        self.set_status(message)
+
+    def _handle_mode_command(self, command: SlashCommand) -> None:
+        if not command.arguments:
+            message = f"Approval mode: {self.settings.approval_mode.value}"
+            self.append_system_message(message)
+            self.set_status("Displayed approval mode")
+            return
+
+        try:
+            mode = ApprovalMode(command.arguments)
+        except ValueError:
+            self._command_error("Usage: /mode review|auto|yolo")
+            return
+
+        self.settings.approval_mode = mode
+        message = f"Approval mode updated: {mode.value}"
+        self.append_system_message(message)
+        self.set_status(message)
+
+    def _handle_stats_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /stats")
+            return
+        elapsed_seconds = max(0, int(self.monotonic() - self.started_at))
+        message = (
+            f"Stats: turns={self.turn_count} | tools={self.tool_count} | "
+            f"approvals={self.approval_count} | elapsed={elapsed_seconds}s"
+        )
+        self.append_system_message(message)
+        self.set_status("Displayed stats")
+
+    def _command_error(self, message: str) -> None:
+        full_message = f"Error: {message}"
+        self.append_system_message(full_message)
+        self.set_status(full_message)
 
     def _show_approval_request(self, request: ApprovalRequest) -> None:
         self.query_one("#approval-title", Static).update(f"Approval required: {request.tool_name}")
