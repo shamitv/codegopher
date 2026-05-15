@@ -175,7 +175,7 @@ Commit rules:
   Verify: `rg -n "interactive|Textual|TUI" docs/product/INTRO.md`
 - [x] T068: Update v0.2 status doc with implemented components and remaining gaps.
   Verify: `rg -n "v0.2|Interactive Terminal" docs/plans/v0.2/STATUS.md`
-- [ ] T069: Add or update release checklist items for interactive smoke testing.
+- [x] T069: Add or update release checklist items for interactive smoke testing.
   Verify: `rg -n "interactive|TUI|smoke" docs/release/CHECKLIST.md`
 - [ ] T070: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
