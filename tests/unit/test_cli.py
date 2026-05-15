@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import json
 
+import pytest
 from click.testing import CliRunner
 
 import codegopher.cli.main as cli_main
 from codegopher.cli.main import app
 from codegopher.config.schema import ModelConfig, ProviderEntry, Settings
 from codegopher.core.agent import AgentResult
+from codegopher.core.errors import ProviderError
 from codegopher.providers.openai_compat import OpenAICompatProvider
+from codegopher.runtime import build_provider
 
 
 def test_cli_without_prompt_requires_interactive_tty() -> None:
@@ -136,3 +139,10 @@ def test_cli_builds_real_openai_compatible_provider(monkeypatch) -> None:
     assert isinstance(provider, OpenAICompatProvider)
     assert provider.base_url == "http://127.0.0.1:8000/v1"
     assert provider.api_key == "sk-local"
+
+
+def test_build_provider_honors_empty_environ(monkeypatch) -> None:
+    monkeypatch.setenv("CODEGOPHER_TEST_MOCK_RESPONSE", "mocked")
+
+    with pytest.raises(ProviderError, match="Missing API key"):
+        build_provider(Settings(), environ={})

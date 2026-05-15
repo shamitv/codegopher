@@ -8,6 +8,7 @@ from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
+from codegopher.providers.base import ProviderCapabilities
 from codegopher.providers.mock import MockProvider
 from codegopher.tools.base import ToolResult
 from codegopher.tools.registry import create_default_registry
@@ -119,6 +120,27 @@ async def test_agent_loop_emits_error_callback_for_provider_error_event(tmp_path
 
 
 @pytest.mark.asyncio
+async def test_agent_loop_emits_error_callback_for_unsupported_tool_calls(tmp_path: Path) -> None:
+    provider = TextOnlyProvider()
+    errors: list[str] = []
+
+    async def on_error(message: str) -> None:
+        errors.append(message)
+
+    with pytest.raises(ProviderError, match="does not support tool calls"):
+        await run_agent(
+            prompt="fail",
+            provider=provider,
+            registry=create_default_registry(),
+            settings=Settings(),
+            cwd=tmp_path,
+            callbacks=AgentCallbacks(on_error=on_error),
+        )
+
+    assert errors == ["Provider does not support tool calls"]
+
+
+@pytest.mark.asyncio
 async def test_agent_loop_wraps_callback_failures(tmp_path: Path) -> None:
     provider = MockProvider([[{"type": "text_delta", "content": "hello"}, {"type": "done"}]])
 
@@ -163,6 +185,42 @@ async def test_agent_loop_raises_on_max_iterations(tmp_path: Path) -> None:
             cwd=tmp_path,
             max_iterations=1,
         )
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_emits_error_callback_for_max_iterations(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "missing.txt"},
+                    },
+                },
+                {"type": "done"},
+            ]
+        ]
+    )
+    errors: list[str] = []
+
+    async def on_error(message: str) -> None:
+        errors.append(message)
+
+    with pytest.raises(AgentLoopError, match="max iterations"):
+        await run_agent(
+            prompt="Read",
+            provider=provider,
+            registry=create_default_registry(),
+            settings=Settings(),
+            cwd=tmp_path,
+            max_iterations=1,
+            callbacks=AgentCallbacks(on_error=on_error),
+        )
+
+    assert errors == ["Agent exceeded max iterations: 1"]
 
 
 @pytest.mark.asyncio
@@ -314,3 +372,7 @@ def test_agent_result_has_structured_cli_shape() -> None:
         "tool_results": [],
         "iterations": 1,
     }
+
+
+class TextOnlyProvider:
+    capabilities = ProviderCapabilities(streaming=True, tool_calls=False)

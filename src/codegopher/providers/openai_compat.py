@@ -31,7 +31,7 @@ class OpenAICompatProvider:
         environ: Mapping[str, str] | None = None,
         client: Any | None = None,
     ) -> None:
-        env = environ or os.environ
+        env = os.environ if environ is None else environ
         self.api_key_env = api_key_env or "OPENAI_API_KEY"
         self.api_key = env.get(self.api_key_env)
         if not self.api_key:

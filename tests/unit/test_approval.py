@@ -66,6 +66,19 @@ def test_resolve_approval_denies_when_non_tty_and_prompt_required() -> None:
     assert "stdin is not a TTY" in str(result.reason)
 
 
+def test_resolve_approval_uses_custom_unavailable_reason() -> None:
+    result = resolve_approval(
+        ApprovalMode.review,
+        FakeTool(requires_approval=True),
+        ApprovalRequest("write_file", "{}"),
+        stdin_is_tty=False,
+        prompt_unavailable_reason="approval UI is unavailable",
+    )
+
+    assert result.approved is False
+    assert result.reason == "approval UI is unavailable"
+
+
 def test_resolve_approval_allows_yolo_without_tty() -> None:
     result = resolve_approval(
         ApprovalMode.yolo,

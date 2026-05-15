@@ -51,9 +51,11 @@ def resolve_approval(
     request: ApprovalRequest,
     *,
     stdin_is_tty: bool,
+    prompt_unavailable_reason: str | None = None,
 ) -> ApprovalResult:
     if not should_prompt(mode, tool):
         return ApprovalResult(approved=True)
     if not stdin_is_tty:
-        return ApprovalResult(approved=False, reason="Approval required but stdin is not a TTY")
+        reason = prompt_unavailable_reason or "Approval required but stdin is not a TTY"
+        return ApprovalResult(approved=False, reason=reason)
     return prompt_for_approval(request)

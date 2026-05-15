@@ -16,7 +16,7 @@ def build_provider(
     *,
     environ: Mapping[str, str] | None = None,
 ) -> Provider:
-    env = environ or os.environ
+    env = os.environ if environ is None else environ
     mock_response = env.get("CODEGOPHER_TEST_MOCK_RESPONSE")
     if mock_response is not None:
         return MockProvider([[{"type": "text_delta", "content": mock_response}, {"type": "done"}]])

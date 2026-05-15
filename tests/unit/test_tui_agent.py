@@ -90,6 +90,39 @@ async def test_tui_surfaces_provider_errors(tmp_path: Path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_tui_uses_clear_approval_unavailable_reason(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "denied"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        input_widget = app.query_one("#prompt-input", Input)
+        input_widget.value = "write"
+
+        await pilot.press("enter")
+        await pilot.pause(0.1)
+
+        tool_result_message = provider.calls[1][-1]
+        assert tool_result_message["role"] == "tool"
+        assert tool_result_message["content"] == "Tool approval from the TUI is not implemented yet"
+        assert "stdin is not a TTY" not in tool_result_message["content"]
+
+
+@pytest.mark.asyncio
 async def test_tui_runs_integration_style_mock_provider_turn(tmp_path: Path) -> None:
     provider = MockProvider([[{"type": "text_delta", "content": "final answer"}, {"type": "done"}]])
     app = make_app(tmp_path, provider)

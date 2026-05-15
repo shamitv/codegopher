@@ -58,10 +58,17 @@ async def run_agent(
     cwd: Path,
     max_iterations: int = 8,
     stdin_is_tty: bool = False,
+    approval_prompt_unavailable_reason: str | None = None,
     callbacks: AgentCallbacks | None = None,
 ) -> AgentResult:
     if not provider.capabilities.tool_calls:
-        raise ProviderError("Provider does not support tool calls")
+        message = "Provider does not support tool calls"
+        await _emit_callback(
+            "on_error",
+            callbacks.on_error if callbacks else None,
+            message,
+        )
+        raise ProviderError(message)
 
     conversation = Conversation()
     conversation.append_user(prompt)
@@ -128,6 +135,7 @@ async def run_agent(
                 tool,
                 ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"])),
                 stdin_is_tty=stdin_is_tty,
+                prompt_unavailable_reason=approval_prompt_unavailable_reason,
             )
             if not approval.approved:
                 tool_result = ToolResult(
@@ -147,4 +155,10 @@ async def run_agent(
                 tool_result,
             )
 
-    raise AgentLoopError(f"Agent exceeded max iterations: {max_iterations}")
+    message = f"Agent exceeded max iterations: {max_iterations}"
+    await _emit_callback(
+        "on_error",
+        callbacks.on_error if callbacks else None,
+        message,
+    )
+    raise AgentLoopError(message)

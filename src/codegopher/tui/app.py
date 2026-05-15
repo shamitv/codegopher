@@ -128,6 +128,9 @@ class CodeGopherApp(App[None]):
                 settings=self.settings,
                 cwd=self.cwd,
                 stdin_is_tty=False,
+                approval_prompt_unavailable_reason=(
+                    "Tool approval from the TUI is not implemented yet"
+                ),
                 callbacks=callbacks,
             )
         except (AgentLoopError, ProviderError) as exc:
@@ -138,11 +141,13 @@ class CodeGopherApp(App[None]):
             self._set_turn_running(False)
 
     async def _on_agent_text_delta(self, content: str) -> None:
+        is_new_assistant_message = self._active_assistant_index is None
         if self._active_assistant_index is None:
             self.chat_messages.append("Assistant: ")
             self._active_assistant_index = len(self.chat_messages) - 1
         self.chat_messages[self._active_assistant_index] += content
-        self._render_chat_history()
+        prefix = "Assistant: " if is_new_assistant_message else ""
+        self._write_chat_message(f"{prefix}{content}")
 
     async def _on_agent_tool_call(self, tool_call: ToolCall) -> None:
         self.set_status(f"Tool requested: {tool_call['name']}")
@@ -161,13 +166,10 @@ class CodeGopherApp(App[None]):
 
     def _append_chat_message(self, message: str) -> None:
         self.chat_messages.append(message)
-        self._render_chat_history()
+        self._write_chat_message(message)
 
-    def _render_chat_history(self) -> None:
-        log = self.query_one("#chat-history", RichLog)
-        log.clear()
-        for message in self.chat_messages:
-            log.write(message, scroll_end=True)
+    def _write_chat_message(self, message: str) -> None:
+        self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
 
     def _set_turn_running(self, running: bool) -> None:
         self.turn_running = running
