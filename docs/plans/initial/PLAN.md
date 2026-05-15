@@ -217,6 +217,17 @@ Behavior:
 
 ## Testing Plan
 
+Sample projects:
+
+- Create reusable fixture projects under `tests/fixtures/projects/`.
+- Keep each sample project tiny, deterministic, and free of generated artifacts.
+- Include `README.md` files in fixtures that explain what behavior each project is meant to test.
+- Add `tests/fixtures/projects/basic_python_package/` for read/list/glob/grep tests against a normal Python package.
+- Add `tests/fixtures/projects/buggy_cli_app/` for agent-loop and shell tests against a small failing CLI program.
+- Add `tests/fixtures/projects/configured_project/` for project-level `.codegopher/settings.toml` and `.codegopherignore` tests.
+- Add `tests/fixtures/projects/edit_safety_project/` for prior-read, replacement-write, and new-file creation tests.
+- Add helper code that copies fixture projects into temp directories before mutation tests so tracked fixtures remain unchanged.
+
 Unit tests:
 
 - Config precedence and validation.
@@ -225,6 +236,7 @@ Unit tests:
 - Capability failure when tool calls are unavailable.
 - Path canonicalization and prior-read checks on Windows-style and POSIX-style paths.
 - File tools using temporary directories.
+- Fixture-copy helpers and sample project integrity checks.
 - Shell tool timeout, success, and failure cases.
 - Agent loop with a scripted mock provider.
 
@@ -233,6 +245,7 @@ Integration-style tests:
 - Headless CLI with a mock provider.
 - Non-TTY approval denial behavior.
 - JSON output shape.
+- End-to-end read/search/edit scenarios against copied sample projects.
 
 Static checks:
 
