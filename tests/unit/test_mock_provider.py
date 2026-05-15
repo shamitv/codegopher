@@ -34,3 +34,19 @@ async def test_mock_provider_records_message_calls() -> None:
 
     assert events[0] == {"type": "text_delta", "content": "ok"}
     assert provider.calls == [[{"role": "user", "content": "hello"}]]
+
+
+@pytest.mark.asyncio
+async def test_mock_provider_streams_tool_call_events() -> None:
+    tool_event = {
+        "type": "tool_call",
+        "tool_call": {"id": "call-1", "name": "read_file", "arguments": {"path": "README.md"}},
+    }
+    provider = MockProvider([[tool_event, {"type": "done"}]])
+
+    events = [
+        event
+        async for event in provider.stream([], [], model="test", temperature=0, max_output_tokens=1)
+    ]
+
+    assert events[0] == tool_event
