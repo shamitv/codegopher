@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import pytest
 
 from codegopher.config.schema import ApprovalMode
-from codegopher.core.approval import should_prompt
+from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
 
 
 @dataclass(frozen=True)
@@ -27,3 +27,10 @@ class FakeTool:
 def test_should_prompt(mode: ApprovalMode, requires_approval: bool, expected: bool) -> None:
     assert should_prompt(mode, FakeTool(requires_approval)) is expected
 
+
+def test_approval_request_and_result_models() -> None:
+    request = ApprovalRequest(tool_name="write_file", arguments_preview='{"path":"x"}')
+    result = ApprovalResult(approved=False, reason="denied")
+
+    assert request.tool_name == "write_file"
+    assert result.reason == "denied"
