@@ -13,17 +13,18 @@ def test_cli_without_prompt_shows_alpha_message() -> None:
 
 
 def test_cli_prompt_dry_run_echoes_prompt() -> None:
-    result = CliRunner().invoke(app, ["-p", "hello"])
+    result = CliRunner().invoke(app, ["-p", "hello"], env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"})
 
     assert result.exit_code == 0
-    assert "CodeGopher dry run [openai/gpt-4o]: hello" in result.output
+    assert result.output == "mocked\n"
 
 
 def test_cli_applies_settings_overrides() -> None:
     result = CliRunner().invoke(
         app,
         ["-p", "hello", "--model", "local-model", "--provider", "local"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
     )
 
     assert result.exit_code == 0
-    assert "CodeGopher dry run [local/local-model]: hello" in result.output
+    assert result.output == "mocked\n"
