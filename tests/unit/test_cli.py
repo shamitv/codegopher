@@ -67,3 +67,17 @@ def test_cli_json_output_shape() -> None:
         "tool_results": [],
         "iterations": 1,
     }
+
+
+def test_cli_reports_configuration_errors() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["-p", "hello"],
+        env={
+            "CODEGOPHER_TEST_MOCK_RESPONSE": "mocked",
+            "CODEGOPHER_APPROVAL_MODE": "sometimes",
+        },
+    )
+
+    assert result.exit_code != 0
+    assert "Invalid settings" in result.output
