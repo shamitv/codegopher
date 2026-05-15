@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Literal, NotRequired, TypeAlias, TypedDict
 
-
 Role: TypeAlias = Literal["system", "user", "assistant", "tool"]
 
 

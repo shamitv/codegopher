@@ -10,7 +10,7 @@ class AsyncStream:
     def __init__(self, items: list[object] | None = None) -> None:
         self.items = list(items or [])
 
-    def __aiter__(self) -> "AsyncStream":
+    def __aiter__(self) -> AsyncStream:
         return self
 
     async def __anext__(self) -> object:

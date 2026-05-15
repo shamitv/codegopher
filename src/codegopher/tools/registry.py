@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import builtins
+
 from codegopher.core.errors import ToolExecutionError
 from codegopher.core.types import ToolSchema
 from codegopher.tools.base import Tool
@@ -22,10 +24,10 @@ class ToolRegistry:
         except KeyError as exc:
             raise ToolExecutionError(f"Unknown tool: {name}") from exc
 
-    def list(self) -> list[Tool]:
-        return list(self._tools.values())
+    def list(self) -> builtins.list[Tool]:
+        return builtins.list(self._tools.values())
 
-    def schemas(self) -> list[ToolSchema]:
+    def schemas(self) -> builtins.list[ToolSchema]:
         return [
             {
                 "type": "function",
@@ -40,9 +42,9 @@ class ToolRegistry:
 
 
 def create_default_registry() -> ToolRegistry:
+    from codegopher.tools.fs.edit_file import EditFileTool
     from codegopher.tools.fs.glob_search import GlobSearchTool
     from codegopher.tools.fs.grep_search import GrepSearchTool
-    from codegopher.tools.fs.edit_file import EditFileTool
     from codegopher.tools.fs.list_dir import ListDirTool
     from codegopher.tools.fs.read_file import ReadFileTool
     from codegopher.tools.fs.read_many_files import ReadManyFilesTool

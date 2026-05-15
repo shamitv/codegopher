@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from codegopher.core.errors import ConfigurationError
 from codegopher.config.loader import CliOverrides, load_settings
+from codegopher.core.errors import ConfigurationError
 
 
 def test_load_settings_returns_defaults() -> None:

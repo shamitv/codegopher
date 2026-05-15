@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator
-from collections.abc import Mapping
+from collections.abc import AsyncIterator, Mapping
 from typing import Any
 
 from openai import AsyncOpenAI
@@ -38,7 +37,7 @@ class OpenAICompatProvider:
         if not self.api_key:
             raise ProviderError(f"Missing API key: expected environment variable {self.api_key_env}")
         self.base_url = base_url
-        self._client = client or AsyncOpenAI(api_key=self.api_key, base_url=base_url)
+        self._client: Any = client or AsyncOpenAI(api_key=self.api_key, base_url=base_url)
 
     async def stream(
         self,

@@ -5,14 +5,15 @@ from __future__ import annotations
 import copy
 import os
 import tomllib
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, cast
 
 from pydantic import ValidationError
 
-from codegopher.core.errors import ConfigurationError
 from codegopher.config.schema import Settings
+from codegopher.core.errors import ConfigurationError
 
 
 @dataclass(frozen=True)
@@ -60,7 +61,7 @@ def _ensure_provider_entry(data: dict[str, Any]) -> dict[str, Any]:
     entries = providers.setdefault(provider, [])
     if not entries:
         entries.append({"id": name, "name": name})
-    return entries[0]
+    return cast("dict[str, Any]", entries[0])
 
 
 def _env_overrides(environ: Mapping[str, str]) -> dict[str, Any]:

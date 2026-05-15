@@ -19,7 +19,7 @@ class ProviderCapabilities(BaseModel):
 class Provider(Protocol):
     capabilities: ProviderCapabilities
 
-    async def stream(
+    def stream(
         self,
         messages: list[Message],
         tools: list[ToolSchema],
@@ -29,4 +29,3 @@ class Provider(Protocol):
         max_output_tokens: int,
     ) -> AsyncIterator[StreamEvent]:
         ...
-

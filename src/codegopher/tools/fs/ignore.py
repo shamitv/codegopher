@@ -12,7 +12,7 @@ class IgnoreMatcher:
     patterns: tuple[str, ...]
 
     @classmethod
-    def from_file(cls, root: Path, ignore_file: str = ".codegopherignore") -> "IgnoreMatcher":
+    def from_file(cls, root: Path, ignore_file: str = ".codegopherignore") -> IgnoreMatcher:
         path = root / ignore_file
         if not path.exists():
             return cls(())
@@ -31,4 +31,3 @@ class IgnoreMatcher:
             if fnmatch.fnmatch(rel, pattern) or fnmatch.fnmatch(path.name, pattern):
                 return True
         return False
-

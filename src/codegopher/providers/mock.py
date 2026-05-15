@@ -25,7 +25,6 @@ class MockProvider:
         max_output_tokens: int,
     ) -> AsyncIterator[StreamEvent]:
         self.calls.append(messages)
-        events = self.turns.pop(0) if self.turns else [{"type": "done"}]
+        events: list[StreamEvent] = self.turns.pop(0) if self.turns else [{"type": "done"}]
         for event in events:
             yield event
-

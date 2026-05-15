@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 
 from codegopher.core.errors import ProviderError
 from codegopher.providers.base import Provider
 from codegopher.providers.openai_compat import OpenAICompatProvider
-
 
 ProviderFactory = Callable[[], Provider]
 
