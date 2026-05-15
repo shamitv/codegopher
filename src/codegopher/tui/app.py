@@ -5,13 +5,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from pathlib import Path
+from time import monotonic
 from typing import TYPE_CHECKING, ClassVar
 
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 
-from codegopher.config.schema import Settings
+from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.errors import AgentLoopError, ProviderError
@@ -75,15 +76,21 @@ class CodeGopherApp(App[None]):
         cwd: Path,
         provider_factory: Callable[[Settings], Provider] = build_provider,
         registry_factory: Callable[[], ToolRegistry] = create_default_registry,
+        clock: Callable[[], float] = monotonic,
     ) -> None:
         super().__init__()
         self.settings = settings
         self.cwd = cwd
         self.provider_factory = provider_factory
         self.registry_factory = registry_factory
+        self.clock = clock
         self.chat_messages: list[str] = []
         self.status_message = self._startup_status()
         self.turn_running = False
+        self.turn_count = 0
+        self.tool_count = 0
+        self.approval_count = 0
+        self.started_at = self.clock()
         self._active_assistant_message = ""
         self._tool_call_names: dict[str, str] = {}
         self._pending_approval: asyncio.Future[ApprovalResult] | None = None
@@ -116,6 +123,12 @@ class CodeGopherApp(App[None]):
         event.input.value = ""
         if not prompt:
             self.set_status("Enter a prompt to continue")
+            return
+        if self.turn_running:
+            self.set_status("Wait for the current turn to finish")
+            return
+        if prompt.startswith("/"):
+            self._handle_slash_command(prompt)
             return
         self.append_user_message(prompt)
         self._set_turn_running(True)
@@ -165,6 +178,7 @@ class CodeGopherApp(App[None]):
             self.append_system_message(message)
             self.set_status(message)
         finally:
+            self.turn_count += 1
             self._set_turn_running(False)
 
     async def _on_agent_text_delta(self, content: str) -> None:
@@ -181,6 +195,7 @@ class CodeGopherApp(App[None]):
         self.set_status(f"Tool requested: {tool_call['name']}")
 
     async def _on_agent_tool_result(self, result: ToolResult) -> None:
+        self.tool_count += 1
         tool_name = self._tool_call_names.get(result.tool_call_id, result.tool_call_id)
         state = "failed" if result.is_error else "completed"
         if result.is_error:
@@ -224,6 +239,7 @@ class CodeGopherApp(App[None]):
     def _resolve_pending_approval(self, result: ApprovalResult) -> None:
         if self._pending_approval and not self._pending_approval.done():
             self._pending_approval.set_result(result)
+            self.approval_count += 1
         self._pending_approval = None
         self.query_one("#approval-panel", Vertical).display = False
 
@@ -239,6 +255,97 @@ class CodeGopherApp(App[None]):
     def _set_turn_running(self, running: bool) -> None:
         self.turn_running = running
         self.query_one("#prompt-input", Input).disabled = running
+
+    def _handle_slash_command(self, prompt: str) -> None:
+        command_text = prompt[1:].strip()
+        if not command_text:
+            self._show_command_error("/")
+            return
+        command, _, arguments = command_text.partition(" ")
+        arguments = arguments.strip()
+
+        if command == "help":
+            self._handle_help_command(arguments)
+        elif command == "clear":
+            self._handle_clear_command(arguments)
+        elif command == "model":
+            self._handle_model_command(arguments)
+        elif command == "mode":
+            self._handle_mode_command(arguments)
+        elif command == "stats":
+            self._handle_stats_command(arguments)
+        else:
+            self._show_command_error(f"/{command}")
+
+    def _handle_help_command(self, arguments: str) -> None:
+        if arguments:
+            self._show_command_error("/help")
+            return
+        self.append_system_message(
+            "Commands: /help show commands; /clear clear visible chat; "
+            "/model [name] show or set model; /mode [review|auto|yolo] show or set approvals; "
+            "/stats show session counters"
+        )
+        self.set_status("Help displayed")
+
+    def _handle_clear_command(self, arguments: str) -> None:
+        if arguments:
+            self._show_command_error("/clear")
+            return
+        self.chat_messages.clear()
+        self.query_one("#chat-history", RichLog).clear()
+        self._active_assistant_message = ""
+        self.query_one("#assistant-stream", Static).update("")
+        self.set_status("Chat history cleared")
+
+    def _handle_model_command(self, arguments: str) -> None:
+        if not arguments:
+            self.append_system_message(
+                f"Model: {self.settings.model.provider}/{self.settings.model.name}"
+            )
+            self.set_status("Model displayed")
+            return
+        if len(arguments.split()) != 1:
+            self._show_command_error("/model")
+            return
+        self.settings = self.settings.model_copy(
+            update={"model": self.settings.model.model_copy(update={"name": arguments})}
+        )
+        self.append_system_message(
+            f"Model updated: {self.settings.model.provider}/{self.settings.model.name}"
+        )
+        self.set_status(self._startup_status())
+
+    def _handle_mode_command(self, arguments: str) -> None:
+        if not arguments:
+            self.append_system_message(f"Approval mode: {self.settings.approval_mode.value}")
+            self.set_status("Approval mode displayed")
+            return
+        try:
+            approval_mode = ApprovalMode(arguments)
+        except ValueError:
+            self._show_command_error("/mode")
+            return
+        self.settings = self.settings.model_copy(update={"approval_mode": approval_mode})
+        self.append_system_message(f"Approval mode updated: {self.settings.approval_mode.value}")
+        self.set_status(self._startup_status())
+
+    def _handle_stats_command(self, arguments: str) -> None:
+        if arguments:
+            self._show_command_error("/stats")
+            return
+        elapsed = max(0.0, self.clock() - self.started_at)
+        self.append_system_message(
+            "Stats: "
+            f"turns={self.turn_count}, tools={self.tool_count}, "
+            f"approvals={self.approval_count}, elapsed={elapsed:.1f}s"
+        )
+        self.set_status("Stats displayed")
+
+    def _show_command_error(self, command: str) -> None:
+        message = f"Unknown command: {command}"
+        self.append_system_message(message)
+        self.set_status(message)
 
     def _summarize_arguments(self, arguments: dict[str, object]) -> str:
         if not arguments:
