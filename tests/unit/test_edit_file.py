@@ -34,3 +34,32 @@ async def test_edit_file_requires_prior_read(tmp_path: Path) -> None:
 
     assert result.is_error is True
     assert "must read it first" in result.content
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("content", "old", "new", "expected"),
+    [
+        ("alpha\n", "missing", "new", "not found"),
+        ("same same\n", "same", "new", "matched 2 times"),
+        ("alpha\n", "alpha", "alpha", "no-op"),
+    ],
+)
+async def test_edit_file_rejects_ambiguous_or_noop_edits(
+    tmp_path: Path,
+    content: str,
+    old: str,
+    new: str,
+    expected: str,
+) -> None:
+    (tmp_path / "example.txt").write_text(content, encoding="utf-8")
+    context = ToolContext(cwd=tmp_path)
+    context.access.record_file_read("example.txt")
+
+    result = await EditFileTool().execute(
+        {"path": "example.txt", "old": old, "new": new},
+        context,
+    )
+
+    assert result.is_error is True
+    assert expected in result.content
