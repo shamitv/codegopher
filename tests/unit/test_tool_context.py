@@ -50,3 +50,14 @@ def test_access_tracker_rejects_new_file_without_parent_inspection(tmp_path: Pat
 
     with pytest.raises(ToolExecutionError, match="list_dir must inspect parent directory"):
         tracker.require_parent_inspection("src/new.py")
+
+
+def test_access_tracker_rejected_write_errors_name_required_action(tmp_path: Path) -> None:
+    tracker = AccessTracker(root=tmp_path)
+
+    with pytest.raises(ToolExecutionError) as exc_info:
+        tracker.require_prior_read("src/example.py")
+
+    message = str(exc_info.value)
+    assert "Cannot modify" in message
+    assert "read_file or read_many_files" in message
