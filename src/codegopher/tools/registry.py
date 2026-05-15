@@ -47,6 +47,7 @@ def create_default_registry() -> ToolRegistry:
     from codegopher.tools.fs.read_file import ReadFileTool
     from codegopher.tools.fs.read_many_files import ReadManyFilesTool
     from codegopher.tools.fs.write_file import WriteFileTool
+    from codegopher.tools.shell.run_shell import RunShellCommandTool
 
     registry = ToolRegistry()
     for tool in (
@@ -57,6 +58,7 @@ def create_default_registry() -> ToolRegistry:
         GrepSearchTool(),
         WriteFileTool(),
         EditFileTool(),
+        RunShellCommandTool(),
     ):
         registry.register(tool)
     return registry
