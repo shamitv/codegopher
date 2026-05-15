@@ -24,7 +24,11 @@ class IgnoreMatcher:
         return cls(tuple(patterns))
 
     def matches(self, path: Path, root: Path) -> bool:
-        rel = path.relative_to(root).as_posix()
+        try:
+            rel = path.relative_to(root).as_posix()
+        except ValueError:
+            # Path is outside root; treat as non-matching
+            return False
         for pattern in self.patterns:
             if pattern.endswith("/") and (rel + "/").startswith(pattern):
                 return True

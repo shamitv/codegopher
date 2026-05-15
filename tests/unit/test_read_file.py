@@ -56,3 +56,23 @@ async def test_read_file_records_prior_read(tmp_path: Path) -> None:
     await ReadFileTool().execute({"path": "hello.txt"}, context)
 
     assert context.access.has_read_file("hello.txt")
+
+
+@pytest.mark.asyncio
+async def test_read_file_rejects_absolute_path_outside_cwd(tmp_path: Path) -> None:
+    context = ToolContext(cwd=tmp_path)
+
+    result = await ReadFileTool().execute({"path": "/etc/passwd"}, context)
+
+    assert result.is_error is True
+    assert "outside project directory" in result.content
+
+
+@pytest.mark.asyncio
+async def test_read_file_rejects_relative_path_escaping_cwd(tmp_path: Path) -> None:
+    context = ToolContext(cwd=tmp_path)
+
+    result = await ReadFileTool().execute({"path": "../../../etc/passwd"}, context)
+
+    assert result.is_error is True
+    assert "outside project directory" in result.content

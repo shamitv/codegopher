@@ -46,11 +46,16 @@ class ReadManyFilesTool:
         sections: list[str] = []
         for path in unique:
             try:
+                # Skip paths outside cwd
+                try:
+                    rel_path = path.relative_to(context.cwd).as_posix()
+                except ValueError:
+                    continue
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError) as exc:
-                sections.append(f"## {path.relative_to(context.cwd).as_posix()}\nERROR: {exc}")
+                sections.append(f"## {rel_path}\nERROR: {exc}")
                 continue
             context.access.record_file_read(path)
-            sections.append(f"## {path.relative_to(context.cwd).as_posix()}\n{text.rstrip()}")
+            sections.append(f"## {rel_path}\n{text.rstrip()}")
         return ToolResult(tool_call_id=call_id, content="\n\n".join(sections))
 

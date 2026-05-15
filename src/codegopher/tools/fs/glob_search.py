@@ -22,9 +22,15 @@ class GlobSearchTool:
         call_id = str(arguments.get("_tool_call_id", ""))
         pattern = str(arguments["pattern"])
         matcher = IgnoreMatcher.from_file(context.cwd)
-        matches = sorted(
-            path.relative_to(context.cwd).as_posix()
-            for path in context.cwd.glob(pattern)
-            if path.exists() and not matcher.matches(path, context.cwd)
-        )
-        return ToolResult(tool_call_id=call_id, content="\n".join(matches))
+        matches = []
+        for path in context.cwd.glob(pattern):
+            if not path.exists():
+                continue
+            # Skip paths outside cwd
+            try:
+                rel_path = path.relative_to(context.cwd).as_posix()
+            except ValueError:
+                continue
+            if not matcher.matches(path, context.cwd):
+                matches.append(rel_path)
+        return ToolResult(tool_call_id=call_id, content="\n".join(sorted(matches)))

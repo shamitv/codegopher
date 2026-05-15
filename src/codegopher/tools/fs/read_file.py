@@ -27,6 +27,13 @@ class ReadFileTool:
         path = Path(str(arguments["path"]))
         target = path if path.is_absolute() else context.cwd / path
         try:
+            resolved = target.resolve()
+            if not resolved.is_relative_to(context.cwd.resolve()):
+                return ToolResult(
+                    tool_call_id=call_id,
+                    content=f"Path {path.as_posix()} resolves outside project directory",
+                    is_error=True,
+                )
             text = target.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as exc:
             return ToolResult(tool_call_id=call_id, content=str(exc), is_error=True)
