@@ -29,3 +29,15 @@ async def test_run_shell_command_runs_in_context_cwd(tmp_path: Path) -> None:
     )
 
     assert "True" in result.content
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_reports_nonzero_exit(tmp_path: Path) -> None:
+    result = await RunShellCommandTool().execute(
+        {"command": "python -c \"import sys; print('bad'); sys.exit(3)\""},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is True
+    assert "exit_code: 3" in result.content
+    assert "bad" in result.content
