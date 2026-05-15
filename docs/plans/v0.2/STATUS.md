@@ -4,17 +4,17 @@ Last reviewed: 2026-05-15
 
 ## Readiness Summary
 
-- v0.2 implementation is in release-readiness verification.
+- v0.2 implementation has passed release-readiness verification.
 - The v0.1 headless baseline is complete and merged into `main`.
-- Milestones 0-8 are implemented: Textual dependency setup, importable TUI package, CLI routing, minimal app shell, agent stream-to-UI wiring, tool rendering, inline approvals, slash commands, file mentions, shell passthrough, session save/resume, and thinking-content rendering.
-- The immediate next implementation step is `T069` in `docs/plans/v0.2/TODO.md`.
+- Milestones 0-9 are implemented: Textual dependency setup, importable TUI package, CLI routing, minimal app shell, agent stream-to-UI wiring, tool rendering, inline approvals, slash commands, file mentions, shell passthrough, session save/resume, thinking-content rendering, docs, checks, build, and smoke testing.
+- There is no remaining unchecked v0.2 implementation step in `docs/plans/v0.2/TODO.md`.
 - No v0.2 blockers are known yet.
 
 Practical readiness estimate:
 
-- Feature implementation is complete; remaining work is final documentation, checks, build, and smoke testing.
-- Milestones 0-8 implemented for the scoped v0.2 Interactive Terminal experience.
-- T001-T068 are complete; T069 is the next unchecked implementation task.
+- Feature implementation, final documentation, checks, build, and smoke testing are complete.
+- Milestones 0-9 are complete for the scoped v0.2 Interactive Terminal experience.
+- T001-T074 are complete.
 
 ## Current Repository State
 
@@ -32,7 +32,7 @@ Practical readiness estimate:
 | Shell passthrough | Implemented | `/shell COMMAND` executes locally through the existing shell tool after approval unless `yolo` is active. |
 | Session save/resume | Implemented | TUI sessions persist under CodeGopher user data and auto-resume by cwd. |
 | Thinking rendering | Implemented | Provider `reasoning_content` emits reasoning deltas, headless `--debug` displays reasoning, JSON/final text exclude reasoning, and the TUI renders reasoning collapsed by default. |
-| Release readiness | In progress | README, product intro, and status docs are updated; release checklist, final checks, build, and smoke note remain. |
+| Release readiness | Complete | README, product intro, status docs, release checklist, full tests, lint, mypy, hatch build, and manual TUI smoke note are complete. |
 
 ## Verified Facts
 
@@ -49,8 +49,19 @@ Practical readiness estimate:
 - Provider reasoning content is distinct from assistant answer text.
 - Headless `--debug` displays reasoning content; headless normal output and `--json` exclude reasoning from final text.
 - TUI reasoning content is rendered separately and collapsed by default.
+- Full pytest, ruff, mypy, and hatch build passed on 2026-05-15.
 - Existing approval modes are `review`, `auto`, and `yolo`.
 - Existing filesystem safety rules should be reused by the TUI.
+
+## Manual Smoke Test
+
+2026-05-15 on `feature/v0.2-milestones-8-9-integration`:
+
+- Ran plain `.venv/bin/cgopher` in a TTY with `CODEGOPHER_TEST_MOCK_RESPONSE="smoke response"` and an isolated `CODEGOPHER_DATA_HOME`.
+- Confirmed the Textual TUI started for `/home/shamit/work/codegopher` and rendered model/provider/approval/cwd status.
+- Submitted `/help`; it rendered slash command help locally in the TUI.
+- Submitted `smoke turn`; the mocked provider response rendered as `Assistant: smoke response`.
+- Quit with Ctrl+Q cleanly.
 
 ## Immediate Blockers
 
@@ -58,4 +69,4 @@ No blockers are known.
 
 ## Implementation Recommendation
 
-Start with `T069`: add or update release checklist items for interactive smoke testing.
+v0.2 is ready for release review.

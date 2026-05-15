@@ -185,5 +185,5 @@ Commit rules:
   Verify: `source .venv/bin/activate && mypy src/`
 - [x] T073: Build the distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
-- [ ] T074: Add a manual TUI smoke-test note to the v0.2 status doc.
+- [x] T074: Add a manual TUI smoke-test note to the v0.2 status doc.
   Verify: manual run of `cgopher`
