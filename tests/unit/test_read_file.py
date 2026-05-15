@@ -30,3 +30,19 @@ async def test_read_file_supports_line_bounds(tmp_path: Path) -> None:
     )
 
     assert result.content == "two\nthree"
+
+
+@pytest.mark.asyncio
+async def test_read_file_reports_missing_file(tmp_path: Path) -> None:
+    result = await ReadFileTool().execute({"path": "missing.txt"}, ToolContext(cwd=tmp_path))
+
+    assert result.is_error is True
+
+
+@pytest.mark.asyncio
+async def test_read_file_reports_encoding_failures(tmp_path: Path) -> None:
+    (tmp_path / "binary.bin").write_bytes(b"\xff\xfe\x00")
+
+    result = await ReadFileTool().execute({"path": "binary.bin"}, ToolContext(cwd=tmp_path))
+
+    assert result.is_error is True
