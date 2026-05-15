@@ -7,7 +7,8 @@ import pytest
 from codegopher.core.errors import ProviderError
 from codegopher.core.types import Message, StreamEvent, ToolSchema
 from codegopher.providers.base import ProviderCapabilities
-from codegopher.providers.registry import ProviderRegistry
+from codegopher.providers.openai_compat import OpenAICompatProvider
+from codegopher.providers.registry import ProviderRegistry, create_provider_registry
 
 
 class FakeProvider:
@@ -42,3 +43,9 @@ def test_provider_registry_rejects_provider_without_tool_calls() -> None:
 
     with pytest.raises(ProviderError, match="does not support tool calls"):
         registry.create("text")
+
+
+def test_default_provider_registry_registers_openai() -> None:
+    registry = create_provider_registry(environ={"OPENAI_API_KEY": "sk-test"})
+
+    assert isinstance(registry.create("openai"), OpenAICompatProvider)

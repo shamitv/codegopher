@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from collections.abc import Mapping
 
 from codegopher.core.errors import ProviderError
 from codegopher.providers.base import Provider
+from codegopher.providers.openai_compat import OpenAICompatProvider
 
 
 ProviderFactory = Callable[[], Provider]
@@ -28,6 +30,15 @@ class ProviderRegistry:
         return provider
 
 
-def create_provider_registry() -> ProviderRegistry:
-    return ProviderRegistry()
-
+def create_provider_registry(
+    *,
+    environ: Mapping[str, str] | None = None,
+    base_url: str | None = None,
+    api_key_env: str | None = "OPENAI_API_KEY",
+) -> ProviderRegistry:
+    registry = ProviderRegistry()
+    registry.register(
+        "openai",
+        lambda: OpenAICompatProvider(base_url=base_url, api_key_env=api_key_env, environ=environ),
+    )
+    return registry
