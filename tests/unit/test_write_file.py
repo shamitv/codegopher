@@ -42,3 +42,17 @@ async def test_write_file_replaces_existing_file_after_prior_read(tmp_path: Path
 
     assert result.is_error is False
     assert (tmp_path / "existing.txt").read_text(encoding="utf-8") == "new"
+
+
+@pytest.mark.asyncio
+async def test_write_file_rejects_replacement_without_prior_read(tmp_path: Path) -> None:
+    (tmp_path / "existing.txt").write_text("old", encoding="utf-8")
+
+    result = await WriteFileTool().execute(
+        {"path": "existing.txt", "content": "new"},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is True
+    assert "must read it first" in result.content
+    assert (tmp_path / "existing.txt").read_text(encoding="utf-8") == "old"
