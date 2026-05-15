@@ -103,53 +103,53 @@ Commit rules:
 
 ## Milestone 5 - File Mention Expansion
 
-- [ ] T039: Add a parser for `@path` and `@glob` mentions in submitted input.
+- [x] T039: Add a parser for `@path` and `@glob` mentions in submitted input.
   Verify: `python -m pytest tests/unit/test_tui_mentions.py`
-- [ ] T040: Resolve literal `@path` mentions relative to the session cwd.
+- [x] T040: Resolve literal `@path` mentions relative to the session cwd.
   Verify: `python -m pytest tests/unit/test_tui_mentions.py tests/unit/test_read_file.py`
-- [ ] T041: Resolve glob mentions using existing glob/read-many behavior.
+- [x] T041: Resolve glob mentions using existing glob/read-many behavior.
   Verify: `python -m pytest tests/unit/test_tui_mentions.py tests/unit/test_read_many_files.py`
-- [ ] T042: Respect `.codegopherignore` and project-root boundaries during expansion.
+- [x] T042: Respect `.codegopherignore` and project-root boundaries during expansion.
   Verify: `python -m pytest tests/unit/test_tui_mentions.py tests/unit/test_glob_search.py`
-- [ ] T043: Display mention expansion summaries before provider submission.
+- [x] T043: Display mention expansion summaries before provider submission.
   Verify: `python -m pytest tests/unit/test_tui_mentions.py`
-- [ ] T044: Surface missing, binary, ignored, or out-of-root mention failures clearly.
+- [x] T044: Surface missing, binary, ignored, or out-of-root mention failures clearly.
   Verify: `python -m pytest tests/unit/test_tui_mentions.py`
-- [ ] T045: Mark successfully expanded files as prior reads for the session.
+- [x] T045: Mark successfully expanded files as prior reads for the session.
   Verify: `python -m pytest tests/unit/test_tui_mentions.py tests/unit/test_tool_context.py`
 
 ## Milestone 6 - Shell Passthrough
 
-- [ ] T046: Define the shell passthrough input syntax for the TUI.
+- [x] T046: Define the shell passthrough input syntax for the TUI.
   Verify: manual docs skim
-- [ ] T047: Parse shell passthrough input without sending it to the model first.
+- [x] T047: Parse shell passthrough input without sending it to the model first.
   Verify: `python -m pytest tests/unit/test_tui_shell.py`
-- [ ] T048: Require explicit approval before shell passthrough execution.
+- [x] T048: Require explicit approval before shell passthrough execution.
   Verify: `python -m pytest tests/unit/test_tui_shell.py tests/unit/test_approval.py`
-- [ ] T049: Execute approved shell passthrough through the existing shell tool.
+- [x] T049: Execute approved shell passthrough through the existing shell tool.
   Verify: `python -m pytest tests/unit/test_tui_shell.py tests/unit/test_run_shell.py`
-- [ ] T050: Render shell stdout, stderr, exit code, and timeout states in chat history.
+- [x] T050: Render shell stdout, stderr, exit code, and timeout states in chat history.
   Verify: `python -m pytest tests/unit/test_tui_shell.py`
-- [ ] T051: Ensure denied shell passthrough does not execute subprocesses.
+- [x] T051: Ensure denied shell passthrough does not execute subprocesses.
   Verify: `python -m pytest tests/unit/test_tui_shell.py`
 
 ## Milestone 7 - Session Save And Resume
 
-- [ ] T052: Define the local session file format and storage location.
+- [x] T052: Define the local session file format and storage location.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
-- [ ] T053: Persist user and assistant messages after each completed turn.
+- [x] T053: Persist user and assistant messages after each completed turn.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
-- [ ] T054: Persist tool-call summaries and tool-result summaries.
+- [x] T054: Persist tool-call summaries and tool-result summaries.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
-- [ ] T055: Persist session metadata such as cwd, model, provider, approval mode, and created time.
+- [x] T055: Persist session metadata such as cwd, model, provider, approval mode, and created time.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
-- [ ] T056: Do not persist API keys or raw environment values.
+- [x] T056: Do not persist API keys or raw environment values.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
-- [ ] T057: Add a resume path that loads the most recent session for the same cwd.
+- [x] T057: Add a resume path that loads the most recent session for the same cwd.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
-- [ ] T058: Render resumed messages in chat history on startup.
+- [x] T058: Render resumed messages in chat history on startup.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
-- [ ] T059: Add user-facing errors for corrupt or incompatible session files.
+- [x] T059: Add user-facing errors for corrupt or incompatible session files.
   Verify: `python -m pytest tests/unit/test_tui_session.py`
 
 ## Milestone 8 - Thinking-Content Rendering

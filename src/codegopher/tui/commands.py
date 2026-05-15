@@ -27,6 +27,7 @@ COMMAND_DEFINITIONS: tuple[SlashCommandDefinition, ...] = (
     SlashCommandDefinition("/clear", "Clear visible chat history."),
     SlashCommandDefinition("/model [NAME]", "Show or update the active model."),
     SlashCommandDefinition("/mode [review|auto|yolo]", "Show or update approval mode."),
+    SlashCommandDefinition("/shell COMMAND", "Run a shell command after approval."),
     SlashCommandDefinition("/stats", "Show session counters."),
 )
 

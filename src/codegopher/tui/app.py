@@ -14,14 +14,18 @@ from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 
 from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
-from codegopher.core.approval import ApprovalRequest, ApprovalResult
+from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
-from codegopher.tools.base import ToolResult
+from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
+from codegopher.tools.shell.run_shell import RunShellCommandTool
 from codegopher.tui.commands import COMMAND_DEFINITIONS, SlashCommand, parse_slash_command
+from codegopher.tui.mentions import MentionExpansion, expand_mentions
+from codegopher.tui.session import MessageRole, SessionMessage, TuiSessionState, TuiSessionStore
+from codegopher.utils.json import dumps_json
 
 if TYPE_CHECKING:
     from textual.binding import BindingType
@@ -78,15 +82,30 @@ class CodeGopherApp(App[None]):
         provider_factory: Callable[[Settings], Provider] = build_provider,
         registry_factory: Callable[[], ToolRegistry] = create_default_registry,
         monotonic: Callable[[], float] = time.monotonic,
+        session_store: TuiSessionStore | None = None,
+        session_state: TuiSessionState | None = None,
+        session_load_error: str | None = None,
+        shell_timeout_seconds: int = 30,
     ) -> None:
         super().__init__()
         self.settings = settings
         self.cwd = cwd
         self.provider_factory = provider_factory
         self.registry_factory = registry_factory
+        self.tool_context = ToolContext(cwd=cwd)
+        self.session_store = session_store
+        self.session_state = session_state or (
+            session_store.create(cwd=cwd, settings=settings) if session_store else None
+        )
+        self.session_load_error = session_load_error
+        self.shell_timeout_seconds = shell_timeout_seconds
         self.monotonic = monotonic
         self.started_at = monotonic()
-        self.chat_messages: list[str] = []
+        self.chat_messages: list[str] = (
+            [message.content for message in self.session_state.messages]
+            if self.session_state
+            else []
+        )
         self.status_message = self._startup_status()
         self.turn_running = False
         self.turn_count = 0
@@ -113,6 +132,11 @@ class CodeGopherApp(App[None]):
 
     def on_mount(self) -> None:
         self.query_one("#approval-panel", Vertical).display = False
+        history = self.query_one("#chat-history", RichLog)
+        for message in self.chat_messages:
+            history.write(message, scroll_end=True)
+        if self.session_load_error:
+            self.append_system_message(f"Session resume failed: {self.session_load_error}")
         self.query_one("#prompt-input", Input).focus()
 
     def action_focus_input(self) -> None:
@@ -131,7 +155,14 @@ class CodeGopherApp(App[None]):
             self._handle_slash_command(command)
             return
 
+        expansion = self._expand_prompt_mentions(prompt)
         self.append_user_message(prompt)
+        if expansion.has_mentions:
+            self.append_system_message(expansion.summary())
+        if expansion.has_errors:
+            self.set_status("Mention expansion failed")
+            return
+
         self.turn_count += 1
         self._set_turn_running(True)
         self._active_assistant_message = ""
@@ -139,7 +170,7 @@ class CodeGopherApp(App[None]):
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Running agent turn...")
         self.run_worker(
-            self._run_agent_turn(prompt),
+            self._run_agent_turn(expansion.prompt),
             name="agent-turn",
             group="agent",
             exclusive=True,
@@ -147,10 +178,10 @@ class CodeGopherApp(App[None]):
         )
 
     def append_user_message(self, content: str) -> None:
-        self._append_chat_message(f"You: {content}")
+        self._append_chat_message(f"You: {content}", role="user")
 
     def append_system_message(self, content: str) -> None:
-        self._append_chat_message(content)
+        self._append_chat_message(content, role="system")
 
     def set_status(self, message: str) -> None:
         self.status_message = message
@@ -174,6 +205,7 @@ class CodeGopherApp(App[None]):
                 cwd=self.cwd,
                 stdin_is_tty=True,
                 callbacks=callbacks,
+                tool_context=self.tool_context,
             )
         except (AgentLoopError, ProviderError) as exc:
             message = f"Error: {exc}"
@@ -207,27 +239,45 @@ class CodeGopherApp(App[None]):
 
     async def _on_agent_approval_request(self, request: ApprovalRequest) -> ApprovalResult:
         self.approval_count += 1
-        loop = asyncio.get_running_loop()
-        future: asyncio.Future[ApprovalResult] = loop.create_future()
-        self._pending_approval = future
-        self._show_approval_request(request)
-        return await future
+        return await self._request_tui_approval(request)
 
     async def _on_agent_error(self, message: str) -> None:
         self.set_status(f"Error: {message}")
 
     async def _on_agent_complete(self, result: AgentResult) -> None:
         if self._active_assistant_message:
-            self._append_chat_message(f"Assistant: {self._active_assistant_message}")
+            self._append_chat_message(
+                f"Assistant: {self._active_assistant_message}",
+                role="assistant",
+            )
             self._active_assistant_message = ""
             self.query_one("#assistant-stream", Static).update("")
         elif result.final_text:
-            self._append_chat_message(f"Assistant: {result.final_text}")
+            self._append_chat_message(f"Assistant: {result.final_text}", role="assistant")
         self.set_status(f"Done after {result.iterations} iteration(s)")
 
-    def _append_chat_message(self, message: str) -> None:
+    def _append_chat_message(self, message: str, *, role: MessageRole = "system") -> None:
         self.chat_messages.append(message)
+        if self.session_state is not None:
+            self.session_state.messages.append(SessionMessage(role=role, content=message))
+            self._persist_session()
         self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
+
+    def _persist_session(self) -> None:
+        if not self.session_store or not self.session_state:
+            return
+        try:
+            self.session_store.save(self.session_state, settings=self.settings)
+        except OSError as exc:
+            self.status_message = f"Session save failed: {exc}"
+
+    def _expand_prompt_mentions(self, prompt: str) -> MentionExpansion:
+        return expand_mentions(
+            prompt,
+            cwd=self.cwd,
+            tool_context=self.tool_context,
+            ignore_file=self.settings.ignore_file,
+        )
 
     def _handle_slash_command(self, command: SlashCommand) -> None:
         if command.name == "help":
@@ -238,6 +288,8 @@ class CodeGopherApp(App[None]):
             self._handle_model_command(command)
         elif command.name == "mode":
             self._handle_mode_command(command)
+        elif command.name == "shell":
+            self._handle_shell_command(command)
         elif command.name == "stats":
             self._handle_stats_command(command)
         else:
@@ -302,6 +354,21 @@ class CodeGopherApp(App[None]):
         self.append_system_message(message)
         self.set_status(message)
 
+    def _handle_shell_command(self, command: SlashCommand) -> None:
+        if not command.arguments:
+            self._command_error("Usage: /shell COMMAND")
+            return
+        self.tool_count += 1
+        self.append_system_message(f"Shell requested: {command.arguments}")
+        self._set_turn_running(True)
+        self.run_worker(
+            self._run_shell_passthrough(command.arguments),
+            name="shell-passthrough",
+            group="shell",
+            exclusive=True,
+            exit_on_error=False,
+        )
+
     def _handle_stats_command(self, command: SlashCommand) -> None:
         if command.arguments:
             self._command_error("Usage: /stats")
@@ -319,6 +386,38 @@ class CodeGopherApp(App[None]):
         self.append_system_message(full_message)
         self.set_status(full_message)
 
+    async def _run_shell_passthrough(self, command: str) -> None:
+        shell_tool = RunShellCommandTool()
+        try:
+            approval = ApprovalResult(approved=True)
+            if should_prompt(self.settings.approval_mode, shell_tool):
+                self.approval_count += 1
+                approval = await self._request_tui_approval(
+                    ApprovalRequest(
+                        tool_name=shell_tool.name,
+                        arguments_preview=dumps_json({"command": command}),
+                    )
+                )
+            if not approval.approved:
+                reason = approval.reason or "Denied by user"
+                self.append_system_message(f"Shell denied: {reason}")
+                self.set_status("Shell denied")
+                return
+
+            result = await shell_tool.execute(
+                {
+                    "command": command,
+                    "timeout_seconds": self.shell_timeout_seconds,
+                    "_tool_call_id": "shell-passthrough",
+                },
+                self.tool_context,
+            )
+            state = "failed" if result.is_error else "completed"
+            self.append_system_message(f"Shell {state}:\n{result.content}")
+            self.set_status(f"Shell {state}")
+        finally:
+            self._set_turn_running(False)
+
     def _show_approval_request(self, request: ApprovalRequest) -> None:
         self.query_one("#approval-title", Static).update(f"Approval required: {request.tool_name}")
         self.query_one("#approval-arguments", Static).update(
@@ -327,6 +426,13 @@ class CodeGopherApp(App[None]):
         self.query_one("#approval-reason", Input).value = ""
         self.query_one("#approval-panel", Vertical).display = True
         self.set_status(f"Approval required: {request.tool_name}")
+
+    async def _request_tui_approval(self, request: ApprovalRequest) -> ApprovalResult:
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[ApprovalResult] = loop.create_future()
+        self._pending_approval = future
+        self._show_approval_request(request)
+        return await future
 
     def _resolve_pending_approval(self, result: ApprovalResult) -> None:
         if self._pending_approval and not self._pending_approval.done():

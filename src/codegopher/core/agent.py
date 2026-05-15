@@ -76,13 +76,14 @@ async def run_agent(
     max_iterations: int = 8,
     stdin_is_tty: bool = False,
     callbacks: AgentCallbacks | None = None,
+    tool_context: ToolContext | None = None,
 ) -> AgentResult:
     if not provider.capabilities.tool_calls:
         raise ProviderError("Provider does not support tool calls")
 
     conversation = Conversation()
     conversation.append_user(prompt)
-    tool_context = ToolContext(cwd=cwd)
+    tool_context = tool_context or ToolContext(cwd=cwd)
     all_tool_results: list[ToolResult] = []
 
     for iteration in range(1, max_iterations + 1):
