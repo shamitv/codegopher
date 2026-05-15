@@ -18,3 +18,14 @@ async def test_glob_search_returns_matching_paths(tmp_path: Path) -> None:
 
     assert result.content == "src/a.py"
 
+
+@pytest.mark.asyncio
+async def test_glob_search_respects_codegopherignore(tmp_path: Path) -> None:
+    (tmp_path / ".codegopherignore").write_text("ignored/\n", encoding="utf-8")
+    (tmp_path / "ignored").mkdir()
+    (tmp_path / "ignored" / "hidden.py").write_text("", encoding="utf-8")
+    (tmp_path / "visible.py").write_text("", encoding="utf-8")
+
+    result = await GlobSearchTool().execute({"pattern": "**/*.py"}, ToolContext(cwd=tmp_path))
+
+    assert result.content == "visible.py"
