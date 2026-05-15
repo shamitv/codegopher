@@ -36,3 +36,21 @@ def test_tool_registry_rejects_duplicate_names() -> None:
 
     with pytest.raises(ToolExecutionError, match="Duplicate tool"):
         registry.register(FakeTool(parameters={"type": "object"}))
+
+
+def test_tool_registry_exports_tool_schemas() -> None:
+    registry = ToolRegistry()
+    registry.register(
+        FakeTool(parameters={"type": "object", "properties": {"path": {"type": "string"}}})
+    )
+
+    assert registry.schemas() == [
+        {
+            "type": "function",
+            "function": {
+                "name": "fake",
+                "description": "Fake tool",
+                "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+            },
+        }
+    ]
