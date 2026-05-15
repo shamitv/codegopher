@@ -69,7 +69,7 @@ async def test_edit_file_rejects_ambiguous_or_noop_edits(
 async def test_edit_file_rejects_absolute_path_outside_cwd(tmp_path: Path) -> None:
     (tmp_path / "example.txt").write_text("hello\n", encoding="utf-8")
     context = ToolContext(cwd=tmp_path)
-    context.access.record_file_read("example.txt")
+    # Path validation happens before prior read check, so no need to record access
 
     result = await EditFileTool().execute(
         {"path": "/etc/passwd", "old": "root", "new": "admin"},
@@ -84,7 +84,7 @@ async def test_edit_file_rejects_absolute_path_outside_cwd(tmp_path: Path) -> No
 async def test_edit_file_rejects_relative_path_escaping_cwd(tmp_path: Path) -> None:
     (tmp_path / "example.txt").write_text("hello\n", encoding="utf-8")
     context = ToolContext(cwd=tmp_path)
-    context.access.record_file_read("../outside.txt")
+    # Path validation happens before prior read check, so no need to record access
 
     result = await EditFileTool().execute(
         {"path": "../outside.txt", "old": "old", "new": "new"},
