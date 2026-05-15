@@ -24,6 +24,7 @@ from codegopher.tools.registry import ToolRegistry, create_default_registry
 from codegopher.tools.shell.run_shell import RunShellCommandTool
 from codegopher.tui.commands import COMMAND_DEFINITIONS, SlashCommand, parse_slash_command
 from codegopher.tui.mentions import MentionExpansion, expand_mentions
+from codegopher.tui.session import MessageRole, SessionMessage, TuiSessionState, TuiSessionStore
 from codegopher.utils.json import dumps_json
 
 if TYPE_CHECKING:
@@ -81,6 +82,9 @@ class CodeGopherApp(App[None]):
         provider_factory: Callable[[Settings], Provider] = build_provider,
         registry_factory: Callable[[], ToolRegistry] = create_default_registry,
         monotonic: Callable[[], float] = time.monotonic,
+        session_store: TuiSessionStore | None = None,
+        session_state: TuiSessionState | None = None,
+        session_load_error: str | None = None,
         shell_timeout_seconds: int = 30,
     ) -> None:
         super().__init__()
@@ -89,10 +93,19 @@ class CodeGopherApp(App[None]):
         self.provider_factory = provider_factory
         self.registry_factory = registry_factory
         self.tool_context = ToolContext(cwd=cwd)
+        self.session_store = session_store
+        self.session_state = session_state or (
+            session_store.create(cwd=cwd, settings=settings) if session_store else None
+        )
+        self.session_load_error = session_load_error
         self.shell_timeout_seconds = shell_timeout_seconds
         self.monotonic = monotonic
         self.started_at = monotonic()
-        self.chat_messages: list[str] = []
+        self.chat_messages: list[str] = (
+            [message.content for message in self.session_state.messages]
+            if self.session_state
+            else []
+        )
         self.status_message = self._startup_status()
         self.turn_running = False
         self.turn_count = 0
@@ -119,6 +132,11 @@ class CodeGopherApp(App[None]):
 
     def on_mount(self) -> None:
         self.query_one("#approval-panel", Vertical).display = False
+        history = self.query_one("#chat-history", RichLog)
+        for message in self.chat_messages:
+            history.write(message, scroll_end=True)
+        if self.session_load_error:
+            self.append_system_message(f"Session resume failed: {self.session_load_error}")
         self.query_one("#prompt-input", Input).focus()
 
     def action_focus_input(self) -> None:
@@ -160,10 +178,10 @@ class CodeGopherApp(App[None]):
         )
 
     def append_user_message(self, content: str) -> None:
-        self._append_chat_message(f"You: {content}")
+        self._append_chat_message(f"You: {content}", role="user")
 
     def append_system_message(self, content: str) -> None:
-        self._append_chat_message(content)
+        self._append_chat_message(content, role="system")
 
     def set_status(self, message: str) -> None:
         self.status_message = message
@@ -228,16 +246,30 @@ class CodeGopherApp(App[None]):
 
     async def _on_agent_complete(self, result: AgentResult) -> None:
         if self._active_assistant_message:
-            self._append_chat_message(f"Assistant: {self._active_assistant_message}")
+            self._append_chat_message(
+                f"Assistant: {self._active_assistant_message}",
+                role="assistant",
+            )
             self._active_assistant_message = ""
             self.query_one("#assistant-stream", Static).update("")
         elif result.final_text:
-            self._append_chat_message(f"Assistant: {result.final_text}")
+            self._append_chat_message(f"Assistant: {result.final_text}", role="assistant")
         self.set_status(f"Done after {result.iterations} iteration(s)")
 
-    def _append_chat_message(self, message: str) -> None:
+    def _append_chat_message(self, message: str, *, role: MessageRole = "system") -> None:
         self.chat_messages.append(message)
+        if self.session_state is not None:
+            self.session_state.messages.append(SessionMessage(role=role, content=message))
+            self._persist_session()
         self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
+
+    def _persist_session(self) -> None:
+        if not self.session_store or not self.session_state:
+            return
+        try:
+            self.session_store.save(self.session_state, settings=self.settings)
+        except OSError as exc:
+            self.status_message = f"Session save failed: {exc}"
 
     def _expand_prompt_mentions(self, prompt: str) -> MentionExpansion:
         return expand_mentions(
