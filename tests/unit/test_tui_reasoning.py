@@ -57,7 +57,7 @@ async def test_tui_reasoning_indicator_is_collapsed_during_turn(tmp_path: Path) 
     provider = MockProvider([[{"type": "done"}]])
     app = make_app(tmp_path, provider)
 
-    async with app.run_test() as pilot:
+    async with app.run_test():
         await app._on_agent_reasoning_delta("thinking")
 
         assert app.query_one("#reasoning-stream", Static).display is True

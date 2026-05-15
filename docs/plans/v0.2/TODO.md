@@ -179,7 +179,7 @@ Commit rules:
   Verify: `rg -n "interactive|TUI|smoke" docs/release/CHECKLIST.md`
 - [x] T070: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T071: Run lint and formatting checks.
+- [x] T071: Run lint and formatting checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
 - [ ] T072: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
