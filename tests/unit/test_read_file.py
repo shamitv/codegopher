@@ -46,3 +46,13 @@ async def test_read_file_reports_encoding_failures(tmp_path: Path) -> None:
     result = await ReadFileTool().execute({"path": "binary.bin"}, ToolContext(cwd=tmp_path))
 
     assert result.is_error is True
+
+
+@pytest.mark.asyncio
+async def test_read_file_records_prior_read(tmp_path: Path) -> None:
+    (tmp_path / "hello.txt").write_text("hello\n", encoding="utf-8")
+    context = ToolContext(cwd=tmp_path)
+
+    await ReadFileTool().execute({"path": "hello.txt"}, context)
+
+    assert context.access.has_read_file("hello.txt")
