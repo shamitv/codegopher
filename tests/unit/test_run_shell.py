@@ -41,3 +41,14 @@ async def test_run_shell_command_reports_nonzero_exit(tmp_path: Path) -> None:
     assert result.is_error is True
     assert "exit_code: 3" in result.content
     assert "bad" in result.content
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_reports_timeout(tmp_path: Path) -> None:
+    result = await RunShellCommandTool().execute(
+        {"command": "python -c \"import time; time.sleep(2)\"", "timeout_seconds": 1},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is True
+    assert "timed out" in result.content
