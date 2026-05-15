@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 
 from codegopher.core.types import Message, ToolCall
 from codegopher.tools.base import ToolResult
+from codegopher.utils.json import dumps_json
 
 
 @dataclass
@@ -24,7 +25,7 @@ class Conversation:
                     "type": "function",
                     "function": {
                         "name": tool_call["name"],
-                        "arguments": tool_call["arguments"],
+                        "arguments": dumps_json(tool_call["arguments"]),
                     },
                 }
                 for tool_call in tool_calls

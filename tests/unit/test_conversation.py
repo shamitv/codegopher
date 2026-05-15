@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from codegopher.core.conversation import Conversation
 from codegopher.tools.base import ToolResult
+from codegopher.utils.json import dumps_json
 
 
 def test_conversation_appends_user_assistant_and_tool_result() -> None:
@@ -29,6 +30,6 @@ def test_conversation_converts_tool_calls_for_provider_messages() -> None:
         {
             "id": "call-1",
             "type": "function",
-            "function": {"name": "read_file", "arguments": {"path": "README.md"}},
+            "function": {"name": "read_file", "arguments": dumps_json({"path": "README.md"})},
         }
     ]
