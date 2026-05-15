@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import AsyncIterator
 from collections.abc import Mapping
@@ -57,6 +58,7 @@ class OpenAICompatProvider:
             max_tokens=max_output_tokens,
             stream=True,
         )
+        tool_buffers: dict[int, dict[str, str]] = {}
         async for chunk in stream:
             choices = _get(chunk, "choices", [])
             if not choices:
@@ -65,4 +67,23 @@ class OpenAICompatProvider:
             content = _get(delta, "content")
             if content:
                 yield {"type": "text_delta", "content": str(content)}
+            for raw_tool_call in _get(delta, "tool_calls", []) or []:
+                index = int(_get(raw_tool_call, "index", 0))
+                buffer = tool_buffers.setdefault(index, {"id": "", "name": "", "arguments": ""})
+                if tool_id := _get(raw_tool_call, "id"):
+                    buffer["id"] = str(tool_id)
+                function = _get(raw_tool_call, "function", {})
+                if name := _get(function, "name"):
+                    buffer["name"] = str(name)
+                if arguments := _get(function, "arguments"):
+                    buffer["arguments"] += str(arguments)
+        for buffer in tool_buffers.values():
+            yield {
+                "type": "tool_call",
+                "tool_call": {
+                    "id": buffer["id"],
+                    "name": buffer["name"],
+                    "arguments": json.loads(buffer["arguments"] or "{}"),
+                },
+            }
         yield {"type": "done"}
