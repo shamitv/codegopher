@@ -30,6 +30,13 @@ class EditFileTool:
         old = str(arguments["old"])
         new = str(arguments["new"])
         try:
+            resolved = target.resolve()
+            if not resolved.is_relative_to(context.cwd.resolve()):
+                return ToolResult(
+                    tool_call_id=call_id,
+                    content=f"Path {path.as_posix()} resolves outside project directory",
+                    is_error=True,
+                )
             context.access.require_prior_read(path)
             text = target.read_text(encoding="utf-8")
             count = text.count(old)

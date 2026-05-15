@@ -27,6 +27,13 @@ class WriteFileTool:
         path = Path(str(arguments["path"]))
         target = path if path.is_absolute() else context.cwd / path
         try:
+            resolved = target.resolve()
+            if not resolved.is_relative_to(context.cwd.resolve()):
+                return ToolResult(
+                    tool_call_id=call_id,
+                    content=f"Path {path.as_posix()} resolves outside project directory",
+                    is_error=True,
+                )
             if target.exists():
                 context.access.require_prior_read(path)
             else:

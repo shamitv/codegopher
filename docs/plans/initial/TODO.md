@@ -328,13 +328,13 @@ Commit rules:
 
 ## Defer Until After v0.1
 
-- [x] D001: Interactive Textual TUI.
-- [x] D002: Memory persistence.
-- [x] D003: Skills loader.
-- [x] D004: MCP client integration.
-- [x] D005: Anthropic provider.
-- [x] D006: Gemini provider using `google-genai`.
-- [x] D007: Web fetch and web search tools.
-- [x] D008: Git worktree helpers.
-- [x] D009: Sub-agent execution.
-- [x] D010: Docker sandboxing.
+- [ ] D001: Interactive Textual TUI.
+- [ ] D002: Memory persistence.
+- [ ] D003: Skills loader.
+- [ ] D004: MCP client integration.
+- [ ] D005: Anthropic provider.
+- [ ] D006: Gemini provider using `google-genai`.
+- [ ] D007: Web fetch and web search tools.
+- [ ] D008: Git worktree helpers.
+- [ ] D009: Sub-agent execution.
+- [ ] D010: Docker sandboxing.

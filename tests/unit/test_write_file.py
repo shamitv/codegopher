@@ -56,3 +56,31 @@ async def test_write_file_rejects_replacement_without_prior_read(tmp_path: Path)
     assert result.is_error is True
     assert "must read it first" in result.content
     assert (tmp_path / "existing.txt").read_text(encoding="utf-8") == "old"
+
+
+@pytest.mark.asyncio
+async def test_write_file_rejects_absolute_path_outside_cwd(tmp_path: Path) -> None:
+    context = ToolContext(cwd=tmp_path)
+    context.access.record_directory_inspection(".")
+
+    result = await WriteFileTool().execute(
+        {"path": "/etc/passwd", "content": "malicious"},
+        context,
+    )
+
+    assert result.is_error is True
+    assert "outside project directory" in result.content
+
+
+@pytest.mark.asyncio
+async def test_write_file_rejects_relative_path_escaping_cwd(tmp_path: Path) -> None:
+    context = ToolContext(cwd=tmp_path)
+    context.access.record_directory_inspection(".")
+
+    result = await WriteFileTool().execute(
+        {"path": "../outside.txt", "content": "malicious"},
+        context,
+    )
+
+    assert result.is_error is True
+    assert "outside project directory" in result.content
