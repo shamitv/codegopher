@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import os
+from collections.abc import AsyncIterator
 from collections.abc import Mapping
 from typing import Any
 
 from openai import AsyncOpenAI
 
 from codegopher.core.errors import ProviderError
+from codegopher.core.types import Message, StreamEvent, ToolSchema
 from codegopher.providers.base import ProviderCapabilities
 
 
@@ -31,3 +33,24 @@ class OpenAICompatProvider:
         self.base_url = base_url
         self._client = client or AsyncOpenAI(api_key=self.api_key, base_url=base_url)
 
+    async def stream(
+        self,
+        messages: list[Message],
+        tools: list[ToolSchema],
+        *,
+        model: str,
+        temperature: float,
+        max_output_tokens: int,
+    ) -> AsyncIterator[StreamEvent]:
+        stream = await self._client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=tools,
+            tool_choice="auto" if tools else None,
+            temperature=temperature,
+            max_tokens=max_output_tokens,
+            stream=True,
+        )
+        async for _chunk in stream:
+            pass
+        yield {"type": "done"}
