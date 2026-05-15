@@ -19,9 +19,10 @@ from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
-from codegopher.tools.base import ToolResult
+from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
 from codegopher.tui.commands import COMMAND_DEFINITIONS, SlashCommand, parse_slash_command
+from codegopher.tui.mentions import MentionExpansion, expand_mentions
 
 if TYPE_CHECKING:
     from textual.binding import BindingType
@@ -84,6 +85,7 @@ class CodeGopherApp(App[None]):
         self.cwd = cwd
         self.provider_factory = provider_factory
         self.registry_factory = registry_factory
+        self.tool_context = ToolContext(cwd=cwd)
         self.monotonic = monotonic
         self.started_at = monotonic()
         self.chat_messages: list[str] = []
@@ -131,7 +133,14 @@ class CodeGopherApp(App[None]):
             self._handle_slash_command(command)
             return
 
+        expansion = self._expand_prompt_mentions(prompt)
         self.append_user_message(prompt)
+        if expansion.has_mentions:
+            self.append_system_message(expansion.summary())
+        if expansion.has_errors:
+            self.set_status("Mention expansion failed")
+            return
+
         self.turn_count += 1
         self._set_turn_running(True)
         self._active_assistant_message = ""
@@ -139,7 +148,7 @@ class CodeGopherApp(App[None]):
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Running agent turn...")
         self.run_worker(
-            self._run_agent_turn(prompt),
+            self._run_agent_turn(expansion.prompt),
             name="agent-turn",
             group="agent",
             exclusive=True,
@@ -174,6 +183,7 @@ class CodeGopherApp(App[None]):
                 cwd=self.cwd,
                 stdin_is_tty=True,
                 callbacks=callbacks,
+                tool_context=self.tool_context,
             )
         except (AgentLoopError, ProviderError) as exc:
             message = f"Error: {exc}"
@@ -228,6 +238,14 @@ class CodeGopherApp(App[None]):
     def _append_chat_message(self, message: str) -> None:
         self.chat_messages.append(message)
         self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
+
+    def _expand_prompt_mentions(self, prompt: str) -> MentionExpansion:
+        return expand_mentions(
+            prompt,
+            cwd=self.cwd,
+            tool_context=self.tool_context,
+            ignore_file=self.settings.ignore_file,
+        )
 
     def _handle_slash_command(self, command: SlashCommand) -> None:
         if command.name == "help":

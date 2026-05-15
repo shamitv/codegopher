@@ -10,7 +10,7 @@ from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.mock import MockProvider
-from codegopher.tools.base import ToolResult
+from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import create_default_registry
 
 
@@ -196,6 +196,41 @@ async def test_agent_loop_executes_read_only_tool_call(tmp_path: Path) -> None:
 
     assert result.final_text == "done"
     assert result.tool_results[0].content == "project notes"
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_uses_provided_tool_context(tmp_path: Path) -> None:
+    (tmp_path / "existing.txt").write_text("old", encoding="utf-8")
+    tool_context = ToolContext(cwd=tmp_path)
+    tool_context.access.record_file_read("existing.txt")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "existing.txt", "content": "new"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    result = await run_agent(
+        prompt="Write",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+        tool_context=tool_context,
+    )
+
+    assert result.tool_results[0].is_error is False
+    assert (tmp_path / "existing.txt").read_text(encoding="utf-8") == "new"
 
 
 @pytest.mark.asyncio
