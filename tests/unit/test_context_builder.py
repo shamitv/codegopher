@@ -31,3 +31,9 @@ def test_context_builder_prepends_system_message(tmp_path: Path) -> None:
     assert messages[0]["role"] == "system"
     assert messages[1] == {"role": "user", "content": "hello"}
 
+
+def test_context_builder_mentions_only_implemented_v0_1_features(tmp_path: Path) -> None:
+    prompt = build_system_prompt(tmp_path, create_default_registry(), ApprovalMode.review)
+
+    for future_feature in ("TUI", "MCP", "memory", "skills", "sub-agents"):
+        assert future_feature not in prompt
