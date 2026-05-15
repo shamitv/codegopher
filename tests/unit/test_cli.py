@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from click.testing import CliRunner
 
+import codegopher.cli.main as cli_main
+from codegopher.core.agent import AgentResult
 from codegopher.cli.main import app
 
 
@@ -28,3 +30,23 @@ def test_cli_applies_settings_overrides() -> None:
 
     assert result.exit_code == 0
     assert result.output == "mocked\n"
+
+
+def test_cli_appends_piped_stdin_to_prompt(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+
+    async def fake_run_agent(**kwargs):
+        captured["prompt"] = kwargs["prompt"]
+        return AgentResult(final_text="ok", iterations=1)
+
+    monkeypatch.setattr(cli_main, "run_agent", fake_run_agent)
+
+    result = CliRunner().invoke(
+        app,
+        ["-p", "summarize"],
+        input="log line\n",
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+    )
+
+    assert result.exit_code == 0
+    assert captured["prompt"] == "summarize\n\nInput context:\nlog line\n"
