@@ -36,3 +36,17 @@ def test_access_tracker_rejects_existing_file_edit_without_read(tmp_path: Path) 
 
     with pytest.raises(ToolExecutionError, match="must read it first"):
         tracker.require_prior_read("src/example.py")
+
+
+def test_access_tracker_allows_new_file_after_parent_inspection(tmp_path: Path) -> None:
+    tracker = AccessTracker(root=tmp_path)
+    tracker.record_directory_inspection("src")
+
+    tracker.require_parent_inspection("src/new.py")
+
+
+def test_access_tracker_rejects_new_file_without_parent_inspection(tmp_path: Path) -> None:
+    tracker = AccessTracker(root=tmp_path)
+
+    with pytest.raises(ToolExecutionError, match="list_dir must inspect parent directory"):
+        tracker.require_parent_inspection("src/new.py")
