@@ -35,22 +35,22 @@ class ReadManyFilesTool:
 
         unique = []
         seen: set[Path] = set()
+        cwd = context.cwd.resolve()
         for path in sorted(candidates):
-            if path in seen or not path.is_file() or matcher.matches(path, context.cwd):
+            resolved = path.resolve()
+            if not resolved.is_relative_to(cwd):
                 continue
-            seen.add(path)
-            unique.append(path)
+            if resolved in seen or not resolved.is_file() or matcher.matches(resolved, cwd):
+                continue
+            seen.add(resolved)
+            unique.append(resolved)
             if len(unique) >= max_files:
                 break
 
         sections: list[str] = []
         for path in unique:
             try:
-                # Skip paths outside cwd
-                try:
-                    rel_path = path.relative_to(context.cwd).as_posix()
-                except ValueError:
-                    continue
+                rel_path = path.relative_to(cwd).as_posix()
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError) as exc:
                 sections.append(f"## {rel_path}\nERROR: {exc}")
@@ -58,4 +58,3 @@ class ReadManyFilesTool:
             context.access.record_file_read(path)
             sections.append(f"## {rel_path}\n{text.rstrip()}")
         return ToolResult(tool_call_id=call_id, content="\n\n".join(sections))
-

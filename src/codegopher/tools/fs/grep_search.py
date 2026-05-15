@@ -28,10 +28,21 @@ class GrepSearchTool:
         call_id = str(arguments.get("_tool_call_id", ""))
         query = str(arguments["query"])
         start = Path(str(arguments.get("path", ".")))
-        rg_content = self._grep_with_rg(query, start, context.cwd)
+        root = start if start.is_absolute() else context.cwd / start
+        resolved = root.resolve()
+        cwd = context.cwd.resolve()
+        if not resolved.is_relative_to(cwd):
+            return ToolResult(
+                tool_call_id=call_id,
+                content=f"Path {start.as_posix()} resolves outside project directory",
+                is_error=True,
+            )
+
+        safe_start = Path(".") if resolved == cwd else resolved.relative_to(cwd)
+        rg_content = self._grep_with_rg(query, safe_start, context.cwd)
         if rg_content is not None:
             return ToolResult(tool_call_id=call_id, content=rg_content)
-        return ToolResult(tool_call_id=call_id, content=self._grep_with_python(query, start, context))
+        return ToolResult(tool_call_id=call_id, content=self._grep_with_python(query, safe_start, context))
 
     def _grep_with_rg(self, query: str, start: Path, cwd: Path) -> str | None:
         if shutil.which("rg") is None:

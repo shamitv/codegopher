@@ -18,3 +18,8 @@ def test_ignore_matcher_reads_patterns(tmp_path: Path) -> None:
     assert matcher.matches(ignored, tmp_path)
     assert matcher.matches(secret, tmp_path)
 
+
+def test_ignore_matcher_does_not_crash_for_paths_outside_root(tmp_path: Path) -> None:
+    matcher = IgnoreMatcher.from_file(tmp_path)
+
+    assert matcher.matches(tmp_path.parent / "outside.txt", tmp_path) is False

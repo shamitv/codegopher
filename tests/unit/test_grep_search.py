@@ -32,3 +32,25 @@ async def test_grep_search_can_use_rg_fast_path(monkeypatch: pytest.MonkeyPatch,
     result = await GrepSearchTool().execute({"query": "needle"}, ToolContext(cwd=tmp_path))
 
     assert result.content == "src/a.txt:1:needle"
+
+
+@pytest.mark.asyncio
+async def test_grep_search_rejects_absolute_path_outside_cwd(tmp_path: Path) -> None:
+    result = await GrepSearchTool().execute(
+        {"query": "root", "path": "/etc"},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is True
+    assert "outside project directory" in result.content
+
+
+@pytest.mark.asyncio
+async def test_grep_search_rejects_relative_path_escaping_cwd(tmp_path: Path) -> None:
+    result = await GrepSearchTool().execute(
+        {"query": "secret", "path": ".."},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is True
+    assert "outside project directory" in result.content

@@ -33,3 +33,17 @@ async def test_read_many_files_records_each_read(tmp_path: Path) -> None:
 
     assert context.access.has_read_file("a.txt")
     assert context.access.has_read_file("b.txt")
+
+
+@pytest.mark.asyncio
+async def test_read_many_files_skips_paths_outside_cwd(tmp_path: Path) -> None:
+    outside = tmp_path.parent / "outside.txt"
+    outside.write_text("secret\n", encoding="utf-8")
+
+    result = await ReadManyFilesTool().execute(
+        {"paths": [str(outside)], "globs": ["../*.txt"]},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is False
+    assert result.content == ""

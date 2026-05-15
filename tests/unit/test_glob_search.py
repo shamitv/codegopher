@@ -29,3 +29,13 @@ async def test_glob_search_respects_codegopherignore(tmp_path: Path) -> None:
     result = await GlobSearchTool().execute({"pattern": "**/*.py"}, ToolContext(cwd=tmp_path))
 
     assert result.content == "visible.py"
+
+
+@pytest.mark.asyncio
+async def test_glob_search_skips_matches_outside_cwd(tmp_path: Path) -> None:
+    (tmp_path.parent / "outside.py").write_text("", encoding="utf-8")
+
+    result = await GlobSearchTool().execute({"pattern": "../*.py"}, ToolContext(cwd=tmp_path))
+
+    assert result.is_error is False
+    assert result.content == ""

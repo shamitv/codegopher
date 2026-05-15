@@ -23,14 +23,12 @@ class GlobSearchTool:
         pattern = str(arguments["pattern"])
         matcher = IgnoreMatcher.from_file(context.cwd)
         matches = []
+        cwd = context.cwd.resolve()
         for path in context.cwd.glob(pattern):
-            if not path.exists():
+            resolved = path.resolve()
+            if not resolved.is_relative_to(cwd) or not resolved.exists():
                 continue
-            # Skip paths outside cwd
-            try:
-                rel_path = path.relative_to(context.cwd).as_posix()
-            except ValueError:
-                continue
-            if not matcher.matches(path, context.cwd):
+            rel_path = resolved.relative_to(cwd).as_posix()
+            if not matcher.matches(resolved, cwd):
                 matches.append(rel_path)
         return ToolResult(tool_call_id=call_id, content="\n".join(sorted(matches)))
