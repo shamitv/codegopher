@@ -81,3 +81,14 @@ def test_cli_reports_configuration_errors() -> None:
 
     assert result.exit_code != 0
     assert "Invalid settings" in result.output
+
+
+def test_cli_reports_provider_errors() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["-p", "hello"],
+        env={"OPENAI_API_KEY": "", "CODEGOPHER_TEST_MOCK_RESPONSE": None},
+    )
+
+    assert result.exit_code != 0
+    assert "Missing API key" in result.output
