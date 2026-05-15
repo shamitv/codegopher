@@ -33,6 +33,8 @@ dependencies = [
     "httpx>=0.27",
     # Console output
     "rich>=13.7",
+    # Interactive terminal UI
+    "textual>=8.2",
     # Token estimation
     "tiktoken>=0.7",
 ]

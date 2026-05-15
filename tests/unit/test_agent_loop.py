@@ -5,9 +5,11 @@ from pathlib import Path
 import pytest
 
 from codegopher.config.schema import ApprovalMode, Settings
-from codegopher.core.agent import AgentResult, run_agent
-from codegopher.core.errors import AgentLoopError
+from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
+from codegopher.core.errors import AgentLoopError, ProviderError
+from codegopher.core.types import ToolCall
 from codegopher.providers.mock import MockProvider
+from codegopher.tools.base import ToolResult
 from codegopher.tools.registry import create_default_registry
 
 
@@ -25,6 +27,113 @@ async def test_agent_loop_returns_text_only_response(tmp_path: Path) -> None:
 
     assert result.final_text == "hello"
     assert result.iterations == 1
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_emits_text_and_completion_callbacks(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "hel"}, {"type": "text_delta", "content": "lo"}, {"type": "done"}]]
+    )
+    text_deltas: list[str] = []
+    completed: list[AgentResult] = []
+
+    async def on_text_delta(content: str) -> None:
+        text_deltas.append(content)
+
+    async def on_complete(result: AgentResult) -> None:
+        completed.append(result)
+
+    result = await run_agent(
+        prompt="Say hello",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_text_delta=on_text_delta, on_complete=on_complete),
+    )
+
+    assert text_deltas == ["hel", "lo"]
+    assert completed == [result]
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_emits_tool_call_and_result_callbacks(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    tool_call_names: list[str] = []
+    tool_result_contents: list[str] = []
+
+    async def on_tool_call(tool_call: ToolCall) -> None:
+        tool_call_names.append(tool_call["name"])
+
+    async def on_tool_result(tool_result: ToolResult) -> None:
+        tool_result_contents.append(tool_result.content)
+
+    await run_agent(
+        prompt="Read",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_tool_call=on_tool_call, on_tool_result=on_tool_result),
+    )
+
+    assert tool_call_names == ["read_file"]
+    assert tool_result_contents == ["project notes"]
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_emits_error_callback_for_provider_error_event(tmp_path: Path) -> None:
+    provider = MockProvider([[{"type": "error", "message": "provider failed"}]])
+    errors: list[str] = []
+
+    async def on_error(message: str) -> None:
+        errors.append(message)
+
+    with pytest.raises(ProviderError, match="provider failed"):
+        await run_agent(
+            prompt="fail",
+            provider=provider,
+            registry=create_default_registry(),
+            settings=Settings(),
+            cwd=tmp_path,
+            callbacks=AgentCallbacks(on_error=on_error),
+        )
+
+    assert errors == ["provider failed"]
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_wraps_callback_failures(tmp_path: Path) -> None:
+    provider = MockProvider([[{"type": "text_delta", "content": "hello"}, {"type": "done"}]])
+
+    async def on_text_delta(_content: str) -> None:
+        raise RuntimeError("callback boom")
+
+    with pytest.raises(AgentLoopError, match="on_text_delta failed: callback boom"):
+        await run_agent(
+            prompt="Say hello",
+            provider=provider,
+            registry=create_default_registry(),
+            settings=Settings(),
+            cwd=tmp_path,
+            callbacks=AgentCallbacks(on_text_delta=on_text_delta),
+        )
 
 
 @pytest.mark.asyncio

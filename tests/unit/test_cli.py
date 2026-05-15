@@ -11,11 +11,28 @@ from codegopher.core.agent import AgentResult
 from codegopher.providers.openai_compat import OpenAICompatProvider
 
 
-def test_cli_without_prompt_shows_alpha_message() -> None:
+def test_cli_without_prompt_requires_interactive_tty() -> None:
+    result = CliRunner().invoke(app)
+
+    assert result.exit_code != 0
+    assert "pass -p/--prompt for headless usage" in result.output
+
+
+def test_cli_without_prompt_launches_tui_when_interactive(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_launch_tui(settings: Settings, *, cwd) -> None:
+        captured["settings"] = settings
+        captured["cwd"] = cwd
+
+    monkeypatch.setattr(cli_main, "_streams_are_interactive", lambda: True)
+    monkeypatch.setattr("codegopher.tui.launch_tui", fake_launch_tui)
+
     result = CliRunner().invoke(app)
 
     assert result.exit_code == 0
-    assert "CodeGopher v0.1 alpha" in result.output
+    assert isinstance(captured["settings"], Settings)
+    assert captured["cwd"] is not None
 
 
 def test_cli_prompt_dry_run_echoes_prompt() -> None:

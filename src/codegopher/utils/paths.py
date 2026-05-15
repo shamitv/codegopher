@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import os
 import ntpath
+import os
 from pathlib import Path
 
 
