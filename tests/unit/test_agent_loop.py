@@ -86,3 +86,35 @@ async def test_agent_loop_executes_read_only_tool_call(tmp_path: Path) -> None:
 
     assert result.final_text == "done"
     assert result.tool_results[0].content == "project notes"
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_denies_required_tool_when_non_tty(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "denied"}, {"type": "done"}],
+        ]
+    )
+
+    result = await run_agent(
+        prompt="Write",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+    )
+
+    assert result.tool_results[0].is_error is True
+    assert "stdin is not a TTY" in result.tool_results[0].content
+    assert not (tmp_path / "new.txt").exists()
