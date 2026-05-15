@@ -56,7 +56,13 @@ def test_tool_registry_exports_tool_schemas() -> None:
     ]
 
 
-def test_default_registry_starts_empty() -> None:
+def test_default_registry_contains_read_only_file_tools() -> None:
     registry = create_default_registry()
 
-    assert registry.list() == []
+    assert [tool.name for tool in registry.list()] == [
+        "read_file",
+        "read_many_files",
+        "list_dir",
+        "glob_search",
+        "grep_search",
+    ]
