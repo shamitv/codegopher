@@ -61,21 +61,21 @@ Commit rules:
 
 ## Milestone 3 - Tool Calls And Inline Approvals
 
-- [ ] T021: Render requested tool calls in chat history with tool name and argument summary.
+- [x] T021: Render requested tool calls in chat history with tool name and argument summary.
   Verify: `python -m pytest tests/unit/test_tui_tools.py`
-- [ ] T022: Render completed tool results with success/error state.
+- [x] T022: Render completed tool results with success/error state.
   Verify: `python -m pytest tests/unit/test_tui_tools.py`
-- [ ] T023: Add an inline approval prompt component for required tools.
+- [x] T023: Add an inline approval prompt component for required tools.
   Verify: `python -m pytest tests/unit/test_tui_approval.py`
-- [ ] T024: Route approval decisions from the TUI back into the agent turn.
+- [x] T024: Route approval decisions from the TUI back into the agent turn.
   Verify: `python -m pytest tests/unit/test_tui_approval.py tests/unit/test_agent_loop.py`
-- [ ] T025: Support deny decisions with a reason returned to the model.
+- [x] T025: Support deny decisions with a reason returned to the model.
   Verify: `python -m pytest tests/unit/test_tui_approval.py`
-- [ ] T026: Respect `review`, `auto`, and `yolo` approval modes in the TUI.
+- [x] T026: Respect `review`, `auto`, and `yolo` approval modes in the TUI.
   Verify: `python -m pytest tests/unit/test_tui_approval.py tests/unit/test_approval.py`
-- [ ] T027: Keep prior-read and parent-inspection failures visible as tool errors.
+- [x] T027: Keep prior-read and parent-inspection failures visible as tool errors.
   Verify: `python -m pytest tests/unit/test_tui_tools.py tests/unit/test_write_file.py tests/unit/test_edit_file.py`
-- [ ] T028: Add a TUI test for a multi-iteration tool-call response.
+- [x] T028: Add a TUI test for a multi-iteration tool-call response.
   Verify: `python -m pytest tests/unit/test_tui_agent.py`
 
 ## Milestone 4 - Slash Commands
