@@ -54,3 +54,35 @@ async def test_agent_loop_raises_on_max_iterations(tmp_path: Path) -> None:
             cwd=tmp_path,
             max_iterations=1,
         )
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_executes_read_only_tool_call(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    result = await run_agent(
+        prompt="Read",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+    )
+
+    assert result.final_text == "done"
+    assert result.tool_results[0].content == "project notes"
