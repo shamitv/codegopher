@@ -76,3 +76,24 @@ def test_headless_cli_yolo_allows_harmless_temp_write(monkeypatch, tmp_path: Pat
     assert result.exit_code == 0
     assert written == "hello"
     assert [tool_result["is_error"] for tool_result in payload["tool_results"]] == [False, False]
+
+
+def test_headless_cli_json_excludes_reasoning_content(monkeypatch, tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "private reasoning"},
+                {"type": "text_delta", "content": "public answer"},
+                {"type": "done"},
+            ]
+        ]
+    )
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+
+    with CliRunner().isolated_filesystem(temp_dir=tmp_path):
+        result = CliRunner().invoke(app, ["-p", "think", "--json"])
+
+    payload = json.loads(result.output)
+    assert result.exit_code == 0
+    assert payload["final_text"] == "public answer"
+    assert "private reasoning" not in result.output

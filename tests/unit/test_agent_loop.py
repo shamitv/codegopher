@@ -58,6 +58,35 @@ async def test_agent_loop_emits_text_and_completion_callbacks(tmp_path: Path) ->
 
 
 @pytest.mark.asyncio
+async def test_agent_loop_emits_reasoning_without_final_text(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "thinking"},
+                {"type": "text_delta", "content": "answer"},
+                {"type": "done"},
+            ]
+        ]
+    )
+    reasoning_deltas: list[str] = []
+
+    async def on_reasoning_delta(content: str) -> None:
+        reasoning_deltas.append(content)
+
+    result = await run_agent(
+        prompt="Think",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_reasoning_delta=on_reasoning_delta),
+    )
+
+    assert reasoning_deltas == ["thinking"]
+    assert result.final_text == "answer"
+
+
+@pytest.mark.asyncio
 async def test_agent_loop_emits_tool_call_and_result_callbacks(tmp_path: Path) -> None:
     (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
     provider = MockProvider(
