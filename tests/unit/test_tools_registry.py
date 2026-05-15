@@ -7,7 +7,7 @@ import pytest
 
 from codegopher.core.errors import ToolExecutionError
 from codegopher.tools.base import ToolContext, ToolResult
-from codegopher.tools.registry import ToolRegistry
+from codegopher.tools.registry import ToolRegistry, create_default_registry
 
 
 @dataclass
@@ -54,3 +54,9 @@ def test_tool_registry_exports_tool_schemas() -> None:
             },
         }
     ]
+
+
+def test_default_registry_starts_empty() -> None:
+    registry = create_default_registry()
+
+    assert registry.list() == []
