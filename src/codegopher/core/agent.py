@@ -10,7 +10,12 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from codegopher.config.schema import Settings
-from codegopher.core.approval import ApprovalRequest, resolve_approval
+from codegopher.core.approval import (
+    ApprovalRequest,
+    ApprovalResult,
+    resolve_approval,
+    should_prompt,
+)
 from codegopher.core.context import build_messages
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
@@ -32,6 +37,7 @@ class AgentCallbacks:
     on_text_delta: Callable[[str], Awaitable[None]] | None = None
     on_tool_call: Callable[[ToolCall], Awaitable[None]] | None = None
     on_tool_result: Callable[[ToolResult], Awaitable[None]] | None = None
+    on_approval_request: Callable[[ApprovalRequest], Awaitable[ApprovalResult]] | None = None
     on_error: Callable[[str], Awaitable[None]] | None = None
     on_complete: Callable[[AgentResult], Awaitable[None]] | None = None
 
@@ -45,6 +51,17 @@ async def _emit_callback(
         return
     try:
         await callback(*args)
+    except Exception as exc:
+        raise AgentLoopError(f"Agent callback {name} failed: {exc}") from exc
+
+
+async def _call_callback(
+    name: str,
+    callback: Callable[..., Awaitable[Any]],
+    *args: Any,
+) -> Any:
+    try:
+        return await callback(*args)
     except Exception as exc:
         raise AgentLoopError(f"Agent callback {name} failed: {exc}") from exc
 
@@ -123,16 +140,28 @@ async def run_agent(
         conversation.append_assistant(final_text or None, tool_calls)
         for tool_call in tool_calls:
             tool = registry.get(tool_call["name"])
-            approval = resolve_approval(
-                settings.approval_mode,
-                tool,
-                ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"])),
-                stdin_is_tty=stdin_is_tty,
-            )
+            request = ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"]))
+            if (
+                should_prompt(settings.approval_mode, tool)
+                and callbacks
+                and callbacks.on_approval_request
+            ):
+                approval = await _call_callback(
+                    "on_approval_request",
+                    callbacks.on_approval_request,
+                    request,
+                )
+            else:
+                approval = resolve_approval(
+                    settings.approval_mode,
+                    tool,
+                    request,
+                    stdin_is_tty=stdin_is_tty,
+                )
             if not approval.approved:
                 tool_result = ToolResult(
                     tool_call_id=tool_call["id"],
-                    content=approval.reason or "Tool call denied",
+                    content=approval.reason or "Denied by user",
                     is_error=True,
                 )
             else:

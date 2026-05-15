@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Footer, Header, Input, RichLog, Static
+from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 
 from codegopher.config.schema import Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
+from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.base import Provider
@@ -47,6 +49,16 @@ class CodeGopherApp(App[None]):
         padding: 0 1;
     }
 
+    #approval-panel {
+        height: auto;
+        padding: 1;
+        border-top: solid $warning;
+    }
+
+    #approval-reason {
+        margin-top: 1;
+    }
+
     #prompt-input {
         dock: bottom;
     }
@@ -73,6 +85,8 @@ class CodeGopherApp(App[None]):
         self.status_message = self._startup_status()
         self.turn_running = False
         self._active_assistant_message = ""
+        self._tool_call_names: dict[str, str] = {}
+        self._pending_approval: asyncio.Future[ApprovalResult] | None = None
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -80,10 +94,17 @@ class CodeGopherApp(App[None]):
             yield Static(self.status_message, id="session-status")
             yield RichLog(id="chat-history", highlight=False, markup=False, wrap=True)
             yield Static("", id="assistant-stream")
+            with Vertical(id="approval-panel"):
+                yield Static("", id="approval-title")
+                yield Static("", id="approval-arguments")
+                yield Input(placeholder="Optional deny reason", id="approval-reason")
+                yield Button("Approve", id="approval-approve", variant="success")
+                yield Button("Deny", id="approval-deny", variant="error")
             yield Input(placeholder="Ask CodeGopher...", id="prompt-input")
         yield Footer()
 
     def on_mount(self) -> None:
+        self.query_one("#approval-panel", Vertical).display = False
         self.query_one("#prompt-input", Input).focus()
 
     def action_focus_input(self) -> None:
@@ -99,6 +120,7 @@ class CodeGopherApp(App[None]):
         self.append_user_message(prompt)
         self._set_turn_running(True)
         self._active_assistant_message = ""
+        self._tool_call_names = {}
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Running agent turn...")
         self.run_worker(
@@ -124,6 +146,7 @@ class CodeGopherApp(App[None]):
             on_text_delta=self._on_agent_text_delta,
             on_tool_call=self._on_agent_tool_call,
             on_tool_result=self._on_agent_tool_result,
+            on_approval_request=self._on_agent_approval_request,
             on_error=self._on_agent_error,
             on_complete=self._on_agent_complete,
         )
@@ -151,11 +174,27 @@ class CodeGopherApp(App[None]):
         )
 
     async def _on_agent_tool_call(self, tool_call: ToolCall) -> None:
+        self._tool_call_names[tool_call["id"]] = tool_call["name"]
+        arguments = self._summarize_arguments(tool_call["arguments"])
+        suffix = f" {arguments}" if arguments else ""
+        self.append_system_message(f"Tool requested: {tool_call['name']}{suffix}")
         self.set_status(f"Tool requested: {tool_call['name']}")
 
     async def _on_agent_tool_result(self, result: ToolResult) -> None:
+        tool_name = self._tool_call_names.get(result.tool_call_id, result.tool_call_id)
         state = "failed" if result.is_error else "completed"
-        self.set_status(f"Tool {state}: {result.tool_call_id}")
+        if result.is_error:
+            self.append_system_message(f"Tool failed: {tool_name}: {result.content}")
+        else:
+            self.append_system_message(f"Tool completed: {tool_name}")
+        self.set_status(f"Tool {state}: {tool_name}")
+
+    async def _on_agent_approval_request(self, request: ApprovalRequest) -> ApprovalResult:
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[ApprovalResult] = loop.create_future()
+        self._pending_approval = future
+        self._show_approval_request(request)
+        return await future
 
     async def _on_agent_error(self, message: str) -> None:
         self.set_status(f"Error: {message}")
@@ -173,9 +212,43 @@ class CodeGopherApp(App[None]):
         self.chat_messages.append(message)
         self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
 
+    def _show_approval_request(self, request: ApprovalRequest) -> None:
+        self.query_one("#approval-title", Static).update(f"Approval required: {request.tool_name}")
+        self.query_one("#approval-arguments", Static).update(
+            self._shorten(request.arguments_preview)
+        )
+        self.query_one("#approval-reason", Input).value = ""
+        self.query_one("#approval-panel", Vertical).display = True
+        self.set_status(f"Approval required: {request.tool_name}")
+
+    def _resolve_pending_approval(self, result: ApprovalResult) -> None:
+        if self._pending_approval and not self._pending_approval.done():
+            self._pending_approval.set_result(result)
+        self._pending_approval = None
+        self.query_one("#approval-panel", Vertical).display = False
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "approval-approve":
+            self._resolve_pending_approval(ApprovalResult(approved=True))
+            self.set_status("Tool approved")
+        elif event.button.id == "approval-deny":
+            reason = self.query_one("#approval-reason", Input).value.strip() or "Denied by user"
+            self._resolve_pending_approval(ApprovalResult(approved=False, reason=reason))
+            self.set_status("Tool denied")
+
     def _set_turn_running(self, running: bool) -> None:
         self.turn_running = running
         self.query_one("#prompt-input", Input).disabled = running
+
+    def _summarize_arguments(self, arguments: dict[str, object]) -> str:
+        if not arguments:
+            return ""
+        return self._shorten(str(arguments))
+
+    def _shorten(self, value: str, limit: int = 240) -> str:
+        if len(value) <= limit:
+            return value
+        return f"{value[: limit - 3]}..."
 
     def _startup_status(self) -> str:
         model = self.settings.model.name
