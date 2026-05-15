@@ -80,25 +80,25 @@ Commit rules:
 
 ## Milestone 4 - Slash Commands
 
-- [ ] T029: Add slash-command parsing for input beginning with `/`.
+- [x] T029: Add slash-command parsing for input beginning with `/`.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T030: Implement `/help` with command names and short descriptions.
+- [x] T030: Implement `/help` with command names and short descriptions.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T031: Implement `/clear` to clear visible chat history without deleting persisted session data.
+- [x] T031: Implement `/clear` to clear visible chat history without deleting persisted session data.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T032: Implement `/model` display for the active model and provider.
+- [x] T032: Implement `/model` display for the active model and provider.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T033: Implement `/model NAME` to update the active model for future turns.
+- [x] T033: Implement `/model NAME` to update the active model for future turns.
   Verify: `python -m pytest tests/unit/test_tui_commands.py tests/unit/test_config_schema.py`
-- [ ] T034: Implement `/mode` display for the active approval mode.
+- [x] T034: Implement `/mode` display for the active approval mode.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T035: Implement `/mode review|auto|yolo` for future turns.
+- [x] T035: Implement `/mode review|auto|yolo` for future turns.
   Verify: `python -m pytest tests/unit/test_tui_commands.py tests/unit/test_approval.py`
-- [ ] T036: Implement `/stats` with turn count, tool count, approval count, and elapsed time.
+- [x] T036: Implement `/stats` with turn count, tool count, approval count, and elapsed time.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T037: Render unknown slash commands as user-facing errors.
+- [x] T037: Render unknown slash commands as user-facing errors.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T038: Ensure slash commands do not call the provider unless explicitly intended.
+- [x] T038: Ensure slash commands do not call the provider unless explicitly intended.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
 
 ## Milestone 5 - File Mention Expansion
