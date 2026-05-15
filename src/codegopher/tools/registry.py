@@ -42,9 +42,11 @@ class ToolRegistry:
 def create_default_registry() -> ToolRegistry:
     from codegopher.tools.fs.glob_search import GlobSearchTool
     from codegopher.tools.fs.grep_search import GrepSearchTool
+    from codegopher.tools.fs.edit_file import EditFileTool
     from codegopher.tools.fs.list_dir import ListDirTool
     from codegopher.tools.fs.read_file import ReadFileTool
     from codegopher.tools.fs.read_many_files import ReadManyFilesTool
+    from codegopher.tools.fs.write_file import WriteFileTool
 
     registry = ToolRegistry()
     for tool in (
@@ -53,6 +55,8 @@ def create_default_registry() -> ToolRegistry:
         ListDirTool(),
         GlobSearchTool(),
         GrepSearchTool(),
+        WriteFileTool(),
+        EditFileTool(),
     ):
         registry.register(tool)
     return registry

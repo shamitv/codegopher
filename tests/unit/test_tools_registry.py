@@ -65,4 +65,6 @@ def test_default_registry_contains_read_only_file_tools() -> None:
         "list_dir",
         "glob_search",
         "grep_search",
+        "write_file",
+        "edit_file",
     ]
