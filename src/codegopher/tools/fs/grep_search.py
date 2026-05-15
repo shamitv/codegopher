@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +28,45 @@ class GrepSearchTool:
         call_id = str(arguments.get("_tool_call_id", ""))
         query = str(arguments["query"])
         start = Path(str(arguments.get("path", ".")))
+        rg_content = self._grep_with_rg(query, start, context.cwd)
+        if rg_content is not None:
+            return ToolResult(tool_call_id=call_id, content=rg_content)
+        return ToolResult(tool_call_id=call_id, content=self._grep_with_python(query, start, context))
+
+    def _grep_with_rg(self, query: str, start: Path, cwd: Path) -> str | None:
+        if shutil.which("rg") is None:
+            return None
+        command = [
+            "rg",
+            "--line-number",
+            "--no-heading",
+            "--color",
+            "never",
+            "--path-separator",
+            "/",
+        ]
+        ignore_file = cwd / ".codegopherignore"
+        if ignore_file.exists():
+            command.extend(["--ignore-file", str(ignore_file)])
+        command.extend([query, start.as_posix()])
+        completed = subprocess.run(
+            command,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        if completed.returncode == 0:
+            return "\n".join(
+                line[2:] if line.startswith("./") else line
+                for line in completed.stdout.rstrip("\n").splitlines()
+            )
+        if completed.returncode == 1:
+            return ""
+        return None
+
+    def _grep_with_python(self, query: str, start: Path, context: ToolContext) -> str:
         root = start if start.is_absolute() else context.cwd / start
         matcher = IgnoreMatcher.from_file(context.cwd)
         matches: list[str] = []
@@ -40,5 +81,4 @@ class GrepSearchTool:
                 if query in line:
                     rel = path.relative_to(context.cwd).as_posix()
                     matches.append(f"{rel}:{number}:{line}")
-        return ToolResult(tool_call_id=call_id, content="\n".join(matches))
-
+        return "\n".join(matches)
