@@ -177,7 +177,7 @@ Commit rules:
   Verify: `rg -n "v0.2|Interactive Terminal" docs/plans/v0.2/STATUS.md`
 - [x] T069: Add or update release checklist items for interactive smoke testing.
   Verify: `rg -n "interactive|TUI|smoke" docs/release/CHECKLIST.md`
-- [ ] T070: Run the complete unit and integration suite.
+- [x] T070: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
 - [ ] T071: Run lint and formatting checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
