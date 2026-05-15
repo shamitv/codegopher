@@ -12,34 +12,34 @@ Commit rules:
 
 ## Milestone 0 - Planning And Dependency Setup
 
-- [ ] T001: Add `textual` as a runtime dependency and refresh packaging metadata if needed.
+- [x] T001: Add `textual` as a runtime dependency and refresh packaging metadata if needed.
   Verify: `source .venv/bin/activate && python -m pip install -e ".[dev]"`
-- [ ] T002: Add an empty `codegopher.tui` package with clear placeholder docstrings.
+- [x] T002: Add an empty `codegopher.tui` package with clear placeholder docstrings.
   Verify: `python -m pytest tests/unit/test_imports.py`
-- [ ] T003: Add a TUI launcher function that can be imported without starting the app.
+- [x] T003: Add a TUI launcher function that can be imported without starting the app.
   Verify: `python -m pytest tests/unit/test_imports.py`
-- [ ] T004: Add CLI routing tests that prove `-p/--prompt` still uses headless mode.
+- [x] T004: Add CLI routing tests that prove `-p/--prompt` still uses headless mode.
   Verify: `python -m pytest tests/unit/test_cli.py`
-- [ ] T005: Add CLI routing tests for no-prompt TUI launch through a mocked launcher.
+- [x] T005: Add CLI routing tests for no-prompt TUI launch through a mocked launcher.
   Verify: `python -m pytest tests/unit/test_cli.py`
-- [ ] T006: Add CLI behavior for no-prompt non-TTY execution with a clear error.
+- [x] T006: Add CLI behavior for no-prompt non-TTY execution with a clear error.
   Verify: `python -m pytest tests/unit/test_cli.py`
 
 ## Milestone 1 - Minimal Textual App Shell
 
-- [ ] T007: Add a minimal Textual app class that starts and exits cleanly.
+- [x] T007: Add a minimal Textual app class that starts and exits cleanly.
   Verify: `python -m pytest tests/unit/test_tui_app.py`
-- [ ] T008: Add the main layout: chat history region, input region, and status region.
+- [x] T008: Add the main layout: chat history region, input region, and status region.
   Verify: `python -m pytest tests/unit/test_tui_app.py`
-- [ ] T009: Add input submission handling that appends user messages to chat history.
+- [x] T009: Add input submission handling that appends user messages to chat history.
   Verify: `python -m pytest tests/unit/test_tui_app.py`
-- [ ] T010: Add keyboard bindings for submit, quit, and focus input.
+- [x] T010: Add keyboard bindings for submit, quit, and focus input.
   Verify: `python -m pytest tests/unit/test_tui_app.py`
-- [ ] T011: Render startup state with active model, provider, approval mode, and cwd.
+- [x] T011: Render startup state with active model, provider, approval mode, and cwd.
   Verify: `python -m pytest tests/unit/test_tui_app.py`
-- [ ] T012: Add a simple error banner or status message component.
+- [x] T012: Add a simple error banner or status message component.
   Verify: `python -m pytest tests/unit/test_tui_app.py`
-- [ ] T013: Wire `cgopher` without `-p` to launch the minimal app.
+- [x] T013: Wire `cgopher` without `-p` to launch the minimal app.
   Verify: `python -m pytest tests/unit/test_cli.py tests/unit/test_tui_app.py`
 
 ## Milestone 2 - Agent Stream-To-UI Wiring
