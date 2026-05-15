@@ -5,7 +5,12 @@ from dataclasses import dataclass
 import pytest
 
 from codegopher.config.schema import ApprovalMode
-from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
+from codegopher.core.approval import (
+    ApprovalRequest,
+    ApprovalResult,
+    prompt_for_approval,
+    should_prompt,
+)
 
 
 @dataclass(frozen=True)
@@ -34,3 +39,15 @@ def test_approval_request_and_result_models() -> None:
 
     assert request.tool_name == "write_file"
     assert result.reason == "denied"
+
+
+def test_prompt_for_approval_accepts_yes() -> None:
+    messages: list[str] = []
+    result = prompt_for_approval(
+        ApprovalRequest("read_file", "{}"),
+        input_func=lambda _prompt: "yes",
+        output_func=messages.append,
+    )
+
+    assert result.approved is True
+    assert messages[0] == "Tool requested: read_file"
