@@ -31,6 +31,11 @@ class TextDeltaEvent(TypedDict):
     content: str
 
 
+class ReasoningDeltaEvent(TypedDict):
+    type: Literal["reasoning_delta"]
+    content: str
+
+
 class ToolCallEvent(TypedDict):
     type: Literal["tool_call"]
     tool_call: ToolCall
@@ -46,5 +51,6 @@ class ErrorEvent(TypedDict):
     message: str
 
 
-StreamEvent: TypeAlias = TextDeltaEvent | ToolCallEvent | DoneEvent | ErrorEvent
-
+StreamEvent: TypeAlias = (
+    TextDeltaEvent | ReasoningDeltaEvent | ToolCallEvent | DoneEvent | ErrorEvent
+)
