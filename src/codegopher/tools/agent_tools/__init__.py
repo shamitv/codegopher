@@ -1,1 +1,1 @@
-"""Agent-internal tools (ask_user, todo, memory, sub-agent, plan mode)."""
+"""Reserved package for future agent-internal tools."""
