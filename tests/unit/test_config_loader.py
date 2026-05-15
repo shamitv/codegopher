@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from codegopher.config.loader import load_settings
+from codegopher.config.loader import CliOverrides, load_settings
 
 
 def test_load_settings_returns_defaults() -> None:
@@ -81,3 +81,24 @@ def test_load_settings_applies_environment_overrides(tmp_path: Path) -> None:
     assert settings.debug is True
     assert settings.providers["local"][0].base_url == "http://127.0.0.1:8000/v1"
     assert settings.providers["local"][0].api_key_env == "LOCAL_API_KEY"
+
+
+def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -> None:
+    settings = load_settings(
+        cwd=tmp_path,
+        home=tmp_path,
+        environ={"CODEGOPHER_MODEL": "env-model"},
+        cli_overrides=CliOverrides(
+            model="cli-model",
+            provider="openai",
+            base_url="http://localhost:8000/v1",
+            approval_mode="auto",
+            debug=True,
+        ),
+    )
+
+    assert settings.model.name == "cli-model"
+    assert settings.model.provider == "openai"
+    assert settings.approval_mode.value == "auto"
+    assert settings.debug is True
+    assert settings.providers["openai"][0].base_url == "http://localhost:8000/v1"
