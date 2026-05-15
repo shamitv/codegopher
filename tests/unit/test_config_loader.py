@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+from codegopher.core.errors import ConfigurationError
 from codegopher.config.loader import CliOverrides, load_settings
 
 
@@ -102,3 +105,13 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
     assert settings.approval_mode.value == "auto"
     assert settings.debug is True
     assert settings.providers["openai"][0].base_url == "http://localhost:8000/v1"
+
+
+def test_load_settings_reports_malformed_toml_source(tmp_path: Path) -> None:
+    config_dir = tmp_path / ".codegopher"
+    config_dir.mkdir()
+    path = config_dir / "settings.toml"
+    path.write_text("[model\n", encoding="utf-8")
+
+    with pytest.raises(ConfigurationError, match="Invalid TOML"):
+        load_settings(cwd=tmp_path, home=tmp_path)
