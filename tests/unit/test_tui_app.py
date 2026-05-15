@@ -6,6 +6,7 @@ import pytest
 from textual.widgets import Input, RichLog, Static
 
 from codegopher.config.schema import ApprovalMode, ModelConfig, Settings
+from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
 
 
@@ -16,6 +17,7 @@ def make_app(tmp_path: Path) -> CodeGopherApp:
             approval_mode=ApprovalMode.auto,
         ),
         cwd=tmp_path,
+        provider_factory=lambda _settings: MockProvider([[{"type": "done"}]]),
     )
 
 
@@ -59,7 +61,7 @@ async def test_tui_app_appends_submitted_input(tmp_path: Path) -> None:
 
         assert app.chat_messages == ["You: hello tui"]
         assert input_widget.value == ""
-        assert "agent streaming starts" in app.status_message
+        assert app.status_message == "Done after 1 iteration(s)"
 
 
 @pytest.mark.asyncio
