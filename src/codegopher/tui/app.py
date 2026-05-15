@@ -127,7 +127,7 @@ class CodeGopherApp(App[None]):
                 registry=self.registry_factory(),
                 settings=self.settings,
                 cwd=self.cwd,
-                stdin_is_tty=False,
+                stdin_is_tty=True,
                 callbacks=callbacks,
             )
         except (AgentLoopError, ProviderError) as exc:
