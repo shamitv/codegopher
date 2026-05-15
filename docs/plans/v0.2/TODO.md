@@ -171,7 +171,7 @@ Commit rules:
 
 - [x] T066: Update README with interactive TUI usage.
   Verify: `rg -n "cgopher|interactive|TUI" README.md`
-- [ ] T067: Update product intro to describe v0.2 behavior as implemented.
+- [x] T067: Update product intro to describe v0.2 behavior as implemented.
   Verify: `rg -n "interactive|Textual|TUI" docs/product/INTRO.md`
 - [ ] T068: Update v0.2 status doc with implemented components and remaining gaps.
   Verify: `rg -n "v0.2|Interactive Terminal" docs/plans/v0.2/STATUS.md`
