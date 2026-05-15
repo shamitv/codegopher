@@ -49,15 +49,17 @@ class OpenAICompatProvider:
         max_output_tokens: int,
     ) -> AsyncIterator[StreamEvent]:
         try:
-            stream = await self._client.chat.completions.create(
-                model=model,
-                messages=messages,
-                tools=tools,
-                tool_choice="auto" if tools else None,
-                temperature=temperature,
-                max_tokens=max_output_tokens,
-                stream=True,
-            )
+            request_args: dict[str, Any] = {
+                "model": model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_output_tokens,
+                "stream": True,
+            }
+            if tools:
+                request_args["tools"] = tools
+                request_args["tool_choice"] = "auto"
+            stream = await self._client.chat.completions.create(**request_args)
         except Exception as exc:
             yield {"type": "error", "message": f"Provider request failed: {exc}"}
             yield {"type": "done"}
