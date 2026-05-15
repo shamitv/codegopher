@@ -12,3 +12,10 @@ def test_access_tracker_records_file_reads(tmp_path: Path) -> None:
 
     assert tracker.has_read_file("src/example.py")
 
+
+def test_access_tracker_records_directory_inspections(tmp_path: Path) -> None:
+    tracker = AccessTracker(root=tmp_path)
+
+    tracker.record_directory_inspection("src")
+
+    assert tracker.has_inspected_directory("src")
