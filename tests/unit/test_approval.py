@@ -42,6 +42,10 @@ def test_approval_request_and_result_models() -> None:
     assert result.reason == "denied"
 
 
+def test_approval_mode_values_match_tui_command_choices() -> None:
+    assert {mode.value for mode in ApprovalMode} == {"review", "auto", "yolo"}
+
+
 def test_prompt_for_approval_accepts_yes() -> None:
     messages: list[str] = []
     result = prompt_for_approval(

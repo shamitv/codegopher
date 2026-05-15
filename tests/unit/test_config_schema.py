@@ -24,3 +24,8 @@ def test_settings_rejects_invalid_approval_mode() -> None:
 def test_settings_rejects_invalid_token_limit() -> None:
     with pytest.raises(ValidationError):
         Settings.model_validate({"model": {"max_output_tokens": 0}})
+
+
+def test_settings_rejects_empty_model_name() -> None:
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"model": {"name": ""}})

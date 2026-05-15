@@ -6,15 +6,15 @@ Last reviewed: 2026-05-15
 
 - v0.2 implementation has started.
 - The v0.1 headless baseline is complete and merged into `main`.
-- Milestones 0-3 are implemented: Textual dependency setup, importable TUI package, CLI routing, minimal app shell, agent stream-to-UI wiring, tool rendering, and inline approvals.
-- The immediate next implementation step is `T029` in `docs/plans/v0.2/TODO.md`.
+- Milestones 0-4 are implemented: Textual dependency setup, importable TUI package, CLI routing, minimal app shell, agent stream-to-UI wiring, tool rendering, inline approvals, and slash commands.
+- The immediate next implementation step is `T039` in `docs/plans/v0.2/TODO.md`.
 - No v0.2 blockers are known yet.
 
 Practical readiness estimate:
 
 - 100% ready to continue v0.2 implementation.
-- Milestones 0-3 implemented for the scoped v0.2 interactive terminal experience.
-- T001-T028 are complete; T029 is the next unchecked implementation task.
+- Milestones 0-4 implemented for the scoped v0.2 interactive terminal experience.
+- T001-T038 are complete; T039 is the next unchecked implementation task.
 
 ## Current Repository State
 
@@ -27,7 +27,7 @@ Practical readiness estimate:
 | CLI routing | Started | Plain `cgopher` launches the TUI in interactive terminals; headless `-p` is preserved. |
 | Agent stream-to-UI wiring | Started | Core agent callbacks stream text and errors into the TUI. |
 | Interactive approvals | Started | TUI approval prompts approve/deny tool calls using existing approval semantics. |
-| Slash commands | Not started | `/help`, `/clear`, `/model`, `/mode`, and `/stats` are planned. |
+| Slash commands | Implemented | `/help`, `/clear`, `/model`, `/mode`, and `/stats` are handled locally by the TUI. |
 | File mentions | Not started | `@path` and `@glob` expansion are planned. |
 | Shell passthrough | Not started | Shell execution must remain approval-gated. |
 | Session save/resume | Not started | Local session persistence is planned for v0.2. |
@@ -41,6 +41,7 @@ Practical readiness estimate:
 - Plain `cgopher` now routes to a minimal Textual shell when stdin/stdout are interactive.
 - Submitted TUI prompts now run the agent and stream assistant text into chat history.
 - Tool calls and tool results now render in chat history, with inline approval prompts for required tools.
+- Slash commands now run locally in the TUI without provider calls.
 - Existing approval modes are `review`, `auto`, and `yolo`.
 - Existing filesystem safety rules should be reused by the TUI.
 
@@ -50,4 +51,4 @@ No blockers are known.
 
 ## Implementation Recommendation
 
-Start with `T029`: add slash-command parsing for input beginning with `/`.
+Start with `T039`: add a parser for `@path` and `@glob` mentions in submitted input.

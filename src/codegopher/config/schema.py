@@ -15,7 +15,7 @@ class ApprovalMode(str, Enum):
 
 class ModelConfig(BaseModel):
     provider: str = "openai"
-    name: str = "gpt-4o"
+    name: str = Field(default="gpt-4o", min_length=1)
     temperature: float = Field(default=1.0, ge=0.0, le=2.0)
     max_output_tokens: int = Field(default=8192, gt=0)
 
@@ -34,4 +34,3 @@ class Settings(BaseModel):
     approval_mode: ApprovalMode = ApprovalMode.review
     ignore_file: str = ".codegopherignore"
     debug: bool = False
-
