@@ -52,9 +52,9 @@ hatch run typecheck
 - [Initial v0.1 Plan](docs/plans/initial/PLAN.md)
 - [llama.cpp OpenAI-Compatible Test Endpoint](docs/devguide/llm/LLAMA_CPP_OPENAI_ENDPOINT.md)
 
-## Configuration Direction
+## Configuration
 
-CodeGopher will use `~/.codegopher/settings.toml` for user-wide settings and `.codegopher/settings.toml` for per-project settings. CLI flags and environment variables will take precedence.
+CodeGopher uses `~/.codegopher/settings.toml` for user-wide settings and `.codegopher/settings.toml` for per-project settings. CLI flags and environment variables take precedence.
 
 ```toml
 [model]
