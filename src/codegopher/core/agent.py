@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -24,6 +27,28 @@ class AgentResult(BaseModel):
     iterations: int
 
 
+@dataclass(frozen=True)
+class AgentCallbacks:
+    on_text_delta: Callable[[str], Awaitable[None]] | None = None
+    on_tool_call: Callable[[ToolCall], Awaitable[None]] | None = None
+    on_tool_result: Callable[[ToolResult], Awaitable[None]] | None = None
+    on_error: Callable[[str], Awaitable[None]] | None = None
+    on_complete: Callable[[AgentResult], Awaitable[None]] | None = None
+
+
+async def _emit_callback(
+    name: str,
+    callback: Callable[..., Awaitable[None]] | None,
+    *args: Any,
+) -> None:
+    if callback is None:
+        return
+    try:
+        await callback(*args)
+    except Exception as exc:
+        raise AgentLoopError(f"Agent callback {name} failed: {exc}") from exc
+
+
 async def run_agent(
     *,
     prompt: str,
@@ -33,6 +58,7 @@ async def run_agent(
     cwd: Path,
     max_iterations: int = 8,
     stdin_is_tty: bool = False,
+    callbacks: AgentCallbacks | None = None,
 ) -> AgentResult:
     if not provider.capabilities.tool_calls:
         raise ProviderError("Provider does not support tool calls")
@@ -59,15 +85,40 @@ async def run_agent(
         ):
             if event["type"] == "text_delta":
                 text_parts.append(event["content"])
+                await _emit_callback(
+                    "on_text_delta",
+                    callbacks.on_text_delta if callbacks else None,
+                    event["content"],
+                )
             elif event["type"] == "tool_call":
                 tool_calls.append(event["tool_call"])
+                await _emit_callback(
+                    "on_tool_call",
+                    callbacks.on_tool_call if callbacks else None,
+                    event["tool_call"],
+                )
             elif event["type"] == "error":
+                await _emit_callback(
+                    "on_error",
+                    callbacks.on_error if callbacks else None,
+                    event["message"],
+                )
                 raise ProviderError(event["message"])
 
         final_text = "".join(text_parts)
         if not tool_calls:
             conversation.append_assistant(final_text)
-            return AgentResult(final_text=final_text, tool_results=all_tool_results, iterations=iteration)
+            result = AgentResult(
+                final_text=final_text,
+                tool_results=all_tool_results,
+                iterations=iteration,
+            )
+            await _emit_callback(
+                "on_complete",
+                callbacks.on_complete if callbacks else None,
+                result,
+            )
+            return result
 
         conversation.append_assistant(final_text or None, tool_calls)
         for tool_call in tool_calls:
@@ -90,5 +141,10 @@ async def run_agent(
                 result = await tool.execute(arguments, tool_context)
             all_tool_results.append(result)
             conversation.append_tool_result(result)
+            await _emit_callback(
+                "on_tool_result",
+                callbacks.on_tool_result if callbacks else None,
+                result,
+            )
 
     raise AgentLoopError(f"Agent exceeded max iterations: {max_iterations}")

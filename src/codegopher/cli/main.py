@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 from pathlib import Path
 
 import click
@@ -14,27 +13,12 @@ from codegopher.config.schema import Settings
 from codegopher.core.agent import AgentResult, run_agent
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
 from codegopher.providers.base import Provider
-from codegopher.providers.mock import MockProvider
-from codegopher.providers.registry import create_provider_registry
+from codegopher.runtime import build_provider
 from codegopher.tools.registry import create_default_registry
 
 
 def _build_provider(settings: Settings) -> Provider:
-    mock_response = os.environ.get("CODEGOPHER_TEST_MOCK_RESPONSE")
-    if mock_response is not None:
-        return MockProvider([[{"type": "text_delta", "content": mock_response}, {"type": "done"}]])
-
-    entries = settings.providers.get(settings.model.provider, [])
-    selected = next((entry for entry in entries if entry.id == settings.model.name), None)
-    if selected is None and entries:
-        selected = entries[0]
-    base_url = selected.base_url if selected else None
-    api_key_env = selected.api_key_env if selected and selected.api_key_env else "OPENAI_API_KEY"
-    return create_provider_registry(
-        environ=os.environ,
-        base_url=base_url,
-        api_key_env=api_key_env,
-    ).create(settings.model.provider)
+    return build_provider(settings)
 
 
 def _emit_result(result: AgentResult, *, as_json: bool) -> None:
