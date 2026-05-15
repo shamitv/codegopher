@@ -44,19 +44,19 @@ Commit rules:
 
 ## Milestone 2 - Agent Stream-To-UI Wiring
 
-- [ ] T014: Define presentation callbacks or async events for text deltas, tool calls, tool results, errors, and completion.
+- [x] T014: Define presentation callbacks or async events for text deltas, tool calls, tool results, errors, and completion.
   Verify: `python -m pytest tests/unit/test_agent_loop.py`
-- [ ] T015: Refactor the headless agent loop to emit callbacks/events without changing `AgentResult`.
+- [x] T015: Refactor the headless agent loop to emit callbacks/events without changing `AgentResult`.
   Verify: `python -m pytest tests/unit/test_agent_loop.py tests/integration/test_headless_cli.py`
-- [ ] T016: Add tests proving callback failures are reported clearly.
+- [x] T016: Add tests proving callback failures are reported clearly.
   Verify: `python -m pytest tests/unit/test_agent_loop.py`
-- [ ] T017: Stream assistant text into the TUI chat history as it arrives.
+- [x] T017: Stream assistant text into the TUI chat history as it arrives.
   Verify: `python -m pytest tests/unit/test_tui_agent.py`
-- [ ] T018: Disable input while an agent turn is running and re-enable it on completion.
+- [x] T018: Disable input while an agent turn is running and re-enable it on completion.
   Verify: `python -m pytest tests/unit/test_tui_agent.py`
-- [ ] T019: Surface provider and agent-loop errors in the TUI status/error component.
+- [x] T019: Surface provider and agent-loop errors in the TUI status/error component.
   Verify: `python -m pytest tests/unit/test_tui_agent.py`
-- [ ] T020: Add an integration-style TUI test with `MockProvider` returning final text.
+- [x] T020: Add an integration-style TUI test with `MockProvider` returning final text.
   Verify: `python -m pytest tests/unit/test_tui_agent.py`
 
 ## Milestone 3 - Tool Calls And Inline Approvals
