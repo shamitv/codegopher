@@ -41,8 +41,10 @@ def _validate(data: dict[str, Any], *, source: str) -> Settings:
         raise ConfigurationError(f"Invalid settings from {source}: {exc}") from exc
 
 
-def load_settings(*, home: Path | None = None) -> Settings:
+def load_settings(*, cwd: Path | None = None, home: Path | None = None) -> Settings:
+    project_root = cwd or Path.cwd()
     home_root = home or Path.home()
     data: dict[str, Any] = {}
     data = _merge(data, _load_toml(home_root / ".codegopher" / "settings.toml"))
+    data = _merge(data, _load_toml(project_root / ".codegopher" / "settings.toml"))
     return _validate(data, source="configuration files")
