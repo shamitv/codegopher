@@ -20,23 +20,26 @@ class AsyncStream:
 
 
 class FakeCompletions:
-    def __init__(self, stream: AsyncStream | None = None) -> None:
+    def __init__(self, stream: AsyncStream | None = None, error: Exception | None = None) -> None:
         self.kwargs = {}
         self.stream = stream or AsyncStream()
+        self.error = error
 
     async def create(self, **kwargs):
         self.kwargs = kwargs
+        if self.error:
+            raise self.error
         return self.stream
 
 
 class FakeChat:
-    def __init__(self, stream: AsyncStream | None = None) -> None:
-        self.completions = FakeCompletions(stream)
+    def __init__(self, stream: AsyncStream | None = None, error: Exception | None = None) -> None:
+        self.completions = FakeCompletions(stream, error)
 
 
 class FakeClient:
-    def __init__(self, stream: AsyncStream | None = None) -> None:
-        self.chat = FakeChat(stream)
+    def __init__(self, stream: AsyncStream | None = None, error: Exception | None = None) -> None:
+        self.chat = FakeChat(stream, error)
 
 
 def test_openai_compat_provider_resolves_api_key() -> None:
@@ -172,3 +175,18 @@ async def test_openai_compat_provider_reports_malformed_tool_arguments() -> None
 
     assert events[0]["type"] == "error"
     assert "Malformed JSON" in events[0]["message"]
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_normalizes_request_errors() -> None:
+    provider = OpenAICompatProvider(
+        environ={"OPENAI_API_KEY": "sk-test"},
+        client=FakeClient(error=RuntimeError("boom")),
+    )
+
+    events = [event async for event in provider.stream([], [], model="m", temperature=0, max_output_tokens=1)]
+
+    assert events == [
+        {"type": "error", "message": "Provider request failed: boom"},
+        {"type": "done"},
+    ]

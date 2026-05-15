@@ -49,34 +49,44 @@ class OpenAICompatProvider:
         temperature: float,
         max_output_tokens: int,
     ) -> AsyncIterator[StreamEvent]:
-        stream = await self._client.chat.completions.create(
-            model=model,
-            messages=messages,
-            tools=tools,
-            tool_choice="auto" if tools else None,
-            temperature=temperature,
-            max_tokens=max_output_tokens,
-            stream=True,
-        )
+        try:
+            stream = await self._client.chat.completions.create(
+                model=model,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto" if tools else None,
+                temperature=temperature,
+                max_tokens=max_output_tokens,
+                stream=True,
+            )
+        except Exception as exc:
+            yield {"type": "error", "message": f"Provider request failed: {exc}"}
+            yield {"type": "done"}
+            return
         tool_buffers: dict[int, dict[str, str]] = {}
-        async for chunk in stream:
-            choices = _get(chunk, "choices", [])
-            if not choices:
-                continue
-            delta = _get(choices[0], "delta", {})
-            content = _get(delta, "content")
-            if content:
-                yield {"type": "text_delta", "content": str(content)}
-            for raw_tool_call in _get(delta, "tool_calls", []) or []:
-                index = int(_get(raw_tool_call, "index", 0))
-                buffer = tool_buffers.setdefault(index, {"id": "", "name": "", "arguments": ""})
-                if tool_id := _get(raw_tool_call, "id"):
-                    buffer["id"] = str(tool_id)
-                function = _get(raw_tool_call, "function", {})
-                if name := _get(function, "name"):
-                    buffer["name"] = str(name)
-                if arguments := _get(function, "arguments"):
-                    buffer["arguments"] += str(arguments)
+        try:
+            async for chunk in stream:
+                choices = _get(chunk, "choices", [])
+                if not choices:
+                    continue
+                delta = _get(choices[0], "delta", {})
+                content = _get(delta, "content")
+                if content:
+                    yield {"type": "text_delta", "content": str(content)}
+                for raw_tool_call in _get(delta, "tool_calls", []) or []:
+                    index = int(_get(raw_tool_call, "index", 0))
+                    buffer = tool_buffers.setdefault(index, {"id": "", "name": "", "arguments": ""})
+                    if tool_id := _get(raw_tool_call, "id"):
+                        buffer["id"] = str(tool_id)
+                    function = _get(raw_tool_call, "function", {})
+                    if name := _get(function, "name"):
+                        buffer["name"] = str(name)
+                    if arguments := _get(function, "arguments"):
+                        buffer["arguments"] += str(arguments)
+        except Exception as exc:
+            yield {"type": "error", "message": f"Provider stream failed: {exc}"}
+            yield {"type": "done"}
+            return
         for buffer in tool_buffers.values():
             try:
                 arguments = loads_object(buffer["arguments"] or "{}", source="tool arguments")
