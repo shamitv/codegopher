@@ -42,6 +42,11 @@ class CodeGopherApp(App[None]):
         padding: 1;
     }
 
+    #assistant-stream {
+        min-height: 1;
+        padding: 0 1;
+    }
+
     #prompt-input {
         dock: bottom;
     }
@@ -67,13 +72,14 @@ class CodeGopherApp(App[None]):
         self.chat_messages: list[str] = []
         self.status_message = self._startup_status()
         self.turn_running = False
-        self._active_assistant_index: int | None = None
+        self._active_assistant_message = ""
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(id="main-layout"):
             yield Static(self.status_message, id="session-status")
             yield RichLog(id="chat-history", highlight=False, markup=False, wrap=True)
+            yield Static("", id="assistant-stream")
             yield Input(placeholder="Ask CodeGopher...", id="prompt-input")
         yield Footer()
 
@@ -92,7 +98,8 @@ class CodeGopherApp(App[None]):
             return
         self.append_user_message(prompt)
         self._set_turn_running(True)
-        self._active_assistant_index = None
+        self._active_assistant_message = ""
+        self.query_one("#assistant-stream", Static).update("")
         self.set_status("Running agent turn...")
         self.run_worker(
             self._run_agent_turn(prompt),
@@ -138,11 +145,10 @@ class CodeGopherApp(App[None]):
             self._set_turn_running(False)
 
     async def _on_agent_text_delta(self, content: str) -> None:
-        if self._active_assistant_index is None:
-            self.chat_messages.append("Assistant: ")
-            self._active_assistant_index = len(self.chat_messages) - 1
-        self.chat_messages[self._active_assistant_index] += content
-        self._render_chat_history()
+        self._active_assistant_message += content
+        self.query_one("#assistant-stream", Static).update(
+            f"Assistant: {self._active_assistant_message}"
+        )
 
     async def _on_agent_tool_call(self, tool_call: ToolCall) -> None:
         self.set_status(f"Tool requested: {tool_call['name']}")
@@ -155,19 +161,17 @@ class CodeGopherApp(App[None]):
         self.set_status(f"Error: {message}")
 
     async def _on_agent_complete(self, result: AgentResult) -> None:
-        if result.final_text and self._active_assistant_index is None:
+        if self._active_assistant_message:
+            self._append_chat_message(f"Assistant: {self._active_assistant_message}")
+            self._active_assistant_message = ""
+            self.query_one("#assistant-stream", Static).update("")
+        elif result.final_text:
             self._append_chat_message(f"Assistant: {result.final_text}")
         self.set_status(f"Done after {result.iterations} iteration(s)")
 
     def _append_chat_message(self, message: str) -> None:
         self.chat_messages.append(message)
-        self._render_chat_history()
-
-    def _render_chat_history(self) -> None:
-        log = self.query_one("#chat-history", RichLog)
-        log.clear()
-        for message in self.chat_messages:
-            log.write(message, scroll_end=True)
+        self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
 
     def _set_turn_running(self, running: bool) -> None:
         self.turn_running = running
