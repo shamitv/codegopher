@@ -52,3 +52,7 @@ async def test_run_shell_command_reports_timeout(tmp_path: Path) -> None:
 
     assert result.is_error is True
     assert "timed out" in result.content
+
+
+def test_run_shell_command_requires_approval() -> None:
+    assert RunShellCommandTool.requires_approval is True
