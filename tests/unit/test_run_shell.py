@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shlex
+import sys
 from pathlib import Path
 
 import pytest
@@ -8,10 +10,14 @@ from codegopher.tools.base import ToolContext
 from codegopher.tools.shell.run_shell import RunShellCommandTool
 
 
+def python_command(source: str) -> str:
+    return f"{shlex.quote(sys.executable)} -c {shlex.quote(source)}"
+
+
 @pytest.mark.asyncio
 async def test_run_shell_command_captures_success(tmp_path: Path) -> None:
     result = await RunShellCommandTool().execute(
-        {"command": "python -c \"print('hello')\""},
+        {"command": python_command("print('hello')")},
         ToolContext(cwd=tmp_path),
     )
 
@@ -24,7 +30,7 @@ async def test_run_shell_command_runs_in_context_cwd(tmp_path: Path) -> None:
     (tmp_path / "marker.txt").write_text("marker", encoding="utf-8")
 
     result = await RunShellCommandTool().execute(
-        {"command": "python -c \"from pathlib import Path; print(Path('marker.txt').exists())\""},
+        {"command": python_command("from pathlib import Path; print(Path('marker.txt').exists())")},
         ToolContext(cwd=tmp_path),
     )
 
@@ -34,7 +40,7 @@ async def test_run_shell_command_runs_in_context_cwd(tmp_path: Path) -> None:
 @pytest.mark.asyncio
 async def test_run_shell_command_reports_nonzero_exit(tmp_path: Path) -> None:
     result = await RunShellCommandTool().execute(
-        {"command": "python -c \"import sys; print('bad'); sys.exit(3)\""},
+        {"command": python_command("import sys; print('bad'); sys.exit(3)")},
         ToolContext(cwd=tmp_path),
     )
 
@@ -46,7 +52,7 @@ async def test_run_shell_command_reports_nonzero_exit(tmp_path: Path) -> None:
 @pytest.mark.asyncio
 async def test_run_shell_command_reports_timeout(tmp_path: Path) -> None:
     result = await RunShellCommandTool().execute(
-        {"command": "python -c \"import time; time.sleep(2)\"", "timeout_seconds": 1},
+        {"command": python_command("import time; time.sleep(2)"), "timeout_seconds": 1},
         ToolContext(cwd=tmp_path),
     )
 

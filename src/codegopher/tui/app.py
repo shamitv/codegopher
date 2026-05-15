@@ -14,15 +14,17 @@ from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 
 from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
-from codegopher.core.approval import ApprovalRequest, ApprovalResult
+from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
+from codegopher.tools.shell.run_shell import RunShellCommandTool
 from codegopher.tui.commands import COMMAND_DEFINITIONS, SlashCommand, parse_slash_command
 from codegopher.tui.mentions import MentionExpansion, expand_mentions
+from codegopher.utils.json import dumps_json
 
 if TYPE_CHECKING:
     from textual.binding import BindingType
@@ -79,6 +81,7 @@ class CodeGopherApp(App[None]):
         provider_factory: Callable[[Settings], Provider] = build_provider,
         registry_factory: Callable[[], ToolRegistry] = create_default_registry,
         monotonic: Callable[[], float] = time.monotonic,
+        shell_timeout_seconds: int = 30,
     ) -> None:
         super().__init__()
         self.settings = settings
@@ -86,6 +89,7 @@ class CodeGopherApp(App[None]):
         self.provider_factory = provider_factory
         self.registry_factory = registry_factory
         self.tool_context = ToolContext(cwd=cwd)
+        self.shell_timeout_seconds = shell_timeout_seconds
         self.monotonic = monotonic
         self.started_at = monotonic()
         self.chat_messages: list[str] = []
@@ -217,11 +221,7 @@ class CodeGopherApp(App[None]):
 
     async def _on_agent_approval_request(self, request: ApprovalRequest) -> ApprovalResult:
         self.approval_count += 1
-        loop = asyncio.get_running_loop()
-        future: asyncio.Future[ApprovalResult] = loop.create_future()
-        self._pending_approval = future
-        self._show_approval_request(request)
-        return await future
+        return await self._request_tui_approval(request)
 
     async def _on_agent_error(self, message: str) -> None:
         self.set_status(f"Error: {message}")
@@ -256,6 +256,8 @@ class CodeGopherApp(App[None]):
             self._handle_model_command(command)
         elif command.name == "mode":
             self._handle_mode_command(command)
+        elif command.name == "shell":
+            self._handle_shell_command(command)
         elif command.name == "stats":
             self._handle_stats_command(command)
         else:
@@ -320,6 +322,21 @@ class CodeGopherApp(App[None]):
         self.append_system_message(message)
         self.set_status(message)
 
+    def _handle_shell_command(self, command: SlashCommand) -> None:
+        if not command.arguments:
+            self._command_error("Usage: /shell COMMAND")
+            return
+        self.tool_count += 1
+        self.append_system_message(f"Shell requested: {command.arguments}")
+        self._set_turn_running(True)
+        self.run_worker(
+            self._run_shell_passthrough(command.arguments),
+            name="shell-passthrough",
+            group="shell",
+            exclusive=True,
+            exit_on_error=False,
+        )
+
     def _handle_stats_command(self, command: SlashCommand) -> None:
         if command.arguments:
             self._command_error("Usage: /stats")
@@ -337,6 +354,38 @@ class CodeGopherApp(App[None]):
         self.append_system_message(full_message)
         self.set_status(full_message)
 
+    async def _run_shell_passthrough(self, command: str) -> None:
+        shell_tool = RunShellCommandTool()
+        try:
+            approval = ApprovalResult(approved=True)
+            if should_prompt(self.settings.approval_mode, shell_tool):
+                self.approval_count += 1
+                approval = await self._request_tui_approval(
+                    ApprovalRequest(
+                        tool_name=shell_tool.name,
+                        arguments_preview=dumps_json({"command": command}),
+                    )
+                )
+            if not approval.approved:
+                reason = approval.reason or "Denied by user"
+                self.append_system_message(f"Shell denied: {reason}")
+                self.set_status("Shell denied")
+                return
+
+            result = await shell_tool.execute(
+                {
+                    "command": command,
+                    "timeout_seconds": self.shell_timeout_seconds,
+                    "_tool_call_id": "shell-passthrough",
+                },
+                self.tool_context,
+            )
+            state = "failed" if result.is_error else "completed"
+            self.append_system_message(f"Shell {state}:\n{result.content}")
+            self.set_status(f"Shell {state}")
+        finally:
+            self._set_turn_running(False)
+
     def _show_approval_request(self, request: ApprovalRequest) -> None:
         self.query_one("#approval-title", Static).update(f"Approval required: {request.tool_name}")
         self.query_one("#approval-arguments", Static).update(
@@ -345,6 +394,13 @@ class CodeGopherApp(App[None]):
         self.query_one("#approval-reason", Input).value = ""
         self.query_one("#approval-panel", Vertical).display = True
         self.set_status(f"Approval required: {request.tool_name}")
+
+    async def _request_tui_approval(self, request: ApprovalRequest) -> ApprovalResult:
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[ApprovalResult] = loop.create_future()
+        self._pending_approval = future
+        self._show_approval_request(request)
+        return await future
 
     def _resolve_pending_approval(self, result: ApprovalResult) -> None:
         if self._pending_approval and not self._pending_approval.done():
