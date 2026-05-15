@@ -10,7 +10,12 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from codegopher.config.schema import Settings
-from codegopher.core.approval import ApprovalRequest, ApprovalResult, resolve_approval, should_prompt
+from codegopher.core.approval import (
+    ApprovalRequest,
+    ApprovalResult,
+    resolve_approval,
+    should_prompt,
+)
 from codegopher.core.context import build_messages
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
