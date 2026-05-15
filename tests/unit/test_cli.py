@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
+
 from click.testing import CliRunner
 
 import codegopher.cli.main as cli_main
-from codegopher.core.agent import AgentResult
 from codegopher.cli.main import app
+from codegopher.core.agent import AgentResult
 
 
 def test_cli_without_prompt_shows_alpha_message() -> None:
@@ -50,3 +52,18 @@ def test_cli_appends_piped_stdin_to_prompt(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert captured["prompt"] == "summarize\n\nInput context:\nlog line\n"
+
+
+def test_cli_json_output_shape() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["-p", "hello", "--json"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
+    )
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "final_text": "mocked",
+        "tool_results": [],
+        "iterations": 1,
+    }
