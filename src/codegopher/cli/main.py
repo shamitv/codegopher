@@ -43,6 +43,11 @@ def _emit_result(result: AgentResult, *, as_json: bool) -> None:
     else:
         click.echo(result.final_text)
 
+
+def _streams_are_interactive() -> bool:
+    return click.get_text_stream("stdin").isatty() and click.get_text_stream("stdout").isatty()
+
+
 @click.command()
 @click.option("-p", "--prompt", help="Run one headless prompt and exit.")
 @click.option("--model", help="Override the model name.")
@@ -101,7 +106,11 @@ def app(
         _emit_result(result, as_json=as_json)
         return
 
-    click.echo(
-        "CodeGopher v0.1 alpha: pass -p/--prompt to run headless mode. "
-        "See docs/product/ROADMAP.md for planned interactive features."
-    )
+    if not _streams_are_interactive():
+        raise click.ClickException(
+            "No prompt provided in non-interactive mode; pass -p/--prompt for headless usage."
+        )
+
+    from codegopher.tui import launch_tui
+
+    launch_tui(settings, cwd=Path.cwd())
