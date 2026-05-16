@@ -69,3 +69,16 @@ Planned capabilities:
 - Optional Docker-based sandboxing.
 - More complete web fetch/search tooling.
 - Documentation, examples, and release automation for PyPI.
+
+## v0.6 - VS Code Extension Layer
+
+Goal: bring CodeGopher into VS Code through a native chat participant while keeping the Python CLI authoritative for tools, approvals, provider behavior, and filesystem safety.
+
+Planned capabilities:
+
+- Native VS Code Chat participant exposed as `@codegopher`.
+- JSONL CLI event protocol through `cgopher --events` for IDE and future integrations.
+- Streaming assistant text, tool-call progress, tool results, and errors into VS Code Chat.
+- Approval buttons in VS Code that route decisions back to the Python agent.
+- Extension settings for CLI path, model/provider overrides, approval mode, and protocol tracing.
+- Subprocess lifecycle management, cancellation, restart, and clear user-facing errors.
