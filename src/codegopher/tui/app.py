@@ -55,6 +55,12 @@ class CodeGopherApp(App[None]):
         padding: 0 1;
     }
 
+    #reasoning-stream {
+        min-height: 1;
+        padding: 0 1;
+        color: $text-muted;
+    }
+
     #approval-panel {
         height: auto;
         padding: 1;
@@ -111,6 +117,7 @@ class CodeGopherApp(App[None]):
         self.turn_count = 0
         self.tool_count = 0
         self.approval_count = 0
+        self._active_reasoning_message = ""
         self._active_assistant_message = ""
         self._tool_call_names: dict[str, str] = {}
         self._pending_approval: asyncio.Future[ApprovalResult] | None = None
@@ -120,6 +127,7 @@ class CodeGopherApp(App[None]):
         with Vertical(id="main-layout"):
             yield Static(self.status_message, id="session-status")
             yield RichLog(id="chat-history", highlight=False, markup=False, wrap=True)
+            yield Static("", id="reasoning-stream")
             yield Static("", id="assistant-stream")
             with Vertical(id="approval-panel"):
                 yield Static("", id="approval-title")
@@ -132,6 +140,7 @@ class CodeGopherApp(App[None]):
 
     def on_mount(self) -> None:
         self.query_one("#approval-panel", Vertical).display = False
+        self.query_one("#reasoning-stream", Static).display = False
         history = self.query_one("#chat-history", RichLog)
         for message in self.chat_messages:
             history.write(message, scroll_end=True)
@@ -165,8 +174,11 @@ class CodeGopherApp(App[None]):
 
         self.turn_count += 1
         self._set_turn_running(True)
+        self._active_reasoning_message = ""
         self._active_assistant_message = ""
         self._tool_call_names = {}
+        self.query_one("#reasoning-stream", Static).display = False
+        self.query_one("#reasoning-stream", Static).update("")
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Running agent turn...")
         self.run_worker(
@@ -190,6 +202,7 @@ class CodeGopherApp(App[None]):
     async def _run_agent_turn(self, prompt: str) -> None:
         callbacks = AgentCallbacks(
             on_text_delta=self._on_agent_text_delta,
+            on_reasoning_delta=self._on_agent_reasoning_delta,
             on_tool_call=self._on_agent_tool_call,
             on_tool_result=self._on_agent_tool_result,
             on_approval_request=self._on_agent_approval_request,
@@ -220,6 +233,14 @@ class CodeGopherApp(App[None]):
             f"Assistant: {self._active_assistant_message}"
         )
 
+    async def _on_agent_reasoning_delta(self, content: str) -> None:
+        self._active_reasoning_message += content
+        reasoning_stream = self.query_one("#reasoning-stream", Static)
+        reasoning_stream.display = True
+        reasoning_stream.update(
+            f"Reasoning (collapsed): {len(self._active_reasoning_message)} chars"
+        )
+
     async def _on_agent_tool_call(self, tool_call: ToolCall) -> None:
         self.tool_count += 1
         self._tool_call_names[tool_call["id"]] = tool_call["name"]
@@ -245,6 +266,14 @@ class CodeGopherApp(App[None]):
         self.set_status(f"Error: {message}")
 
     async def _on_agent_complete(self, result: AgentResult) -> None:
+        if self._active_reasoning_message:
+            self._append_chat_message(
+                f"Reasoning (collapsed): {self._active_reasoning_message}",
+                role="system",
+            )
+            self._active_reasoning_message = ""
+            self.query_one("#reasoning-stream", Static).display = False
+            self.query_one("#reasoning-stream", Static).update("")
         if self._active_assistant_message:
             self._append_chat_message(
                 f"Assistant: {self._active_assistant_message}",

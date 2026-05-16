@@ -58,6 +58,83 @@ async def test_agent_loop_emits_text_and_completion_callbacks(tmp_path: Path) ->
 
 
 @pytest.mark.asyncio
+async def test_agent_loop_emits_reasoning_without_final_text(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "thinking"},
+                {"type": "text_delta", "content": "answer"},
+                {"type": "done"},
+            ]
+        ]
+    )
+    reasoning_deltas: list[str] = []
+
+    async def on_reasoning_delta(content: str) -> None:
+        reasoning_deltas.append(content)
+
+    result = await run_agent(
+        prompt="Think",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(on_reasoning_delta=on_reasoning_delta),
+    )
+
+    assert reasoning_deltas == ["thinking"]
+    assert result.final_text == "answer"
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_handles_mixed_reasoning_text_and_tool_calls(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "need file"},
+                {"type": "text_delta", "content": "checking"},
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    reasoning_deltas: list[str] = []
+    text_deltas: list[str] = []
+
+    async def on_reasoning_delta(content: str) -> None:
+        reasoning_deltas.append(content)
+
+    async def on_text_delta(content: str) -> None:
+        text_deltas.append(content)
+
+    result = await run_agent(
+        prompt="Inspect",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+        callbacks=AgentCallbacks(
+            on_reasoning_delta=on_reasoning_delta,
+            on_text_delta=on_text_delta,
+        ),
+    )
+
+    assert reasoning_deltas == ["need file"]
+    assert text_deltas == ["checking", "done"]
+    assert result.final_text == "done"
+    assert result.tool_results[0].content == "project notes"
+
+
+@pytest.mark.asyncio
 async def test_agent_loop_emits_tool_call_and_result_callbacks(tmp_path: Path) -> None:
     (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
     provider = MockProvider(

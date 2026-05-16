@@ -154,36 +154,36 @@ Commit rules:
 
 ## Milestone 8 - Thinking-Content Rendering
 
-- [ ] T060: Extend stream event types to distinguish reasoning deltas from answer text.
+- [x] T060: Extend stream event types to distinguish reasoning deltas from answer text.
   Verify: `python -m pytest tests/unit/test_core_types.py`
-- [ ] T061: Parse provider `reasoning_content` into reasoning-specific events.
+- [x] T061: Parse provider `reasoning_content` into reasoning-specific events.
   Verify: `python -m pytest tests/unit/test_openai_compat_provider.py`
-- [ ] T062: Preserve headless final text without reasoning content.
+- [x] T062: Preserve headless final text without reasoning content.
   Verify: `python -m pytest tests/unit/test_agent_loop.py tests/integration/test_headless_cli.py`
-- [ ] T063: Show reasoning content in headless `--debug` output only.
+- [x] T063: Show reasoning content in headless `--debug` output only.
   Verify: `python -m pytest tests/unit/test_cli.py`
-- [ ] T064: Render reasoning content collapsed by default in the TUI.
+- [x] T064: Render reasoning content collapsed by default in the TUI.
   Verify: `python -m pytest tests/unit/test_tui_reasoning.py`
-- [ ] T065: Add tests for mixed reasoning, answer text, and tool calls in one provider turn.
+- [x] T065: Add tests for mixed reasoning, answer text, and tool calls in one provider turn.
   Verify: `python -m pytest tests/unit/test_tui_reasoning.py tests/unit/test_agent_loop.py`
 
 ## Milestone 9 - Tests, Docs, And Release Readiness
 
-- [ ] T066: Update README with interactive TUI usage.
+- [x] T066: Update README with interactive TUI usage.
   Verify: `rg -n "cgopher|interactive|TUI" README.md`
-- [ ] T067: Update product intro to describe v0.2 behavior as implemented.
+- [x] T067: Update product intro to describe v0.2 behavior as implemented.
   Verify: `rg -n "interactive|Textual|TUI" docs/product/INTRO.md`
-- [ ] T068: Update v0.2 status doc with implemented components and remaining gaps.
+- [x] T068: Update v0.2 status doc with implemented components and remaining gaps.
   Verify: `rg -n "v0.2|Interactive Terminal" docs/plans/v0.2/STATUS.md`
-- [ ] T069: Add or update release checklist items for interactive smoke testing.
+- [x] T069: Add or update release checklist items for interactive smoke testing.
   Verify: `rg -n "interactive|TUI|smoke" docs/release/CHECKLIST.md`
-- [ ] T070: Run the complete unit and integration suite.
+- [x] T070: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T071: Run lint and formatting checks.
+- [x] T071: Run lint and formatting checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
-- [ ] T072: Run static type checking.
+- [x] T072: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
-- [ ] T073: Build the distribution artifacts.
+- [x] T073: Build the distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
-- [ ] T074: Add a manual TUI smoke-test note to the v0.2 status doc.
+- [x] T074: Add a manual TUI smoke-test note to the v0.2 status doc.
   Verify: manual run of `cgopher`

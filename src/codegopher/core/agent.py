@@ -35,6 +35,7 @@ class AgentResult(BaseModel):
 @dataclass(frozen=True)
 class AgentCallbacks:
     on_text_delta: Callable[[str], Awaitable[None]] | None = None
+    on_reasoning_delta: Callable[[str], Awaitable[None]] | None = None
     on_tool_call: Callable[[ToolCall], Awaitable[None]] | None = None
     on_tool_result: Callable[[ToolResult], Awaitable[None]] | None = None
     on_approval_request: Callable[[ApprovalRequest], Awaitable[ApprovalResult]] | None = None
@@ -106,6 +107,12 @@ async def run_agent(
                 await _emit_callback(
                     "on_text_delta",
                     callbacks.on_text_delta if callbacks else None,
+                    event["content"],
+                )
+            elif event["type"] == "reasoning_delta":
+                await _emit_callback(
+                    "on_reasoning_delta",
+                    callbacks.on_reasoning_delta if callbacks else None,
                     event["content"],
                 )
             elif event["type"] == "tool_call":

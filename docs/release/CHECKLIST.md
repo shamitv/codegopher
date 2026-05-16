@@ -10,5 +10,8 @@ Use this checklist before publishing a CodeGopher release.
 - Install the built wheel in a clean virtual environment.
 - Smoke test `codegopher --help`.
 - Smoke test `cgopher -p "hello" --json` with a configured provider or the local test mock.
+- Smoke test interactive TUI startup with `cgopher` in a real terminal.
+- Smoke test TUI slash commands: `/help`, `/model`, `/mode`, `/stats`, and `/clear`.
+- Smoke test TUI file mentions and `/shell COMMAND` approval/denial flows in a disposable project.
+- Smoke test TUI session auto-resume for the same cwd.
 - Tag the release only after the branch is pushed and CI is green.
-

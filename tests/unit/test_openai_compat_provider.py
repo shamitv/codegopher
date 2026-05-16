@@ -99,6 +99,27 @@ async def test_openai_compat_provider_parses_text_deltas() -> None:
 
 
 @pytest.mark.asyncio
+async def test_openai_compat_provider_parses_reasoning_deltas() -> None:
+    client = FakeClient(
+        AsyncStream(
+            [
+                {"choices": [{"delta": {"reasoning_content": "think "}}]},
+                {"choices": [{"delta": {"reasoning_content": "more"}}]},
+            ]
+        )
+    )
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    events = [event async for event in provider.stream([], [], model="m", temperature=0, max_output_tokens=1)]
+
+    assert events == [
+        {"type": "reasoning_delta", "content": "think "},
+        {"type": "reasoning_delta", "content": "more"},
+        {"type": "done"},
+    ]
+
+
+@pytest.mark.asyncio
 async def test_openai_compat_provider_parses_streamed_tool_calls() -> None:
     client = FakeClient(
         AsyncStream(
