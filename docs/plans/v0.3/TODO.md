@@ -182,7 +182,7 @@ Commit rules:
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
 - [x] T065: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
-- [ ] T066: Build the distribution artifacts.
+- [x] T066: Build the distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
 - [ ] T067: Add a manual TUI v0.3 smoke-test note to the v0.3 status doc.
   Verify: manual run of `cgopher`
