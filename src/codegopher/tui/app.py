@@ -19,7 +19,7 @@ from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import Message, ToolCall
+from codegopher.core.types import CompactionEntry, Message, ToolCall
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.base import ToolContext, ToolResult
@@ -210,6 +210,7 @@ class CodeGopherApp(App[None]):
             on_tool_call=self._on_agent_tool_call,
             on_tool_result=self._on_agent_tool_result,
             on_approval_request=self._on_agent_approval_request,
+            on_compaction=self._on_agent_compaction,
             on_error=self._on_agent_error,
             on_complete=self._on_agent_complete,
         )
@@ -277,6 +278,10 @@ class CodeGopherApp(App[None]):
     async def _on_agent_approval_request(self, request: ApprovalRequest) -> ApprovalResult:
         self.approval_count += 1
         return await self._request_tui_approval(request)
+
+    async def _on_agent_compaction(self, entry: CompactionEntry) -> None:
+        self.append_system_message(f"Context compacted ({entry.reason}): {entry.summary}")
+        self.set_status("Context compacted")
 
     async def _on_agent_error(self, message: str) -> None:
         self.set_status(f"Error: {message}")

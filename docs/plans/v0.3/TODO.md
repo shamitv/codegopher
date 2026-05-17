@@ -74,7 +74,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
 - [x] T024: Run manual compaction through the provider and store a visible compaction entry.
   Verify: `python -m pytest tests/unit/test_tui_compaction.py tests/unit/test_agent_session.py`
-- [ ] T025: Add automatic compaction before a turn that would exceed the threshold.
+- [x] T025: Add automatic compaction before a turn that would exceed the threshold.
   Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_agent_session.py`
 - [ ] T026: Preserve recent turns verbatim after compaction.
   Verify: `python -m pytest tests/unit/test_compaction.py`

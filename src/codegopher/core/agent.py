@@ -17,8 +17,9 @@ from codegopher.core.approval import (
     should_prompt,
 )
 from codegopher.core.compaction import build_compaction_prompt, compacted_messages
-from codegopher.core.compaction import compaction_id
+from codegopher.core.compaction import compaction_id, split_for_compaction
 from codegopher.core.context import build_messages
+from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
@@ -41,6 +42,7 @@ class AgentCallbacks:
     on_tool_call: Callable[[ToolCall], Awaitable[None]] | None = None
     on_tool_result: Callable[[ToolResult], Awaitable[None]] | None = None
     on_approval_request: Callable[[ApprovalRequest], Awaitable[ApprovalResult]] | None = None
+    on_compaction: Callable[[CompactionEntry], Awaitable[None]] | None = None
     on_error: Callable[[str], Awaitable[None]] | None = None
     on_complete: Callable[[AgentResult], Awaitable[None]] | None = None
 
@@ -99,6 +101,7 @@ class AgentSession:
         if not self.provider.capabilities.tool_calls:
             raise ProviderError("Provider does not support tool calls")
 
+        await self._compact_if_needed(prompt)
         self.conversation.append_user(prompt)
         all_tool_results: list[ToolResult] = []
 
@@ -200,6 +203,31 @@ class AgentSession:
                 )
 
         raise AgentLoopError(f"Agent exceeded max iterations: {self.max_iterations}")
+
+    async def _compact_if_needed(self, prompt: str) -> None:
+        pending_messages = [
+            *self.conversation.provider_messages(),
+            {"role": "user", "content": prompt},
+        ]
+        budget = calculate_context_budget(
+            build_messages(
+                Conversation(messages=pending_messages),
+                cwd=self.cwd,
+                registry=self.registry,
+                approval_mode=self.settings.approval_mode,
+            ),
+            settings=self.settings,
+        )
+        if not budget.compaction_exceeded:
+            return
+        if not split_for_compaction(self.conversation.provider_messages()).older_messages:
+            return
+        entry = await self.compact(reason="automatic")
+        await _emit_callback(
+            "on_compaction",
+            self.callbacks.on_compaction if self.callbacks else None,
+            entry,
+        )
 
     async def compact(
         self,

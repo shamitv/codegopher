@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from codegopher.config.schema import ApprovalMode, Settings
+from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.conversation import Conversation
@@ -257,6 +257,53 @@ async def test_agent_session_manual_compaction_replaces_older_history(
     assert "summary text" in str(session.conversation.messages[0]["content"])
     assert {"role": "user", "content": "question 1"} not in session.conversation.messages
     assert {"role": "user", "content": "question 2"} in session.conversation.messages
+
+
+@pytest.mark.asyncio
+async def test_agent_session_automatically_compacts_before_threshold_turn(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from codegopher.core import context_budget
+
+    monkeypatch.setattr(context_budget, "tiktoken", None)
+    conversation = Conversation()
+    for index in range(1, 4):
+        conversation.append_user(f"question {index} with enough text")
+        conversation.append_assistant(f"answer {index} with enough text")
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "automatic summary"}, {"type": "done"}],
+            [{"type": "text_delta", "content": "new answer"}, {"type": "done"}],
+        ]
+    )
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="small"),
+        providers={"openai": [ProviderEntry(id="small", name="Small", context_window=40)]},
+    )
+    compacted = []
+
+    async def on_compaction(entry) -> None:
+        compacted.append(entry)
+
+    session = make_session(
+        tmp_path,
+        provider,
+        settings=settings,
+        conversation=conversation,
+        callbacks=AgentCallbacks(on_compaction=on_compaction),
+    )
+
+    result = await session.run_turn("new question with enough text")
+
+    assert result.final_text == "new answer"
+    assert compacted[0].reason == "automatic"
+    assert provider.calls[0][0]["role"] == "system"
+    assert provider.calls[1][1]["role"] == "system"
+    assert "automatic summary" in str(provider.calls[1][1]["content"])
+    assert {"role": "user", "content": "question 1 with enough text"} not in (
+        session.conversation.messages
+    )
 
 
 @pytest.mark.asyncio
