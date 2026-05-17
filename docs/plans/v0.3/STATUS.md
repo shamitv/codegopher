@@ -1,20 +1,21 @@
 # CodeGopher v0.3 Implementation Status
 
-Last reviewed: 2026-05-16
+Last reviewed: 2026-05-17
 
 ## Readiness Summary
 
-- v0.3 is planned but not implemented.
+- v0.3 is in implementation.
 - The release goal is Context, Memory, And Skills.
 - Planning docs are present in `docs/plans/v0.3`.
 - Milestone 1 config/schema and typed data models are implemented.
+- Milestone 2 reusable session/context runner is implemented.
 - Existing v0.1 and v0.2 behavior must stay compatible.
 
 Practical readiness estimate:
 
 - Plan and TODO docs are ready for implementation.
-- The first runtime implementation step is complete.
-- The highest-risk design area is the reusable session/context layer because the current agent loop is one-shot.
+- The first runtime implementation steps are complete.
+- The next runtime implementation step is context budget tracking.
 
 ## Current Repository State
 
@@ -26,8 +27,8 @@ Practical readiness estimate:
 | v0.3 TODO | Present | `TODO.md` breaks work into commit-sized tasks. |
 | Config/schema defaults | Implemented | Context, memory, skills, and TODO settings exist with validation tests. |
 | v0.3 typed data models | Implemented | Memory, skill, compaction, and TODO data models exist with validation tests. |
-| Session/context runner | Not started | `run_agent` currently creates a fresh `Conversation` per call. |
-| Provider-ready TUI history | Not started | The TUI persists display messages, not provider-ready conversation messages. |
+| Session/context runner | Implemented | `AgentSession` preserves provider-ready conversation state across turns while `run_agent` remains one-shot. |
+| Provider-ready TUI history | Implemented | TUI sessions persist display messages separately from provider-ready conversation messages, with legacy v0.2 compatibility. |
 | Context budget tracking | Not started | `tiktoken` exists as a dependency, but no budget tracker exists yet. |
 | Compaction pipeline | Not started | No manual or automatic compaction exists yet. |
 | Memory store | Not started | `src/codegopher/memory` is a placeholder package. |
@@ -58,7 +59,6 @@ Practical readiness estimate:
 
 ## Immediate Blockers
 
-- No reusable session/context runner exists yet.
 - No memory store exists yet.
 - No skill discovery or loading exists yet.
 - No compaction pipeline exists yet.
@@ -67,4 +67,4 @@ Practical readiness estimate:
 
 ## Implementation Recommendation
 
-Next, add a reusable session/context runner before wiring new TUI commands. Keep `run_agent` compatible throughout so existing headless and TUI tests remain useful guardrails.
+Next, add context budget accounting before compaction, memory, skills, or TODO runtime behavior. Keep `run_agent`, TUI resume, and session-scoped tool access tests in the verification loop for regression coverage.

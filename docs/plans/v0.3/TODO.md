@@ -50,8 +50,8 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_session.py tests/unit/test_agent_session.py`
 - [x] T015: Ensure prior-read and directory-inspection state remains session-scoped, without restoring stale access grants after resume.
   Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_tool_context.py tests/unit/test_tui_session.py`
-- [ ] T016: Add tests proving multi-turn TUI context reaches the provider.
-  Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_agent_session.py`
+- [x] T016: Add tests proving multi-turn TUI context reaches the provider, including integration-style resume/context and resume safety coverage.
+  Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_agent_session.py tests/integration/test_tui_context_resume.py`
 
 ## Milestone 3 - Context Budget Tracking
 
