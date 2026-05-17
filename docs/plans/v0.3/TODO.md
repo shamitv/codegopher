@@ -93,7 +93,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_memory_store.py`
 - [x] T032: Add memory CRUD operations with stable ids and timestamps.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T033: Add safety tests proving memories do not persist API keys or raw environment values.
+- [x] T033: Add safety tests proving memories do not persist API keys or raw environment values.
   Verify: `python -m pytest tests/unit/test_memory_store.py tests/unit/test_tui_session.py`
 - [ ] T034: Add approval-gated `save_memory` tool.
   Verify: `python -m pytest tests/unit/test_save_memory_tool.py tests/unit/test_approval.py`

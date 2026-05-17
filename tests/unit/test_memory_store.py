@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+import json
 from pathlib import Path
 
 from codegopher.memory import MemoryStore
@@ -127,6 +128,30 @@ def test_memory_store_enforces_limits(tmp_path: Path) -> None:
         assert "max_entries" in str(exc)
     else:
         raise AssertionError("scope limit was not enforced")
+
+
+def test_memory_store_redacts_api_keys_and_raw_secret_env_values(tmp_path: Path) -> None:
+    store = MemoryStore(
+        data_home=tmp_path / "data",
+        environ={
+            "OPENAI_API_KEY": "raw-secret-value",
+            "NORMAL_VALUE": "not-redacted",
+        },
+    )
+
+    entry = store.add_entry(
+        "session",
+        session_id="session-1",
+        content="api_key=inline-secret and raw-secret-value but not-redacted",
+    )
+    raw = store.session_file("session-1").read_text(encoding="utf-8")
+    data = json.loads(raw)
+
+    assert "inline-secret" not in raw
+    assert "raw-secret-value" not in raw
+    assert "not-redacted" in raw
+    assert "[REDACTED]" in entry.content
+    assert "[REDACTED]" in data["entries"][0]["content"]
 
 
 class FakeClock:

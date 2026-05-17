@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import hashlib
+import json
+import os
+import re
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
-import json
 from pathlib import Path
 from uuid import uuid4
 
@@ -22,10 +23,12 @@ class MemoryStore:
         *,
         data_home: Path,
         now: Callable[[], datetime] | None = None,
+        environ: Mapping[str, str] | None = None,
     ) -> None:
         self.data_home = data_home
         self.memory_root = data_home / "memory"
         self._now = now or (lambda: datetime.now(UTC))
+        self._environ = os.environ if environ is None else environ
 
     @classmethod
     def default(
@@ -88,6 +91,7 @@ class MemoryStore:
     ) -> MemoryEntry:
         if len(content) > max_entry_chars:
             raise ValueError("memory content exceeds max_entry_chars")
+        content = self._redact_content(content)
         path = self._scope_file(scope, session_id=session_id, cwd=cwd)
         entries = self._load_entries(path)
         if len(entries) >= max_entries:
@@ -119,6 +123,7 @@ class MemoryStore:
     ) -> MemoryEntry:
         if len(content) > max_entry_chars:
             raise ValueError("memory content exceeds max_entry_chars")
+        content = self._redact_content(content)
         path = self._scope_file(scope, session_id=session_id, cwd=cwd)
         entries = self._load_entries(path)
         for index, entry in enumerate(entries):
@@ -189,3 +194,19 @@ class MemoryStore:
 
     def _entry_id(self) -> str:
         return f"mem-{uuid4().hex[:12]}"
+
+    def _redact_content(self, content: str) -> str:
+        redacted = re.sub(
+            r"(?i)\b(api[_-]?key|token|secret|password)\s*[:=]\s*([^\s,;]+)",
+            lambda match: f"{match.group(1)}=[REDACTED]",
+            content,
+        )
+        for name, value in self._environ.items():
+            if value and len(value) >= 4 and _looks_secret_name(name):
+                redacted = redacted.replace(value, "[REDACTED]")
+        return redacted
+
+
+def _looks_secret_name(name: str) -> bool:
+    upper = name.upper()
+    return any(marker in upper for marker in ("KEY", "TOKEN", "SECRET", "PASSWORD"))
