@@ -188,3 +188,5 @@ Commit rules:
   Verify: manual run of `cgopher`
 - [x] T072: Add project init support that creates default `.codegopher/skills` for target codebases.
   Verify: `rg -n "init|default.*skills|\\.codegopher/skills" docs/plans/v0.3/STATUS.md README.md`
+- [x] T073: Add skipped-by-default real LLM endpoint integration smoke coverage.
+  Verify: `source .venv/bin/activate && python -m pytest tests/integration/test_real_llm_endpoint.py`
