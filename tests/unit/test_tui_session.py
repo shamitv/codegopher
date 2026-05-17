@@ -13,6 +13,7 @@ from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, S
 from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
 from codegopher.tui.session import SESSION_VERSION, SessionMessage, TuiSessionState, TuiSessionStore
+from codegopher.utils.paths import canonical_path
 
 
 def make_settings() -> Settings:
@@ -66,7 +67,7 @@ async def test_tui_session_persists_completed_turn_messages_and_metadata(tmp_pat
     assert app.session_state is not None
     data = read_session_json(store, app.session_state)
     assert data["version"] == SESSION_VERSION
-    assert data["metadata"]["cwd"] == str(tmp_path.resolve())
+    assert data["metadata"]["cwd"] == canonical_path(tmp_path)
     assert data["metadata"]["provider"] == "openai"
     assert data["metadata"]["model"] == "test-model"
     assert data["metadata"]["approval_mode"] == "yolo"
