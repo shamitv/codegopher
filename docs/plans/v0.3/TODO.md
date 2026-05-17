@@ -40,18 +40,18 @@ Commit rules:
 
 ## Milestone 2 - Reusable Session And Context Runner
 
-- [ ] T011: Add a reusable session/context runner that owns provider-ready conversation history.
+- [x] T011: Add a reusable session/context runner that owns provider-ready conversation history, including text-only multi-turn history, tool-call history, callbacks, errors, and isolated sessions.
   Verify: `python -m pytest tests/unit/test_agent_session.py`
-- [ ] T012: Preserve `run_agent` import compatibility and one-shot behavior.
+- [x] T012: Preserve `run_agent` import compatibility and one-shot behavior, including no history leakage between calls.
   Verify: `python -m pytest tests/unit/test_agent_loop.py tests/integration/test_headless_cli.py`
-- [ ] T013: Move TUI agent turns onto the session/context runner without changing visible behavior.
-  Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_tui_session.py`
-- [ ] T014: Persist enough session metadata to resume provider-ready context safely.
+- [x] T013: Move TUI agent turns onto the session/context runner without changing visible behavior, including `/clear`, slash command, mention expansion, and tool-history regressions.
+  Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_tui_session.py tests/unit/test_tui_mentions.py`
+- [x] T014: Persist enough session metadata to resume provider-ready context safely, including legacy session compatibility and provider-message validation.
   Verify: `python -m pytest tests/unit/test_tui_session.py tests/unit/test_agent_session.py`
-- [ ] T015: Ensure prior-read and directory-inspection state remains session-scoped.
-  Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_tool_context.py`
-- [ ] T016: Add tests proving multi-turn TUI context reaches the provider.
-  Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_agent_session.py`
+- [x] T015: Ensure prior-read and directory-inspection state remains session-scoped, without restoring stale access grants after resume.
+  Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_tool_context.py tests/unit/test_tui_session.py`
+- [x] T016: Add tests proving multi-turn TUI context reaches the provider, including integration-style resume/context and resume safety coverage.
+  Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_agent_session.py tests/integration/test_tui_context_resume.py`
 
 ## Milestone 3 - Context Budget Tracking
 

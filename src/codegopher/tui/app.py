@@ -13,8 +13,9 @@ from textual.containers import Vertical
 from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 
 from codegopher.config.schema import ApprovalMode, Settings
-from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
+from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
+from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.base import Provider
@@ -97,8 +98,9 @@ class CodeGopherApp(App[None]):
         self.settings = settings
         self.cwd = cwd
         self.provider_factory = provider_factory
-        self.registry_factory = registry_factory
+        self.registry = registry_factory()
         self.tool_context = ToolContext(cwd=cwd)
+        self._agent_session: AgentSession | None = None
         self.session_store = session_store
         self.session_state = session_state or (
             session_store.create(cwd=cwd, settings=settings) if session_store else None
@@ -210,22 +212,34 @@ class CodeGopherApp(App[None]):
             on_complete=self._on_agent_complete,
         )
         try:
-            await run_agent(
-                prompt=prompt,
-                provider=self.provider_factory(self.settings),
-                registry=self.registry_factory(),
-                settings=self.settings,
-                cwd=self.cwd,
-                stdin_is_tty=True,
-                callbacks=callbacks,
-                tool_context=self.tool_context,
-            )
+            await self._ensure_agent_session(callbacks).run_turn(prompt)
         except (AgentLoopError, ProviderError) as exc:
             message = f"Error: {exc}"
             self.append_system_message(message)
             self.set_status(message)
         finally:
             self._set_turn_running(False)
+
+    def _ensure_agent_session(self, callbacks: AgentCallbacks) -> AgentSession:
+        if self._agent_session is None:
+            self._agent_session = AgentSession(
+                provider=self.provider_factory(self.settings),
+                registry=self.registry,
+                settings=self.settings,
+                cwd=self.cwd,
+                stdin_is_tty=True,
+                callbacks=callbacks,
+                tool_context=self.tool_context,
+                conversation=Conversation(
+                    messages=list(self.session_state.provider_messages)
+                    if self.session_state
+                    else []
+                ),
+            )
+            self.tool_context = self._agent_session.tool_context
+        else:
+            self._agent_session.callbacks = callbacks
+        return self._agent_session
 
     async def _on_agent_text_delta(self, content: str) -> None:
         self._active_assistant_message += content
@@ -295,6 +309,10 @@ class CodeGopherApp(App[None]):
     def _persist_session(self) -> None:
         if not self.session_store or not self.session_state:
             return
+        if self._agent_session is not None:
+            self.session_state.provider_messages = (
+                self._agent_session.conversation.provider_messages()
+            )
         try:
             self.session_store.save(self.session_state, settings=self.settings)
         except OSError as exc:
