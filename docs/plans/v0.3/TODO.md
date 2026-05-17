@@ -128,7 +128,7 @@ Commit rules:
 
 ## Milestone 7 - Markdown Skill Discovery And Loading
 
-- [ ] T042: Add skill discovery for project `.codegopher/skills/*/SKILL.md`.
+- [x] T042: Add skill discovery for project `.codegopher/skills/*/SKILL.md`.
   Verify: `python -m pytest tests/unit/test_skills.py`
 - [ ] T043: Add skill discovery for user `~/.codegopher/skills/*/SKILL.md`.
   Verify: `python -m pytest tests/unit/test_skills.py`
