@@ -7,7 +7,7 @@ import pytest
 from textual.widgets import Input
 
 from codegopher.config.schema import ApprovalMode, ModelConfig, Settings
-from codegopher.core.types import Message
+from codegopher.core.types import Message, TodoItem
 from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
 from codegopher.tui.session import TuiSessionStore
@@ -47,6 +47,9 @@ async def test_tui_manual_compaction_persists_visible_summary(tmp_path: Path) ->
     store = TuiSessionStore(data_home=tmp_path / "data")
     state = store.create(cwd=tmp_path, settings=make_settings())
     state.provider_messages = provider_history()
+    state.todo_items = [
+        TodoItem(id="todo-compact", text="Preserve TODO in compaction prompt")
+    ]
     provider = MockProvider(
         [[{"type": "text_delta", "content": "summary text"}, {"type": "done"}]]
     )
@@ -62,6 +65,7 @@ async def test_tui_manual_compaction_persists_visible_summary(tmp_path: Path) ->
         await submit(app, pilot, "/compact focus on decisions")
 
     assert "focus on decisions" in str(provider.calls[0][-1]["content"])
+    assert "Preserve TODO in compaction prompt" in str(provider.calls[0][-1]["content"])
     assert app.chat_messages[-1] == "Context compacted (manual): summary text"
     assert state.provider_messages[0]["role"] == "system"
     assert "summary text" in str(state.provider_messages[0]["content"])
