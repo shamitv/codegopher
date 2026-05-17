@@ -10,6 +10,7 @@ from textual.widgets import Input
 
 import codegopher.tui.launcher as launcher
 from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, Settings
+from codegopher.memory import MemoryStore
 from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
 from codegopher.tui.session import SESSION_VERSION, SessionMessage, TuiSessionState, TuiSessionStore
@@ -223,6 +224,43 @@ async def test_tui_session_resumes_provider_messages_for_next_turn(tmp_path: Pat
             {"role": "assistant", "content": "earlier answer"},
             {"role": "user", "content": "new question"},
         ]
+
+
+@pytest.mark.asyncio
+async def test_tui_session_resume_uses_same_session_memory(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    settings = make_settings()
+    state = store.create(cwd=tmp_path, settings=settings)
+    store.save(state, settings=settings)
+    memory_store = MemoryStore(data_home=store.data_home)
+    kept_entry = memory_store.add_entry(
+        "session",
+        session_id=state.session_id,
+        content="Resume keeps this session memory",
+    )
+    other_entry = memory_store.add_entry(
+        "session",
+        session_id="other-session",
+        content="Do not show other session memory",
+    )
+    result = store.load_latest(cwd=tmp_path)
+    assert result.error is None
+    assert result.state is not None
+    app = CodeGopherApp(
+        settings=settings,
+        cwd=tmp_path,
+        provider_factory=lambda _settings: MockProvider([[{"type": "done"}]]),
+        session_store=store,
+        session_state=result.state,
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/memory")
+
+    assert kept_entry.id in app.chat_messages[-1]
+    assert "Resume keeps this session memory" in app.chat_messages[-1]
+    assert other_entry.id not in app.chat_messages[-1]
+    assert "Do not show other session memory" not in app.chat_messages[-1]
 
 
 @pytest.mark.asyncio

@@ -91,6 +91,8 @@ async def test_tui_help_command_lists_available_commands(tmp_path: Path) -> None
         assert app.chat_messages[0].startswith("Slash commands:")
         assert "/help - Show available slash commands." in app.chat_messages[0]
         assert "/compact [instructions] - Compact provider context." in app.chat_messages[0]
+        assert "/forget ID - Delete a memory after confirmation." in app.chat_messages[0]
+        assert "/memory - List session and project memories." in app.chat_messages[0]
         assert "/stats - Show session counters." in app.chat_messages[0]
 
 
@@ -223,7 +225,8 @@ async def test_tui_stats_command_reports_session_counters(tmp_path: Path) -> Non
 
         assert len(provider.calls) == calls_before_stats
         assert app.chat_messages[-1].startswith(
-            "Stats: turns=1 | tools=1 | approvals=1 | elapsed=12s | context="
+            "Stats: turns=1 | tools=1 | approvals=1 | elapsed=12s | "
+            "memory=0 (session=0, project=0) | context="
         )
         assert app.chat_messages[-1].endswith("tokens (window unknown)")
         assert app.status_message == "Displayed stats"
@@ -268,10 +271,12 @@ async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
     [
         "/help",
         "/clear",
+        "/forget",
         "/model",
         "/model next-model",
         "/mode",
         "/mode yolo",
+        "/memory",
         "/stats",
         "/unknown",
     ],

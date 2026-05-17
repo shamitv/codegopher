@@ -26,6 +26,8 @@ COMMAND_DEFINITIONS: tuple[SlashCommandDefinition, ...] = (
     SlashCommandDefinition("/help", "Show available slash commands."),
     SlashCommandDefinition("/clear", "Clear visible chat history."),
     SlashCommandDefinition("/compact [instructions]", "Compact provider context."),
+    SlashCommandDefinition("/forget ID", "Delete a memory after confirmation."),
+    SlashCommandDefinition("/memory", "List session and project memories."),
     SlashCommandDefinition("/model [NAME]", "Show or update the active model."),
     SlashCommandDefinition("/mode [review|auto|yolo]", "Show or update approval mode."),
     SlashCommandDefinition("/shell COMMAND", "Run a shell command after approval."),

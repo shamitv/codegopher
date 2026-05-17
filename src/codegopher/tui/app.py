@@ -19,7 +19,7 @@ from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import CompactionEntry, Message, ToolCall
+from codegopher.core.types import CompactionEntry, MemoryEntry, MemoryScope, Message, ToolCall
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
@@ -278,6 +278,8 @@ class CodeGopherApp(App[None]):
         state = "failed" if result.is_error else "completed"
         if result.is_error:
             self.append_system_message(f"Tool failed: {tool_name}: {result.content}")
+        elif tool_name == "save_memory":
+            self.append_system_message(self._format_memory_save_event(result.content))
         else:
             self.append_system_message(f"Tool completed: {tool_name}")
         self.set_status(f"Tool {state}: {tool_name}")
@@ -347,6 +349,10 @@ class CodeGopherApp(App[None]):
             self._handle_clear_command(command)
         elif command.name == "compact":
             self._handle_compact_command(command)
+        elif command.name == "forget":
+            self._handle_forget_command(command)
+        elif command.name == "memory":
+            self._handle_memory_command(command)
         elif command.name == "model":
             self._handle_model_command(command)
         elif command.name == "mode":
@@ -418,6 +424,116 @@ class CodeGopherApp(App[None]):
         finally:
             self._set_turn_running(False)
 
+    def _handle_forget_command(self, command: SlashCommand) -> None:
+        parsed = self._parse_forget_arguments(command.arguments)
+        if parsed is None:
+            self._command_error("Usage: /forget ID [--yes]")
+            return
+        entry_id, confirmed = parsed
+        if not self.settings.memory.enabled:
+            self._command_error("Memory is disabled")
+            return
+
+        found = self._find_memory_entry(entry_id)
+        if found is None:
+            self._command_error(f"Memory not found: {entry_id}")
+            return
+
+        scope, entry = found
+        if not confirmed:
+            message = f"Confirm forget {entry.id}: run /forget {entry.id} --yes"
+            self.append_system_message(message)
+            self.set_status("Memory forget needs confirmation")
+            return
+
+        store = self.tool_context.memory_store or MemoryStore.default()
+        deleted = store.delete_entry(
+            scope,
+            entry.id,
+            session_id=self.tool_context.session_id if scope == "session" else None,
+            cwd=self.cwd if scope == "project" else None,
+        )
+        if not deleted:
+            self._command_error(f"Memory not found: {entry.id}")
+            return
+        self.append_system_message(self._format_memory_delete_event(entry))
+        self.set_status("Memory deleted")
+
+    def _parse_forget_arguments(self, arguments: str) -> tuple[str, bool] | None:
+        parts = arguments.split()
+        if len(parts) == 1:
+            return parts[0], False
+        if len(parts) == 2 and parts[1] == "--yes":
+            return parts[0], True
+        return None
+
+    def _handle_memory_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /memory")
+            return
+        self.append_system_message(self._format_memory_listing())
+        self.set_status("Displayed memory")
+
+    def _format_memory_listing(self) -> str:
+        if not self.settings.memory.enabled:
+            return "Memory is disabled"
+        lines = ["Memories:"]
+        lines.extend(self._format_memory_scope("Session", "session"))
+        lines.extend(self._format_memory_scope("Project", "project"))
+        return "\n".join(lines)
+
+    def _format_memory_scope(self, label: str, scope: MemoryScope) -> list[str]:
+        if scope == "session":
+            if not self.settings.memory.session_enabled:
+                return [f"{label}: disabled"]
+            if not self.tool_context.session_id:
+                return [f"{label}: unavailable"]
+        if scope == "project" and not self.settings.memory.project_enabled:
+            return [f"{label}: disabled"]
+
+        entries = self._list_memory_entries(scope)
+        if not entries:
+            return [f"{label}: none"]
+        return [
+            f"{label} ({len(entries)}):",
+            *[self._format_memory_entry(entry) for entry in entries],
+        ]
+
+    def _list_memory_entries(self, scope: MemoryScope) -> list[MemoryEntry]:
+        store = self.tool_context.memory_store or MemoryStore.default()
+        if scope == "session":
+            if not self.tool_context.session_id:
+                return []
+            return store.list_entries("session", session_id=self.tool_context.session_id)
+        return store.list_entries("project", cwd=self.cwd)
+
+    def _find_memory_entry(self, entry_id: str) -> tuple[MemoryScope, MemoryEntry] | None:
+        scopes: tuple[MemoryScope, MemoryScope] = ("session", "project")
+        for scope in scopes:
+            if scope == "session" and not self.settings.memory.session_enabled:
+                continue
+            if scope == "project" and not self.settings.memory.project_enabled:
+                continue
+            for entry in self._list_memory_entries(scope):
+                if entry.id == entry_id:
+                    return scope, entry
+        return None
+
+    def _format_memory_entry(self, entry: MemoryEntry) -> str:
+        return f"- {entry.id} [{entry.scope}/{entry.source}] {entry.content}"
+
+    def _format_memory_save_event(self, content: str) -> str:
+        prefix = "Saved "
+        separator = " memory "
+        if content.startswith(prefix) and separator in content:
+            scope, entry_id = content[len(prefix) :].split(separator, maxsplit=1)
+            if scope in {"session", "project"} and entry_id:
+                return f"Memory saved: {entry_id} ({scope})"
+        return f"Memory saved: {content}"
+
+    def _format_memory_delete_event(self, entry: MemoryEntry) -> str:
+        return f"Memory deleted: {entry.id} [{entry.scope}/{entry.source}] {entry.content}"
+
     def _handle_model_command(self, command: SlashCommand) -> None:
         if not command.arguments:
             message = (
@@ -477,10 +593,28 @@ class CodeGopherApp(App[None]):
         message = (
             f"Stats: turns={self.turn_count} | tools={self.tool_count} | "
             f"approvals={self.approval_count} | elapsed={elapsed_seconds}s | "
-            f"{self._context_budget_summary()}"
+            f"{self._memory_count_summary()} | {self._context_budget_summary()}"
         )
         self.append_system_message(message)
         self.set_status("Displayed stats")
+
+    def _memory_count_summary(self) -> str:
+        if not self.settings.memory.enabled:
+            return "memory=disabled"
+        session_count = (
+            len(self._list_memory_entries("session"))
+            if self.settings.memory.session_enabled and self.tool_context.session_id
+            else 0
+        )
+        project_count = (
+            len(self._list_memory_entries("project"))
+            if self.settings.memory.project_enabled
+            else 0
+        )
+        return (
+            f"memory={session_count + project_count} "
+            f"(session={session_count}, project={project_count})"
+        )
 
     def _context_budget_summary(self) -> str:
         messages = build_messages(
