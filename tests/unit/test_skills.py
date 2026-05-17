@@ -169,3 +169,79 @@ def test_parse_skill_file_uses_parent_directory_as_id(tmp_path: Path) -> None:
     assert skill.id == "python-testing"
     assert skill.metadata.name == "Python Testing"
     assert skill.content == "Use pytest."
+
+
+def test_parse_skill_file_reads_yaml_front_matter(tmp_path: Path) -> None:
+    path = write_skill(
+        tmp_path,
+        "pytest",
+        """---
+name: Pytest Workflow
+description: Project testing workflow
+keywords: [tests, pytest, focused]
+---
+# Ignored Heading
+
+Prefer focused pytest commands.
+""",
+    )
+
+    skill = parse_skill_file(path, source="project")
+
+    assert skill.metadata.name == "Pytest Workflow"
+    assert skill.metadata.description == "Project testing workflow"
+    assert skill.metadata.keywords == ["tests", "pytest", "focused"]
+    assert skill.content == "# Ignored Heading\n\nPrefer focused pytest commands."
+
+
+def test_parse_skill_file_supports_comma_keyword_string(tmp_path: Path) -> None:
+    path = write_skill(
+        tmp_path,
+        "reviews",
+        """---
+keywords: review, diff, quality
+---
+# Reviews
+
+Review carefully.
+""",
+    )
+
+    skill = parse_skill_file(path, source="user")
+
+    assert skill.metadata.name == "Reviews"
+    assert skill.metadata.keywords == ["review", "diff", "quality"]
+
+
+def test_parse_skill_file_supports_block_keyword_list(tmp_path: Path) -> None:
+    path = write_skill(
+        tmp_path,
+        "docs",
+        """---
+keywords:
+  - docs
+  - writing
+---
+Write concise docs.
+""",
+    )
+
+    skill = parse_skill_file(path, source="builtin")
+
+    assert skill.metadata.keywords == ["docs", "writing"]
+
+
+def test_parse_skill_file_ignores_unclosed_front_matter(tmp_path: Path) -> None:
+    path = write_skill(
+        tmp_path,
+        "broken",
+        """---
+name: Broken
+# Broken
+""",
+    )
+
+    skill = parse_skill_file(path, source="project")
+
+    assert skill.metadata.name == "Broken"
+    assert skill.content.startswith("---")

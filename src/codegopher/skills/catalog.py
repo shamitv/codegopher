@@ -128,14 +128,19 @@ def discover_builtin_skills(*, settings: Settings) -> SkillDiscovery:
 def parse_skill_file(path: Path, *, source: SkillSource) -> Skill:
     """Parse a SKILL.md file into a read-only skill."""
     skill_id = path.parent.name
-    content = path.read_text(encoding="utf-8").strip()
+    raw_content = path.read_text(encoding="utf-8")
+    metadata_values, content = _split_skill_markdown(raw_content)
+    keywords = _parse_keywords(metadata_values.get("keywords", ""))
+    name = metadata_values.get("name") or _first_heading(content) or _title_from_id(skill_id)
     metadata = SkillMetadata(
         id=skill_id,
-        name=_title_from_id(skill_id),
+        name=name,
         source=source,
+        description=metadata_values.get("description") or None,
         path=str(path),
+        keywords=keywords,
     )
-    return Skill(metadata=metadata, content=content)
+    return Skill(metadata=metadata, content=content.strip())
 
 
 def _discover_skill_dir(*, root: Path, source: SkillSource) -> SkillDiscovery:
@@ -156,3 +161,78 @@ def _discover_skill_dir(*, root: Path, source: SkillSource) -> SkillDiscovery:
 
 def _title_from_id(skill_id: str) -> str:
     return skill_id.replace("-", " ").replace("_", " ").title()
+
+
+def _split_skill_markdown(content: str) -> tuple[dict[str, str], str]:
+    lines = content.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, content
+
+    closing_index: int | None = None
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            closing_index = index
+            break
+    if closing_index is None:
+        return {}, content
+
+    metadata = _parse_front_matter(lines[1:closing_index])
+    body = "\n".join(lines[closing_index + 1 :])
+    return metadata, body
+
+
+def _parse_front_matter(lines: list[str]) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or ":" not in line:
+            index += 1
+            continue
+        key, value = line.split(":", maxsplit=1)
+        key = key.strip()
+        if key not in {"name", "description", "keywords"}:
+            index += 1
+            continue
+        value = _strip_quotes(value.strip())
+        if key == "keywords" and not value:
+            block_values: list[str] = []
+            index += 1
+            while index < len(lines):
+                item = lines[index].strip()
+                if not item.startswith("- "):
+                    break
+                block_values.append(_strip_quotes(item[2:].strip()))
+                index += 1
+            metadata[key] = ", ".join(item for item in block_values if item)
+            continue
+        metadata[key] = value
+        index += 1
+    return metadata
+
+
+def _parse_keywords(value: str) -> list[str]:
+    if not value:
+        return []
+    if value.startswith("[") and value.endswith("]"):
+        value = value[1:-1]
+    return [
+        keyword
+        for raw_keyword in value.split(",")
+        if (keyword := _strip_quotes(raw_keyword.strip()))
+    ]
+
+
+def _first_heading(content: str) -> str | None:
+    for line in content.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("# "):
+            return stripped[2:].strip() or None
+    return None
+
+
+def _strip_quotes(value: str) -> str:
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value

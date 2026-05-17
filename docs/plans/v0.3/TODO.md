@@ -134,7 +134,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_skills.py`
 - [x] T044: Add built-in package skill discovery.
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_imports.py`
-- [ ] T045: Parse simple skill metadata and Markdown content.
+- [x] T045: Parse simple skill metadata and Markdown content.
   Verify: `python -m pytest tests/unit/test_skills.py`
 - [ ] T046: Add progressive skill loading by explicit mention or keyword match.
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_agent_session.py`
