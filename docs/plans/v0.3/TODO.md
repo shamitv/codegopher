@@ -153,7 +153,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_commands.py`
 - [x] T052: Add `/todo add TEXT` command.
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
-- [ ] T053: Add `/todo done ID` command.
+- [x] T053: Add `/todo done ID` command.
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
 - [ ] T054: Add model-facing `update_todo` tool.
   Verify: `python -m pytest tests/unit/test_update_todo_tool.py tests/unit/test_tools_registry.py`

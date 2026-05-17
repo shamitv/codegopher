@@ -697,7 +697,10 @@ class CodeGopherApp(App[None]):
             return
 
         if subcommand == "done":
-            self._command_error("Usage: /todo done ID")
+            if len(parts) != 2 or not parts[1].strip():
+                self._command_error("Usage: /todo done ID")
+                return
+            self._complete_todo_item(parts[1])
             return
 
         self._command_error("Usage: /todo")
@@ -714,6 +717,19 @@ class CodeGopherApp(App[None]):
         self.append_system_message(f"TODO added: {item.id} {item.text}")
         self._persist_session()
         self.set_status("TODO added")
+
+    def _complete_todo_item(self, item_id: str) -> None:
+        if not self.settings.todo.enabled:
+            self._command_error("TODO is disabled")
+            return
+        try:
+            item = self.todo_state.done(item_id)
+        except KeyError:
+            self._command_error(f"TODO not found: {item_id}")
+            return
+        self.append_system_message(f"TODO done: {item.id} {item.text}")
+        self._persist_session()
+        self.set_status("TODO done")
 
     def _format_todo_listing(self) -> str:
         if not self.settings.todo.enabled:
