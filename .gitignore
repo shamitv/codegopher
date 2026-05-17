@@ -39,9 +39,9 @@ coverage.xml
 *.swp
 *.swo
 
-# CodeGopher runtime files (project-level)
-.codegopher/sessions/
-.codegopher/memory/
+# CodeGopher local config and runtime files (project-level)
+.codegopher/
+.codegropher/
 
 # OS
 .DS_Store
