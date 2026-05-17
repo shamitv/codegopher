@@ -87,7 +87,7 @@ Commit rules:
 
 - [x] T029: Add a local memory store rooted under CodeGopher data home.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T030: Add session memory keyed by session id.
+- [x] T030: Add session memory keyed by session id.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
 - [ ] T031: Add project memory keyed by canonical cwd hash.
   Verify: `python -m pytest tests/unit/test_memory_store.py`

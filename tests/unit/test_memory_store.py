@@ -24,3 +24,25 @@ def test_memory_store_default_uses_xdg_data_home(tmp_path: Path) -> None:
     store = MemoryStore.default(environ={"XDG_DATA_HOME": str(tmp_path / "xdg")})
 
     assert store.data_home == tmp_path / "xdg" / "codegopher"
+
+
+def test_memory_store_session_file_is_keyed_by_session_id(tmp_path: Path) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+
+    first = store.session_file("session-1")
+    second = store.session_file("session-2")
+
+    assert first.parent == store.session_dir
+    assert first.name.endswith(".json")
+    assert first != second
+
+
+def test_memory_store_rejects_empty_session_id(tmp_path: Path) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+
+    try:
+        store.session_file("")
+    except ValueError as exc:
+        assert "session_id is required" in str(exc)
+    else:
+        raise AssertionError("empty session id was accepted")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import hashlib
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -37,3 +38,11 @@ class MemoryStore:
     @property
     def project_dir(self) -> Path:
         return self.memory_root / "project"
+
+    def session_key(self, session_id: str) -> str:
+        if not session_id:
+            raise ValueError("session_id is required")
+        return hashlib.sha256(session_id.encode("utf-8")).hexdigest()[:24]
+
+    def session_file(self, session_id: str) -> Path:
+        return self.session_dir / f"{self.session_key(session_id)}.json"
