@@ -57,6 +57,17 @@ async def wait_for_shell(app: CodeGopherApp, pilot: Any) -> None:
     raise AssertionError("shell passthrough did not finish")
 
 
+async def wait_for_approval(app: CodeGopherApp, pilot: Any) -> None:
+    for _ in range(100):
+        if (
+            app._pending_approval is not None
+            and app.query_one("#approval-panel", Vertical).display is True
+        ):
+            return
+        await pilot.pause(0.05)
+    raise AssertionError("approval prompt did not appear")
+
+
 @pytest.mark.asyncio
 async def test_tui_shell_requires_approval_and_renders_success(tmp_path: Path) -> None:
     app, provider = make_app(tmp_path, ApprovalMode.review)
@@ -64,6 +75,7 @@ async def test_tui_shell_requires_approval_and_renders_success(tmp_path: Path) -
 
     async with app.run_test() as pilot:
         await submit(app, pilot, f"/shell {command}")
+        await wait_for_approval(app, pilot)
 
         assert len(provider.calls) == 0
         assert app.query_one("#approval-panel", Vertical).display is True
@@ -85,6 +97,7 @@ async def test_tui_shell_denial_does_not_execute_subprocess(tmp_path: Path) -> N
 
     async with app.run_test() as pilot:
         await submit(app, pilot, f"/shell {command}")
+        await wait_for_approval(app, pilot)
         await pilot.click("#approval-deny")
         await wait_for_shell(app, pilot)
 
@@ -100,6 +113,7 @@ async def test_tui_shell_auto_mode_prompts_for_approval(tmp_path: Path) -> None:
 
     async with app.run_test() as pilot:
         await submit(app, pilot, f"/shell {command}")
+        await wait_for_approval(app, pilot)
 
         assert app.query_one("#approval-panel", Vertical).display is True
         assert app.approval_count == 1
