@@ -2,19 +2,23 @@
 
 CodeGopher is a Python-native AI coding agent for the terminal. It is designed for developers who want a local assistant that can inspect projects, run focused tools, explain code, and make approved changes without requiring a hosted workspace or background server.
 
-The product goal is simple: keep the agent close to the developer's shell, make every risky action visible, and support multiple model providers through a clean provider layer. CodeGopher now supports both headless one-shot prompts and an interactive Textual TUI session.
+The product goal is simple: keep the agent close to the developer's shell, make every risky action visible, and support multiple model providers through a clean provider layer. CodeGopher now supports headless one-shot prompts, an interactive Textual TUI session, and v0.3 context features for repeated project work.
 
 ## Who It Is For
 
 - Developers who prefer terminal workflows over browser-first coding tools.
 - Teams that want a Python package they can install, audit, and extend.
 - Users of OpenAI-compatible local or hosted models who want a lightweight coding-agent loop.
-- Users who want richer terminal workflows with interactive Textual TUI sessions, local session resume, file mentions, and explicit tool approvals.
+- Users who want richer terminal workflows with interactive Textual TUI sessions, local session resume, file mentions, memory, skills, TODO tracking, compaction, and explicit tool approvals.
 
 ## Core Workflows
 
 - Headless prompt mode: run `cgopher -p "explain this project"` from a shell or script.
 - Interactive terminal mode: run `cgopher` to open a Textual TUI with chat history, status, inline approvals, slash commands, session resume, and collapsed reasoning display.
+- Context management: inspect context budget through `/stats` and summarize long provider history through `/compact [instructions]`.
+- Memory: save approved session or project memory, inspect it with `/memory`, and remove it with `/forget ID --yes`.
+- Skills: initialize project skill guidance with `cgopher init`, load Markdown skills from `.codegopher/skills`, and mention them with `@skill:ID`.
+- Session TODOs: track active work with `/todo`, `/todo add TEXT`, `/todo done ID`, or the model-facing `update_todo` tool.
 - Project inspection: list directories, read files, search text, and summarize findings.
 - File mention expansion: include `@path`, glob-style mentions, or `@glob:pattern` in a TUI prompt to provide file content safely.
 - Approved edits: require prior reads and explicit approval before modifying existing files.
@@ -31,10 +35,8 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 
 ## Feature Status
 
-CodeGopher is in early alpha with a working headless loop, an interactive v0.2 TUI, file and shell tools, session persistence, and provider reasoning rendering. Larger product features remain roadmap items:
+CodeGopher is in early alpha with a working headless loop, an interactive TUI, file and shell tools, session persistence, provider reasoning rendering, context-window tracking, compaction, memory, Markdown skills, and session TODO state. Larger product features remain roadmap items:
 
-- Persistent semantic memory beyond local TUI session history.
-- Skills loaded from Markdown files.
 - MCP client integration.
 - Anthropic and Gemini providers, with Gemini based on `google-genai`.
 - Sub-agents and git worktree helpers.

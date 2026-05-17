@@ -168,7 +168,7 @@ Commit rules:
 
 - [x] T058: Update README with v0.3 context, memory, skills, and TODO usage.
   Verify: `rg -n "memory|skills|compact|todo" README.md`
-- [ ] T059: Update product intro to describe implemented v0.3 behavior.
+- [x] T059: Update product intro to describe implemented v0.3 behavior.
   Verify: `rg -n "memory|skills|compact|todo" docs/product/INTRO.md`
 - [ ] T060: Update v0.3 status doc with implemented components and remaining gaps.
   Verify: `rg -n "v0.3|Context|Memory|Skills" docs/plans/v0.3/STATUS.md`
