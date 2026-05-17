@@ -89,7 +89,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_memory_store.py`
 - [x] T030: Add session memory keyed by session id.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T031: Add project memory keyed by canonical cwd hash.
+- [x] T031: Add project memory keyed by canonical cwd hash.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
 - [ ] T032: Add memory CRUD operations with stable ids and timestamps.
   Verify: `python -m pytest tests/unit/test_memory_store.py`

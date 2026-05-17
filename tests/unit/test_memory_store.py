@@ -46,3 +46,26 @@ def test_memory_store_rejects_empty_session_id(tmp_path: Path) -> None:
         assert "session_id is required" in str(exc)
     else:
         raise AssertionError("empty session id was accepted")
+
+
+def test_memory_store_project_file_is_keyed_by_canonical_cwd(tmp_path: Path) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+    project = tmp_path / "project"
+    project.mkdir()
+
+    direct = store.project_file(project)
+    relative = store.project_file(project / ".." / "project")
+
+    assert direct.parent == store.project_dir
+    assert direct.name.endswith(".json")
+    assert direct == relative
+
+
+def test_memory_store_different_projects_have_different_files(tmp_path: Path) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    first.mkdir()
+    second.mkdir()
+
+    assert store.project_file(first) != store.project_file(second)

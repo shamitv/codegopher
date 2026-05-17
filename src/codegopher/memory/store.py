@@ -7,6 +7,8 @@ import hashlib
 from collections.abc import Mapping
 from pathlib import Path
 
+from codegopher.utils.paths import canonical_path
+
 
 class MemoryStore:
     """JSON-backed memory storage rooted in CodeGopher's data home."""
@@ -46,3 +48,9 @@ class MemoryStore:
 
     def session_file(self, session_id: str) -> Path:
         return self.session_dir / f"{self.session_key(session_id)}.json"
+
+    def project_key(self, cwd: Path) -> str:
+        return hashlib.sha256(canonical_path(cwd).encode("utf-8")).hexdigest()[:24]
+
+    def project_file(self, cwd: Path) -> Path:
+        return self.project_dir / f"{self.project_key(cwd)}.json"
