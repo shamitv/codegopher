@@ -106,7 +106,7 @@ Commit rules:
 
 - [x] T068: Create `docs/arch/SESSION.md` covering `AgentSession`, TUI resume, provider-ready history, and session safety boundaries.
   Verify: `test -f docs/arch/SESSION.md && rg -n "AgentSession|provider-ready|resume" docs/arch/SESSION.md`
-- [ ] T069: Create `docs/arch/CONTEXT.md` covering system/context building, token accounting, context thresholds, manual compaction, and automatic compaction.
+- [x] T069: Create `docs/arch/CONTEXT.md` covering system/context building, token accounting, context thresholds, manual compaction, and automatic compaction.
   Verify: `test -f docs/arch/CONTEXT.md && rg -n "token|threshold|compact" docs/arch/CONTEXT.md`
 - [ ] T070: Create `docs/arch/MEMORY.md` covering data-home storage, session/project keying, `save_memory`, redaction, and context injection.
   Verify: `test -f docs/arch/MEMORY.md && rg -n "session|project|save_memory|redact" docs/arch/MEMORY.md`
