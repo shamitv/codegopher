@@ -23,6 +23,7 @@ from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
+from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry
@@ -101,6 +102,7 @@ class AgentSession:
         self.tool_context.settings = settings
         self.conversation = conversation or Conversation()
         self.memory_context = memory_context or []
+        self._memory_context_override = memory_context is not None
         self.skill_context = skill_context or []
         self.todo_context = todo_context or []
 
@@ -121,6 +123,7 @@ class AgentSession:
                     cwd=self.cwd,
                     registry=self.registry,
                     approval_mode=self.settings.approval_mode,
+                    memories=self._current_memory_context(),
                 ),
                 self.registry.schemas(),
                 model=self.settings.model.name,
@@ -222,6 +225,7 @@ class AgentSession:
                 cwd=self.cwd,
                 registry=self.registry,
                 approval_mode=self.settings.approval_mode,
+                memories=self._current_memory_context(),
             ),
             settings=self.settings,
         )
@@ -247,7 +251,7 @@ class AgentSession:
             original_messages,
             cwd=self.cwd,
             instructions=instructions,
-            memories=self.memory_context,
+            memories=self._current_memory_context(),
             skills=self.skill_context,
             todo_items=self.todo_context,
         )
@@ -287,6 +291,20 @@ class AgentSession:
         if not summary:
             raise ProviderError("Compaction returned an empty summary")
         return summary
+
+    def _current_memory_context(self) -> list[str]:
+        if self._memory_context_override:
+            return list(self.memory_context)
+        store = self.tool_context.memory_store or MemoryStore.default()
+        entries = store.context_entries(
+            settings=self.settings,
+            cwd=self.cwd,
+            session_id=self.tool_context.session_id,
+        )
+        self.memory_context = [
+            f"[{entry.scope}:{entry.id}] {entry.content}" for entry in entries
+        ]
+        return list(self.memory_context)
 
 
 async def run_agent(

@@ -20,6 +20,7 @@ from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import CompactionEntry, Message, ToolCall
+from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.base import ToolContext, ToolResult
@@ -100,12 +101,18 @@ class CodeGopherApp(App[None]):
         self.settings = settings
         self.cwd = cwd
         self.provider_factory = provider_factory
-        self.registry = registry_factory()
-        self.tool_context = ToolContext(cwd=cwd)
         self._agent_session: AgentSession | None = None
         self.session_store = session_store
         self.session_state = session_state or (
             session_store.create(cwd=cwd, settings=settings) if session_store else None
+        )
+        self.registry = registry_factory()
+        memory_store = MemoryStore(data_home=session_store.data_home) if session_store else None
+        self.tool_context = ToolContext(
+            cwd=cwd,
+            settings=settings,
+            memory_store=memory_store,
+            session_id=self.session_state.session_id if self.session_state else None,
         )
         self.session_load_error = session_load_error
         self.shell_timeout_seconds = shell_timeout_seconds

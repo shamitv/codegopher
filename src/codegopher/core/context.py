@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 
 from codegopher.config.schema import ApprovalMode
@@ -10,9 +11,15 @@ from codegopher.core.types import Message
 from codegopher.tools.registry import ToolRegistry
 
 
-def build_system_prompt(cwd: Path, registry: ToolRegistry, approval_mode: ApprovalMode) -> str:
+def build_system_prompt(
+    cwd: Path,
+    registry: ToolRegistry,
+    approval_mode: ApprovalMode,
+    *,
+    memories: Iterable[str] = (),
+) -> str:
     tool_names = ", ".join(tool.name for tool in registry.list())
-    return (
+    prompt = (
         "You are CodeGopher, a headless coding agent.\n"
         f"Current working directory: {cwd}\n"
         f"Approval mode: {approval_mode.value}\n"
@@ -20,6 +27,12 @@ def build_system_prompt(cwd: Path, registry: ToolRegistry, approval_mode: Approv
         "Safety rules: read files before editing existing files, inspect a parent directory "
         "before creating files, and obey approval results for write and shell tools."
     )
+    memory_items = list(memories)
+    if memory_items:
+        prompt += "\nSelected memories:\n" + "\n".join(
+            f"- {memory}" for memory in memory_items
+        )
+    return prompt
 
 
 def build_messages(
@@ -28,9 +41,17 @@ def build_messages(
     cwd: Path,
     registry: ToolRegistry,
     approval_mode: ApprovalMode,
+    memories: Iterable[str] = (),
 ) -> list[Message]:
     return [
-        {"role": "system", "content": build_system_prompt(cwd, registry, approval_mode)},
+        {
+            "role": "system",
+            "content": build_system_prompt(
+                cwd,
+                registry,
+                approval_mode,
+                memories=memories,
+            ),
+        },
         *conversation.provider_messages(),
     ]
-

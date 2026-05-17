@@ -32,6 +32,21 @@ def test_context_builder_prepends_system_message(tmp_path: Path) -> None:
     assert messages[1] == {"role": "user", "content": "hello"}
 
 
+def test_context_builder_includes_selected_memories(tmp_path: Path) -> None:
+    conversation = Conversation()
+
+    messages = build_messages(
+        conversation,
+        cwd=tmp_path,
+        registry=create_default_registry(),
+        approval_mode=ApprovalMode.review,
+        memories=["[project:mem-1] Use pytest"],
+    )
+
+    assert "Selected memories" in str(messages[0]["content"])
+    assert "[project:mem-1] Use pytest" in str(messages[0]["content"])
+
+
 def test_context_builder_mentions_only_implemented_v0_1_features(tmp_path: Path) -> None:
     prompt = build_system_prompt(tmp_path, create_default_registry(), ApprovalMode.review)
 

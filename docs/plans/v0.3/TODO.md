@@ -99,7 +99,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_save_memory_tool.py tests/unit/test_approval.py`
 - [x] T035: Register `save_memory` in the default tool registry.
   Verify: `python -m pytest tests/unit/test_tools_registry.py tests/unit/test_context_builder.py`
-- [ ] T036: Feed selected memories into provider context.
+- [x] T036: Feed selected memories into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_agent_session.py`
 
 ## Milestone 6 - TUI Memory Commands And Transparency

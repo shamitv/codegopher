@@ -10,6 +10,8 @@ from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.providers.mock import MockProvider
+from codegopher.memory import MemoryStore
+from codegopher.tools.base import ToolContext
 from codegopher.tools.registry import create_default_registry
 
 
@@ -354,6 +356,73 @@ async def test_agent_session_compaction_failure_preserves_conversation(
         await session.compact()
 
     assert session.conversation.messages == original
+
+
+@pytest.mark.asyncio
+async def test_agent_session_feeds_selected_memories_into_provider_context(
+    tmp_path: Path,
+) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+    store.add_entry("project", cwd=tmp_path, content="Project uses pytest")
+    store.add_entry(
+        "session",
+        session_id="session-1",
+        content="Current task is memory tests",
+    )
+    provider = MockProvider([[{"type": "text_delta", "content": "ok"}, {"type": "done"}]])
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        tool_context=ToolContext(
+            cwd=tmp_path,
+            memory_store=store,
+            session_id="session-1",
+        ),
+    )
+
+    await session.run_turn("hello")
+
+    system_prompt = str(provider.calls[0][0]["content"])
+    assert "Selected memories" in system_prompt
+    assert "Project uses pytest" in system_prompt
+    assert "Current task is memory tests" in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_save_memory_tool_result_reaches_next_provider_context(
+    tmp_path: Path,
+) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "save_memory",
+                        "arguments": {"scope": "project", "content": "Remember pytest"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "saved"}, {"type": "done"}],
+        ]
+    )
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+        tool_context=ToolContext(cwd=tmp_path, memory_store=store),
+    )
+
+    await session.run_turn("save this")
+
+    assert store.list_entries("project", cwd=tmp_path)[0].content == "Remember pytest"
+    assert "Remember pytest" in str(provider.calls[1][0]["content"])
 
 
 @pytest.mark.asyncio

@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from codegopher.config.schema import Settings
 from codegopher.core.types import MemoryEntry, MemoryScope, MemorySource
 from codegopher.utils.paths import canonical_path
 
@@ -155,6 +156,24 @@ class MemoryStore:
             return False
         self._save_entries(path, remaining)
         return True
+
+    def context_entries(
+        self,
+        *,
+        settings: Settings,
+        cwd: Path,
+        session_id: str | None = None,
+    ) -> list[MemoryEntry]:
+        if not settings.memory.enabled:
+            return []
+        entries: list[MemoryEntry] = []
+        if settings.memory.session_enabled and session_id:
+            entries.extend(self.list_entries("session", session_id=session_id))
+        if settings.memory.project_enabled:
+            entries.extend(self.list_entries("project", cwd=cwd))
+        return sorted(entries, key=lambda entry: (entry.created_at, entry.id))[
+            -settings.memory.max_entries_per_scope :
+        ]
 
     def _scope_file(
         self,
