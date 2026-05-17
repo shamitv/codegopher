@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+import codegopher.core.agent as agent_module
 from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
@@ -28,6 +29,40 @@ async def test_agent_loop_returns_text_only_response(tmp_path: Path) -> None:
 
     assert result.final_text == "hello"
     assert result.iterations == 1
+
+
+def test_agent_loop_public_imports_remain_available() -> None:
+    assert agent_module.AgentCallbacks is AgentCallbacks
+    assert agent_module.AgentResult is AgentResult
+    assert agent_module.run_agent is run_agent
+
+
+@pytest.mark.asyncio
+async def test_run_agent_remains_one_shot_without_history_leak(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "first answer"}, {"type": "done"}],
+            [{"type": "text_delta", "content": "second answer"}, {"type": "done"}],
+        ]
+    )
+
+    await run_agent(
+        prompt="first question",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+    )
+    await run_agent(
+        prompt="second question",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+    )
+
+    assert provider.calls[0][1:] == [{"role": "user", "content": "first question"}]
+    assert provider.calls[1][1:] == [{"role": "user", "content": "second question"}]
 
 
 @pytest.mark.asyncio

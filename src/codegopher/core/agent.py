@@ -212,109 +212,14 @@ async def run_agent(
     callbacks: AgentCallbacks | None = None,
     tool_context: ToolContext | None = None,
 ) -> AgentResult:
-    if not provider.capabilities.tool_calls:
-        raise ProviderError("Provider does not support tool calls")
-
-    conversation = Conversation()
-    conversation.append_user(prompt)
-    tool_context = tool_context or ToolContext(cwd=cwd)
-    all_tool_results: list[ToolResult] = []
-
-    for iteration in range(1, max_iterations + 1):
-        text_parts: list[str] = []
-        tool_calls: list[ToolCall] = []
-        async for event in provider.stream(
-            build_messages(
-                conversation,
-                cwd=cwd,
-                registry=registry,
-                approval_mode=settings.approval_mode,
-            ),
-            registry.schemas(),
-            model=settings.model.name,
-            temperature=settings.model.temperature,
-            max_output_tokens=settings.model.max_output_tokens,
-        ):
-            if event["type"] == "text_delta":
-                text_parts.append(event["content"])
-                await _emit_callback(
-                    "on_text_delta",
-                    callbacks.on_text_delta if callbacks else None,
-                    event["content"],
-                )
-            elif event["type"] == "reasoning_delta":
-                await _emit_callback(
-                    "on_reasoning_delta",
-                    callbacks.on_reasoning_delta if callbacks else None,
-                    event["content"],
-                )
-            elif event["type"] == "tool_call":
-                tool_calls.append(event["tool_call"])
-                await _emit_callback(
-                    "on_tool_call",
-                    callbacks.on_tool_call if callbacks else None,
-                    event["tool_call"],
-                )
-            elif event["type"] == "error":
-                await _emit_callback(
-                    "on_error",
-                    callbacks.on_error if callbacks else None,
-                    event["message"],
-                )
-                raise ProviderError(event["message"])
-
-        final_text = "".join(text_parts)
-        if not tool_calls:
-            conversation.append_assistant(final_text)
-            agent_result = AgentResult(
-                final_text=final_text,
-                tool_results=all_tool_results,
-                iterations=iteration,
-            )
-            await _emit_callback(
-                "on_complete",
-                callbacks.on_complete if callbacks else None,
-                agent_result,
-            )
-            return agent_result
-
-        conversation.append_assistant(final_text or None, tool_calls)
-        for tool_call in tool_calls:
-            tool = registry.get(tool_call["name"])
-            request = ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"]))
-            if (
-                should_prompt(settings.approval_mode, tool)
-                and callbacks
-                and callbacks.on_approval_request
-            ):
-                approval = await _call_callback(
-                    "on_approval_request",
-                    callbacks.on_approval_request,
-                    request,
-                )
-            else:
-                approval = resolve_approval(
-                    settings.approval_mode,
-                    tool,
-                    request,
-                    stdin_is_tty=stdin_is_tty,
-                )
-            if not approval.approved:
-                tool_result = ToolResult(
-                    tool_call_id=tool_call["id"],
-                    content=approval.reason or "Denied by user",
-                    is_error=True,
-                )
-            else:
-                arguments = dict(tool_call["arguments"])
-                arguments["_tool_call_id"] = tool_call["id"]
-                tool_result = await tool.execute(arguments, tool_context)
-            all_tool_results.append(tool_result)
-            conversation.append_tool_result(tool_result)
-            await _emit_callback(
-                "on_tool_result",
-                callbacks.on_tool_result if callbacks else None,
-                tool_result,
-            )
-
-    raise AgentLoopError(f"Agent exceeded max iterations: {max_iterations}")
+    session = AgentSession(
+        provider=provider,
+        registry=registry,
+        settings=settings,
+        cwd=cwd,
+        max_iterations=max_iterations,
+        stdin_is_tty=stdin_is_tty,
+        callbacks=callbacks,
+        tool_context=tool_context,
+    )
+    return await session.run_turn(prompt)

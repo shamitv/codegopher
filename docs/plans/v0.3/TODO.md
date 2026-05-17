@@ -42,7 +42,7 @@ Commit rules:
 
 - [x] T011: Add a reusable session/context runner that owns provider-ready conversation history, including text-only multi-turn history, tool-call history, callbacks, errors, and isolated sessions.
   Verify: `python -m pytest tests/unit/test_agent_session.py`
-- [ ] T012: Preserve `run_agent` import compatibility and one-shot behavior.
+- [x] T012: Preserve `run_agent` import compatibility and one-shot behavior, including no history leakage between calls.
   Verify: `python -m pytest tests/unit/test_agent_loop.py tests/integration/test_headless_cli.py`
 - [ ] T013: Move TUI agent turns onto the session/context runner without changing visible behavior.
   Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_tui_session.py`
