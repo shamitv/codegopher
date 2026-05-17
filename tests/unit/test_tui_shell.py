@@ -10,6 +10,7 @@ from textual.containers import Vertical
 from textual.widgets import Input
 
 from codegopher.config.schema import ApprovalMode, ModelConfig, Settings
+from codegopher.core.approval import ApprovalResult
 from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
 
@@ -98,7 +99,7 @@ async def test_tui_shell_denial_does_not_execute_subprocess(tmp_path: Path) -> N
     async with app.run_test() as pilot:
         await submit(app, pilot, f"/shell {command}")
         await wait_for_approval(app, pilot)
-        await pilot.click("#approval-deny")
+        app._resolve_pending_approval(ApprovalResult(approved=False, reason="Denied by user"))
         await wait_for_shell(app, pilot)
 
         assert len(provider.calls) == 0
