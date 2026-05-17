@@ -178,7 +178,7 @@ Commit rules:
   Verify: manual run of `cgopher -p "hello"` with local endpoint and dummy key
 - [x] T063: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T064: Run lint and formatting checks.
+- [x] T064: Run lint and formatting checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
 - [ ] T065: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
