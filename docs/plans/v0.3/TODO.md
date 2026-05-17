@@ -140,7 +140,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_agent_session.py`
 - [x] T047: Feed loaded skill Markdown into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_skills.py`
-- [ ] T048: Add `/skills` command to list discovered and loaded skills.
+- [x] T048: Add `/skills` command to list discovered and loaded skills.
   Verify: `python -m pytest tests/unit/test_tui_skills.py tests/unit/test_tui_commands.py`
 - [ ] T049: Add safety tests proving skills are read-only context and not executable plugins.
   Verify: `python -m pytest tests/unit/test_skills.py`

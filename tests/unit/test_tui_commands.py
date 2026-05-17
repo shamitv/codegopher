@@ -93,6 +93,7 @@ async def test_tui_help_command_lists_available_commands(tmp_path: Path) -> None
         assert "/compact [instructions] - Compact provider context." in app.chat_messages[0]
         assert "/forget ID - Delete a memory after confirmation." in app.chat_messages[0]
         assert "/memory - List session and project memories." in app.chat_messages[0]
+        assert "/skills [load ID] - List or load Markdown skills." in app.chat_messages[0]
         assert "/stats - Show session counters." in app.chat_messages[0]
 
 
@@ -277,6 +278,8 @@ async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
         "/mode",
         "/mode yolo",
         "/memory",
+        "/skills",
+        "/skills load missing",
         "/stats",
         "/unknown",
     ],
