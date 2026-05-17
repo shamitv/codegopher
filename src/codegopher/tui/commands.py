@@ -33,6 +33,9 @@ COMMAND_DEFINITIONS: tuple[SlashCommandDefinition, ...] = (
     SlashCommandDefinition("/shell COMMAND", "Run a shell command after approval."),
     SlashCommandDefinition("/skills [load ID]", "List or load Markdown skills."),
     SlashCommandDefinition("/stats", "Show session counters."),
+    SlashCommandDefinition(
+        "/todo [add TEXT|done ID]", "Show or update session TODO state."
+    ),
 )
 
 

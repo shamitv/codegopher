@@ -147,22 +147,22 @@ Commit rules:
 
 ## Milestone 8 - Session TODO State
 
-- [ ] T050: Add TODO state models and store.
+- [x] T050: Add TODO state models and store.
   Verify: `python -m pytest tests/unit/test_todo_state.py`
-- [ ] T051: Add `/todo` command to display current TODO state.
+- [x] T051: Add `/todo` command to display current TODO state.
   Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_commands.py`
-- [ ] T052: Add `/todo add TEXT` command.
+- [x] T052: Add `/todo add TEXT` command.
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
-- [ ] T053: Add `/todo done ID` command.
+- [x] T053: Add `/todo done ID` command.
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
-- [ ] T054: Add model-facing `update_todo` tool.
+- [x] T054: Add model-facing `update_todo` tool.
   Verify: `python -m pytest tests/unit/test_update_todo_tool.py tests/unit/test_tools_registry.py`
-- [ ] T055: Feed active TODO state into provider context.
-  Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_todo_state.py`
-- [ ] T056: Persist TODO state with session resume.
-  Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_session.py`
-- [ ] T057: Include TODO state in compaction behavior.
-  Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_todo_state.py`
+- [x] T055: Feed active TODO state into provider context.
+  Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_todo_state.py tests/unit/test_agent_session.py`
+- [x] T056: Persist TODO state with session resume.
+  Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_session.py tests/integration/test_tui_todo_resume.py`
+- [x] T057: Include TODO state in compaction behavior.
+  Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_todo_state.py tests/unit/test_agent_session.py tests/unit/test_tui_compaction.py`
 
 ## Milestone 9 - Docs, Real Endpoint Smoke, And Release Readiness
 

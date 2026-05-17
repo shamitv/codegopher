@@ -11,6 +11,7 @@ from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.memory import MemoryStore
 from codegopher.providers.mock import MockProvider
+from codegopher.todo import TodoState
 from codegopher.tools.base import ToolContext
 from codegopher.tools.registry import create_default_registry
 
@@ -243,6 +244,61 @@ async def test_agent_session_respects_supplied_initial_conversation(tmp_path: Pa
 
 
 @pytest.mark.asyncio
+async def test_agent_session_feeds_active_todo_state_into_provider_context(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider([[{"type": "text_delta", "content": "done"}, {"type": "done"}]])
+    todo_state = TodoState()
+    active = todo_state.add("Keep provider context fresh", source="user")
+    completed = todo_state.add("Old item", source="user")
+    todo_state.done(completed.id)
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        tool_context=ToolContext(cwd=tmp_path, todo_state=todo_state),
+    )
+
+    await session.run_turn("continue")
+
+    system_prompt = str(provider.calls[0][0]["content"])
+    assert "Active TODOs" in system_prompt
+    assert f"[{active.id}] pending: Keep provider context fresh" in system_prompt
+    assert "Old item" not in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_agent_session_update_todo_tool_reaches_next_provider_context(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "update_todo",
+                        "arguments": {"action": "add", "text": "Review prompt wiring"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "tracked"}, {"type": "done"}],
+        ]
+    )
+    session = make_session(tmp_path, provider)
+
+    result = await session.run_turn("track this")
+
+    assert result.final_text == "tracked"
+    system_prompt = str(provider.calls[1][0]["content"])
+    assert "Active TODOs" in system_prompt
+    assert "pending: Review prompt wiring" in system_prompt
+
+
+@pytest.mark.asyncio
 async def test_agent_session_manual_compaction_replaces_older_history(
     tmp_path: Path,
 ) -> None:
@@ -301,12 +357,19 @@ async def test_agent_session_automatically_compacts_before_threshold_turn(
         conversation=conversation,
         callbacks=AgentCallbacks(on_compaction=on_compaction),
     )
+    assert session.tool_context.todo_state is not None
+    automatic_todo = session.tool_context.todo_state.add("Keep automatic TODO")
+    finished_todo = session.tool_context.todo_state.add("Finished automatic TODO")
+    session.tool_context.todo_state.done(finished_todo.id)
 
     result = await session.run_turn("new question with enough text")
 
     assert result.final_text == "new answer"
     assert compacted[0].reason == "automatic"
     assert provider.calls[0][0]["role"] == "system"
+    compaction_prompt = str(provider.calls[0][1]["content"])
+    assert f"[{automatic_todo.id}] pending: Keep automatic TODO" in compaction_prompt
+    assert "Finished automatic TODO" not in compaction_prompt
     assert provider.calls[1][1]["role"] == "system"
     assert "automatic summary" in str(provider.calls[1][1]["content"])
     assert {"role": "user", "content": "question 1 with enough text"} not in (
@@ -342,6 +405,37 @@ async def test_agent_session_compaction_includes_extra_context(
     assert "Project memory" in prompt
     assert "Skill context" in prompt
     assert "TODO context" in prompt
+
+
+@pytest.mark.asyncio
+async def test_agent_session_compaction_uses_active_todo_state_from_tool_context(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("first")
+    conversation.append_assistant("answer")
+    conversation.append_user("second")
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "summary text"}, {"type": "done"}]]
+    )
+    todo_state = TodoState()
+    active = todo_state.add("Include in compaction", source="user")
+    completed = todo_state.add("Exclude from compaction", source="user")
+    todo_state.done(completed.id)
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        conversation=conversation,
+        tool_context=ToolContext(cwd=tmp_path, todo_state=todo_state),
+    )
+
+    await session.compact()
+
+    prompt = str(provider.calls[0][1]["content"])
+    assert f"[{active.id}] pending: Include in compaction" in prompt
+    assert "Exclude from compaction" not in prompt
 
 
 @pytest.mark.asyncio

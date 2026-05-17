@@ -10,10 +10,16 @@ from textual.widgets import Input
 
 import codegopher.tui.launcher as launcher
 from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, Settings
+from codegopher.core.types import TodoItem
 from codegopher.memory import MemoryStore
 from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
-from codegopher.tui.session import SESSION_VERSION, SessionMessage, TuiSessionState, TuiSessionStore
+from codegopher.tui.session import (
+    SESSION_VERSION,
+    SessionMessage,
+    TuiSessionState,
+    TuiSessionStore,
+)
 from codegopher.utils.paths import canonical_path
 
 
@@ -81,6 +87,7 @@ async def test_tui_session_persists_completed_turn_messages_and_metadata(tmp_pat
         {"role": "assistant", "content": "answer"},
     ]
     assert data["loaded_skill_ids"] == []
+    assert data["todo_items"] == []
 
 
 @pytest.mark.asyncio
@@ -161,6 +168,23 @@ def test_tui_session_loads_legacy_v1_without_provider_messages(tmp_path: Path) -
     assert result.state.messages == [SessionMessage(role="user", content="You: saved")]
     assert result.state.provider_messages == []
     assert result.state.loaded_skill_ids == []
+    assert result.state.todo_items == []
+
+
+def test_tui_session_loads_legacy_v3_without_todo_items(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    path = store.save(state, settings=make_settings())
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["version"] = 3
+    data.pop("todo_items")
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+    result = store.load_latest(cwd=tmp_path)
+
+    assert result.error is None
+    assert result.state is not None
+    assert result.state.todo_items == []
 
 
 def test_tui_session_persists_loaded_skill_ids(tmp_path: Path) -> None:
@@ -189,6 +213,21 @@ def test_tui_session_rejects_invalid_provider_messages(tmp_path: Path) -> None:
     assert result.state is None
     assert result.error is not None
     assert "provider message role is invalid" in result.error
+
+
+def test_tui_session_rejects_invalid_todo_items(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    path = store.save(state, settings=make_settings())
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["todo_items"] = [{"id": "", "text": "missing id"}]
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+    result = store.load_latest(cwd=tmp_path)
+
+    assert result.state is None
+    assert result.error is not None
+    assert "todo item is invalid" in result.error
 
 
 @pytest.mark.asyncio
@@ -239,6 +278,32 @@ async def test_tui_session_resumes_provider_messages_for_next_turn(tmp_path: Pat
             {"role": "assistant", "content": "earlier answer"},
             {"role": "user", "content": "new question"},
         ]
+
+
+@pytest.mark.asyncio
+async def test_tui_session_resumes_todo_items_for_next_turn(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    state.todo_items.append(
+        TodoItem(
+            id="todo-resume",
+            text="Resume TODO context",
+            status="pending",
+        )
+    )
+    provider = MockProvider([[{"type": "text_delta", "content": "new answer"}, {"type": "done"}]])
+    app = CodeGopherApp(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+        session_store=store,
+        session_state=state,
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "new question")
+
+        assert "Resume TODO context" in str(provider.calls[0][0]["content"])
 
 
 @pytest.mark.asyncio

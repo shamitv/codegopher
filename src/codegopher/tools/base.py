@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from codegopher.config.schema import Settings
 from codegopher.memory import MemoryStore
+from codegopher.todo import TodoState
 from codegopher.tools.context import AccessTracker
 
 
@@ -24,6 +25,7 @@ class ToolContext:
     cwd: Path
     settings: Settings = field(default_factory=Settings)
     memory_store: MemoryStore | None = None
+    todo_state: TodoState | None = None
     session_id: str | None = None
     access: AccessTracker = field(init=False)
 

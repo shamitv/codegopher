@@ -31,6 +31,7 @@ from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.skills import Skill, SkillDiscovery, SkillManager, discover_skills
+from codegopher.todo import TodoState
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
 from codegopher.tools.shell.run_shell import RunShellCommandTool
@@ -121,11 +122,16 @@ class CodeGopherApp(App[None]):
             loaded_ids=self.session_state.loaded_skill_ids if self.session_state else (),
             autoload=settings.skills.autoload,
         )
+        self.todo_state = TodoState(
+            items=self.session_state.todo_items if self.session_state else [],
+            max_items=settings.todo.max_items,
+        )
         memory_store = MemoryStore(data_home=session_store.data_home) if session_store else None
         self.tool_context = ToolContext(
             cwd=cwd,
             settings=settings,
             memory_store=memory_store,
+            todo_state=self.todo_state,
             session_id=self.session_state.session_id if self.session_state else None,
         )
         self.session_load_error = session_load_error
@@ -346,6 +352,7 @@ class CodeGopherApp(App[None]):
                 self._agent_session.conversation.provider_messages()
             )
         self.session_state.loaded_skill_ids = list(self.skill_manager.loaded_ids)
+        self.session_state.todo_items = self.todo_state.list()
         try:
             self.session_store.save(self.session_state, settings=self.settings)
         except OSError as exc:
@@ -380,6 +387,8 @@ class CodeGopherApp(App[None]):
             self._handle_skills_command(command)
         elif command.name == "stats":
             self._handle_stats_command(command)
+        elif command.name == "todo":
+            self._handle_todo_command(command)
         else:
             unknown = command.raw.split(maxsplit=1)[0]
             self._command_error(f"Unknown slash command: {unknown}")
@@ -677,6 +686,72 @@ class CodeGopherApp(App[None]):
         self.append_system_message(message)
         self.set_status("Displayed stats")
 
+    def _handle_todo_command(self, command: SlashCommand) -> None:
+        if not command.arguments:
+            self.append_system_message(self._format_todo_listing())
+            self.set_status("Displayed TODO")
+            return
+
+        parts = command.arguments.split(maxsplit=1)
+        subcommand = parts[0]
+        if subcommand == "add":
+            if len(parts) != 2 or not parts[1].strip():
+                self._command_error("Usage: /todo add TEXT")
+                return
+            self._add_todo_item(parts[1])
+            return
+
+        if subcommand == "done":
+            if len(parts) != 2 or not parts[1].strip():
+                self._command_error("Usage: /todo done ID")
+                return
+            self._complete_todo_item(parts[1])
+            return
+
+        self._command_error("Usage: /todo")
+
+    def _add_todo_item(self, text: str) -> None:
+        if not self.settings.todo.enabled:
+            self._command_error("TODO is disabled")
+            return
+        try:
+            item = self.todo_state.add(text, source="user")
+        except ValueError as exc:
+            self._command_error(str(exc))
+            return
+        self.append_system_message(f"TODO added: {item.id} {item.text}")
+        self._persist_session()
+        self.set_status("TODO added")
+
+    def _complete_todo_item(self, item_id: str) -> None:
+        if not self.settings.todo.enabled:
+            self._command_error("TODO is disabled")
+            return
+        try:
+            item = self.todo_state.done(item_id)
+        except KeyError:
+            self._command_error(f"TODO not found: {item_id}")
+            return
+        self.append_system_message(f"TODO done: {item.id} {item.text}")
+        self._persist_session()
+        self.set_status("TODO done")
+
+    def _format_todo_listing(self) -> str:
+        if not self.settings.todo.enabled:
+            return "TODO is disabled"
+        items = self.todo_state.list()
+        if not items:
+            return "TODO:\n- none"
+        return "\n".join(
+            [
+                "TODO:",
+                *[
+                    f"- {item.id} [{item.status}] {item.text}"
+                    for item in items
+                ],
+            ]
+        )
+
     def _memory_count_summary(self) -> str:
         if not self.settings.memory.enabled:
             return "memory=disabled"
@@ -702,6 +777,9 @@ class CodeGopherApp(App[None]):
             registry=self.registry,
             approval_mode=self.settings.approval_mode,
             skills=self.skill_manager.context_items(),
+            todo_items=self.todo_state.context_items()
+            if self.settings.todo.enabled
+            else (),
         )
         budget = calculate_context_budget(messages, settings=self.settings)
         if budget.context_window is None:

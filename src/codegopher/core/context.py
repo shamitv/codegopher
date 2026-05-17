@@ -18,6 +18,7 @@ def build_system_prompt(
     *,
     memories: Iterable[str] = (),
     skills: Iterable[str] = (),
+    todo_items: Iterable[str] = (),
 ) -> str:
     tool_names = ", ".join(tool.name for tool in registry.list())
     prompt = (
@@ -36,6 +37,11 @@ def build_system_prompt(
     skill_items = list(skills)
     if skill_items:
         prompt += "\nLoaded skills:\n" + "\n\n".join(skill_items)
+    active_todo_items = list(todo_items)
+    if active_todo_items:
+        prompt += "\nActive TODOs:\n" + "\n".join(
+            f"- {item}" for item in active_todo_items
+        )
     return prompt
 
 
@@ -47,6 +53,7 @@ def build_messages(
     approval_mode: ApprovalMode,
     memories: Iterable[str] = (),
     skills: Iterable[str] = (),
+    todo_items: Iterable[str] = (),
 ) -> list[Message]:
     return [
         {
@@ -57,6 +64,7 @@ def build_messages(
                 approval_mode,
                 memories=memories,
                 skills=skills,
+                todo_items=todo_items,
             ),
         },
         *conversation.provider_messages(),
