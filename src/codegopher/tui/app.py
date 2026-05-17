@@ -682,11 +682,38 @@ class CodeGopherApp(App[None]):
         self.set_status("Displayed stats")
 
     def _handle_todo_command(self, command: SlashCommand) -> None:
-        if command.arguments:
-            self._command_error("Usage: /todo")
+        if not command.arguments:
+            self.append_system_message(self._format_todo_listing())
+            self.set_status("Displayed TODO")
             return
-        self.append_system_message(self._format_todo_listing())
-        self.set_status("Displayed TODO")
+
+        parts = command.arguments.split(maxsplit=1)
+        subcommand = parts[0]
+        if subcommand == "add":
+            if len(parts) != 2 or not parts[1].strip():
+                self._command_error("Usage: /todo add TEXT")
+                return
+            self._add_todo_item(parts[1])
+            return
+
+        if subcommand == "done":
+            self._command_error("Usage: /todo done ID")
+            return
+
+        self._command_error("Usage: /todo")
+
+    def _add_todo_item(self, text: str) -> None:
+        if not self.settings.todo.enabled:
+            self._command_error("TODO is disabled")
+            return
+        try:
+            item = self.todo_state.add(text, source="user")
+        except ValueError as exc:
+            self._command_error(str(exc))
+            return
+        self.append_system_message(f"TODO added: {item.id} {item.text}")
+        self._persist_session()
+        self.set_status("TODO added")
 
     def _format_todo_listing(self) -> str:
         if not self.settings.todo.enabled:

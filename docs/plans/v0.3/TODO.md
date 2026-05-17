@@ -151,7 +151,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_todo_state.py`
 - [x] T051: Add `/todo` command to display current TODO state.
   Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_commands.py`
-- [ ] T052: Add `/todo add TEXT` command.
+- [x] T052: Add `/todo add TEXT` command.
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
 - [ ] T053: Add `/todo done ID` command.
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
