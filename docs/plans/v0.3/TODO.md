@@ -97,7 +97,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_memory_store.py tests/unit/test_tui_session.py`
 - [x] T034: Add approval-gated `save_memory` tool.
   Verify: `python -m pytest tests/unit/test_save_memory_tool.py tests/unit/test_approval.py`
-- [ ] T035: Register `save_memory` in the default tool registry.
+- [x] T035: Register `save_memory` in the default tool registry.
   Verify: `python -m pytest tests/unit/test_tools_registry.py tests/unit/test_context_builder.py`
 - [ ] T036: Feed selected memories into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_agent_session.py`

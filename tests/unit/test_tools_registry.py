@@ -68,4 +68,5 @@ def test_default_registry_contains_read_only_file_tools() -> None:
         "write_file",
         "edit_file",
         "run_shell_command",
+        "save_memory",
     ]
