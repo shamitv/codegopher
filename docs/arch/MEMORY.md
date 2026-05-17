@@ -30,4 +30,6 @@ CodeGopher memory is local JSON state under the CodeGopher data home, not projec
 - `AgentSession` loads selected session and project memories before provider calls.
 - Selected memories are rendered in the system prompt under `Selected memories`.
 - Newly saved project memory can appear in the next provider call in the same agent turn.
-- Memory commands such as `/memory` and `/forget` are planned later and are not part of this milestone.
+- `/memory` lists session and project memories in the TUI.
+- `/forget ID --yes` deletes a memory after an explicit confirmation step.
+- Memory save and delete events are rendered as visible TUI messages for transparency.

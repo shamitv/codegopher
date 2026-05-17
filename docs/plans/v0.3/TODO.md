@@ -166,25 +166,31 @@ Commit rules:
 
 ## Milestone 9 - Docs, Real Endpoint Smoke, And Release Readiness
 
-- [ ] T058: Update README with v0.3 context, memory, skills, and TODO usage.
+- [x] T058: Update README with v0.3 context, memory, skills, and TODO usage.
   Verify: `rg -n "memory|skills|compact|todo" README.md`
-- [ ] T059: Update product intro to describe implemented v0.3 behavior.
+- [x] T059: Update product intro to describe implemented v0.3 behavior.
   Verify: `rg -n "memory|skills|compact|todo" docs/product/INTRO.md`
-- [ ] T060: Update v0.3 status doc with implemented components and remaining gaps.
+- [x] T060: Update v0.3 status doc with implemented components and remaining gaps.
   Verify: `rg -n "v0.3|Context|Memory|Skills" docs/plans/v0.3/STATUS.md`
-- [ ] T061: Update release checklist with v0.3 smoke tests.
+- [x] T061: Update release checklist with v0.3 smoke tests.
   Verify: `rg -n "memory|skills|compact|todo" docs/release/CHECKLIST.md`
-- [ ] T062: Run a real OpenAI-compatible endpoint smoke test using local ignored config.
+- [x] T062: Run a real OpenAI-compatible endpoint smoke test using local ignored config.
   Verify: manual run of `cgopher -p "hello"` with local endpoint and dummy key
-- [ ] T063: Run the complete unit and integration suite.
+- [x] T063: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T064: Run lint and formatting checks.
+- [x] T064: Run lint and formatting checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
-- [ ] T065: Run static type checking.
+- [x] T065: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
-- [ ] T066: Build the distribution artifacts.
+- [x] T066: Build the distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
-- [ ] T067: Add a manual TUI v0.3 smoke-test note to the v0.3 status doc.
+- [x] T067: Add a manual TUI v0.3 smoke-test note to the v0.3 status doc.
   Verify: manual run of `cgopher`
-- [ ] T072: Add project init support that creates default `.codegopher/skills` for target codebases.
+- [x] T072: Add project init support that creates default `.codegopher/skills` for target codebases.
   Verify: `rg -n "init|default.*skills|\\.codegopher/skills" docs/plans/v0.3/STATUS.md README.md`
+- [x] T073: Add skipped-by-default real LLM endpoint integration smoke coverage.
+  Verify: `source .venv/bin/activate && python -m pytest tests/integration/test_real_llm_endpoint.py`
+- [x] T074: Refresh architecture docs for completed v0.3 memory, skills, and TODO behavior.
+  Verify: `rg -n "TODO|/todo|update_todo|/memory|/forget|/skills|loaded skills" docs/arch`
+- [x] T075: Render model-triggered `update_todo` results as explicit TUI TODO events.
+  Verify: `source .venv/bin/activate && python -m pytest tests/unit/test_tui_todo.py`

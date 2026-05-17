@@ -16,6 +16,16 @@ from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.registry import create_default_registry
 
+DEFAULT_PROJECT_SKILL = """# Project
+
+Use this project skill for repository-specific guidance.
+
+- Prefer existing project conventions and nearby patterns.
+- Keep changes focused on the user's current request.
+- Read relevant files before editing and preserve unrelated work.
+- Run the smallest useful verification after changes.
+"""
+
 
 def _build_provider(settings: Settings) -> Provider:
     return build_provider(settings)
@@ -40,7 +50,7 @@ def _streams_are_interactive() -> bool:
     return click.get_text_stream("stdin").isatty() and click.get_text_stream("stdout").isatty()
 
 
-@click.command()
+@click.group(invoke_without_command=True)
 @click.option("-p", "--prompt", help="Run one headless prompt and exit.")
 @click.option("--model", help="Override the model name.")
 @click.option("--provider", help="Override the provider group.")
@@ -52,7 +62,9 @@ def _streams_are_interactive() -> bool:
 )
 @click.option("--debug", is_flag=True, help="Include debug diagnostics.")
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable output.")
+@click.pass_context
 def app(
+    ctx: click.Context,
     prompt: str | None,
     model: str | None,
     provider: str | None,
@@ -62,6 +74,9 @@ def app(
     as_json: bool,
 ) -> None:
     """Run CodeGopher."""
+    if ctx.invoked_subcommand is not None:
+        return
+
     try:
         settings = load_settings(
             cli_overrides=CliOverrides(
@@ -118,3 +133,25 @@ def app(
     from codegopher.tui import launch_tui
 
     launch_tui(settings, cwd=Path.cwd())
+
+
+@app.command("init")
+@click.argument(
+    "path",
+    required=False,
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+)
+@click.option("--force", is_flag=True, help="Overwrite the default project skill if it exists.")
+def init_project(path: Path | None, *, force: bool) -> None:
+    """Create default project-local CodeGopher skill files."""
+    target = (path or Path.cwd()).resolve()
+    skill_path = target / ".codegopher" / "skills" / "project" / "SKILL.md"
+    if skill_path.exists() and not force:
+        click.echo(f"Skipped existing {skill_path}")
+        return
+
+    skill_path.parent.mkdir(parents=True, exist_ok=True)
+    existed = skill_path.exists()
+    skill_path.write_text(DEFAULT_PROJECT_SKILL, encoding="utf-8")
+    action = "Overwrote" if existed else "Created"
+    click.echo(f"{action} {skill_path}")
