@@ -29,6 +29,7 @@ from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
+from codegopher.skills import SkillManager, discover_skills
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry
 from codegopher.utils.json import dumps_json
@@ -94,6 +95,7 @@ class AgentSession:
         memory_context: list[str] | None = None,
         skill_context: list[str] | None = None,
         todo_context: list[str] | None = None,
+        skill_manager: SkillManager | None = None,
     ) -> None:
         self.provider = provider
         self.registry = registry
@@ -108,12 +110,18 @@ class AgentSession:
         self.memory_context = memory_context or []
         self._memory_context_override = memory_context is not None
         self.skill_context = skill_context or []
+        self._skill_context_override = skill_context is not None
         self.todo_context = todo_context or []
+        self.skill_manager = skill_manager or SkillManager(
+            discover_skills(cwd=cwd, settings=settings).catalog,
+            autoload=settings.skills.autoload,
+        )
 
     async def run_turn(self, prompt: str) -> AgentResult:
         if not self.provider.capabilities.tool_calls:
             raise ProviderError("Provider does not support tool calls")
 
+        self._load_skills_for_prompt(prompt)
         await self._compact_if_needed(prompt)
         self.conversation.append_user(prompt)
         all_tool_results: list[ToolResult] = []
@@ -128,6 +136,7 @@ class AgentSession:
                     registry=self.registry,
                     approval_mode=self.settings.approval_mode,
                     memories=self._current_memory_context(),
+                    skills=self._current_skill_context(),
                 ),
                 self.registry.schemas(),
                 model=self.settings.model.name,
@@ -231,6 +240,7 @@ class AgentSession:
                 registry=self.registry,
                 approval_mode=self.settings.approval_mode,
                 memories=self._current_memory_context(),
+                skills=self._current_skill_context(),
             ),
             settings=self.settings,
         )
@@ -257,7 +267,7 @@ class AgentSession:
             cwd=self.cwd,
             instructions=instructions,
             memories=self._current_memory_context(),
-            skills=self.skill_context,
+            skills=self._current_skill_context(),
             todo_items=self.todo_context,
         )
         summary = await self._run_compaction_prompt(prompt)
@@ -310,6 +320,18 @@ class AgentSession:
             f"[{entry.scope}:{entry.id}] {entry.content}" for entry in entries
         ]
         return list(self.memory_context)
+
+    def _load_skills_for_prompt(self, prompt: str) -> None:
+        if self._skill_context_override:
+            return
+        self.skill_manager.load_for_prompt(prompt)
+        self.skill_context = self.skill_manager.context_items()
+
+    def _current_skill_context(self) -> list[str]:
+        if self._skill_context_override:
+            return list(self.skill_context)
+        self.skill_context = self.skill_manager.context_items()
+        return list(self.skill_context)
 
 
 async def run_agent(

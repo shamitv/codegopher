@@ -10,7 +10,12 @@ from codegopher.skills.catalog import (
     discover_user_skills,
     parse_skill_file,
 )
-from codegopher.skills.manager import SkillLoadResult, SkillManager, extract_skill_mentions
+from codegopher.skills.manager import (
+    SkillLoadResult,
+    SkillManager,
+    extract_skill_mentions,
+    format_skill_context,
+)
 
 __all__ = [
     "Skill",
@@ -23,5 +28,6 @@ __all__ = [
     "discover_skills",
     "discover_user_skills",
     "extract_skill_mentions",
+    "format_skill_context",
     "parse_skill_file",
 ]

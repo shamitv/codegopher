@@ -47,6 +47,9 @@ class SkillManager:
             if (skill := self.catalog.get(skill_id)) is not None
         ]
 
+    def context_items(self) -> list[str]:
+        return [format_skill_context(skill) for skill in self.loaded_skills()]
+
     def load(self, skill_id: str) -> SkillLoadResult:
         skill = self.catalog.get(skill_id)
         if skill is None:
@@ -100,6 +103,14 @@ def extract_skill_mentions(prompt: str) -> tuple[str, ...]:
         if skill_id:
             skill_ids.append(skill_id)
     return tuple(_unique(skill_ids))
+
+
+def format_skill_context(skill: Skill) -> str:
+    """Format a loaded skill for provider context."""
+    return (
+        f"## {skill.metadata.name} ({skill.source}:{skill.id})\n"
+        f"{skill.content}"
+    )
 
 
 def _skill_matches_prompt(skill: Skill, prompt: str) -> bool:

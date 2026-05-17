@@ -138,7 +138,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_skills.py`
 - [x] T046: Add progressive skill loading by explicit mention or keyword match.
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_agent_session.py`
-- [ ] T047: Feed loaded skill Markdown into provider context.
+- [x] T047: Feed loaded skill Markdown into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_skills.py`
 - [ ] T048: Add `/skills` command to list discovered and loaded skills.
   Verify: `python -m pytest tests/unit/test_tui_skills.py tests/unit/test_tui_commands.py`
