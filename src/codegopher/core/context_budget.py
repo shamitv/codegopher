@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from codegopher.config.schema import ProviderEntry, Settings
 from codegopher.core.types import Message
 from codegopher.utils.json import dumps_json
 
@@ -42,6 +43,19 @@ def count_message_tokens(
         if tool_calls is not None:
             total += count_text_tokens(dumps_json(tool_calls), encoding_name=encoding_name)
     return total
+
+
+def selected_provider_entry(settings: Settings) -> ProviderEntry | None:
+    """Return the provider entry selected by active provider/model settings."""
+    entries = settings.providers.get(settings.model.provider, [])
+    if not entries:
+        return None
+    return next((entry for entry in entries if entry.id == settings.model.name), entries[0])
+
+
+def selected_context_window(settings: Settings) -> int | None:
+    entry = selected_provider_entry(settings)
+    return entry.context_window if entry else None
 
 
 def _fallback_count(text: str) -> int:
