@@ -8,6 +8,8 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel
 
+from codegopher.config.schema import Settings
+from codegopher.memory import MemoryStore
 from codegopher.tools.context import AccessTracker
 
 
@@ -20,6 +22,9 @@ class ToolResult(BaseModel):
 @dataclass
 class ToolContext:
     cwd: Path
+    settings: Settings = field(default_factory=Settings)
+    memory_store: MemoryStore | None = None
+    session_id: str | None = None
     access: AccessTracker = field(init=False)
 
     def __post_init__(self) -> None:
@@ -34,4 +39,3 @@ class Tool(Protocol):
 
     async def execute(self, arguments: dict[str, Any], context: ToolContext) -> ToolResult:
         ...
-

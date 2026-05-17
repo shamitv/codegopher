@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import os
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -11,6 +13,8 @@ from codegopher.tools.shell.run_shell import RunShellCommandTool
 
 
 def python_command(source: str) -> str:
+    if os.name == "nt":
+        return subprocess.list2cmdline([sys.executable, "-c", source])
     return f"{shlex.quote(sys.executable)} -c {shlex.quote(source)}"
 
 

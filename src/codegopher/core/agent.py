@@ -16,10 +16,18 @@ from codegopher.core.approval import (
     resolve_approval,
     should_prompt,
 )
+from codegopher.core.compaction import (
+    build_compaction_prompt,
+    compacted_messages,
+    compaction_id,
+    split_for_compaction,
+)
 from codegopher.core.context import build_messages
+from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import ToolCall
+from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
+from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry
@@ -39,6 +47,7 @@ class AgentCallbacks:
     on_tool_call: Callable[[ToolCall], Awaitable[None]] | None = None
     on_tool_result: Callable[[ToolResult], Awaitable[None]] | None = None
     on_approval_request: Callable[[ApprovalRequest], Awaitable[ApprovalResult]] | None = None
+    on_compaction: Callable[[CompactionEntry], Awaitable[None]] | None = None
     on_error: Callable[[str], Awaitable[None]] | None = None
     on_complete: Callable[[AgentResult], Awaitable[None]] | None = None
 
@@ -82,6 +91,9 @@ class AgentSession:
         callbacks: AgentCallbacks | None = None,
         tool_context: ToolContext | None = None,
         conversation: Conversation | None = None,
+        memory_context: list[str] | None = None,
+        skill_context: list[str] | None = None,
+        todo_context: list[str] | None = None,
     ) -> None:
         self.provider = provider
         self.registry = registry
@@ -90,13 +102,19 @@ class AgentSession:
         self.max_iterations = max_iterations
         self.stdin_is_tty = stdin_is_tty
         self.callbacks = callbacks
-        self.tool_context = tool_context or ToolContext(cwd=cwd)
+        self.tool_context = tool_context or ToolContext(cwd=cwd, settings=settings)
+        self.tool_context.settings = settings
         self.conversation = conversation or Conversation()
+        self.memory_context = memory_context or []
+        self._memory_context_override = memory_context is not None
+        self.skill_context = skill_context or []
+        self.todo_context = todo_context or []
 
     async def run_turn(self, prompt: str) -> AgentResult:
         if not self.provider.capabilities.tool_calls:
             raise ProviderError("Provider does not support tool calls")
 
+        await self._compact_if_needed(prompt)
         self.conversation.append_user(prompt)
         all_tool_results: list[ToolResult] = []
 
@@ -109,6 +127,7 @@ class AgentSession:
                     cwd=self.cwd,
                     registry=self.registry,
                     approval_mode=self.settings.approval_mode,
+                    memories=self._current_memory_context(),
                 ),
                 self.registry.schemas(),
                 model=self.settings.model.name,
@@ -198,6 +217,99 @@ class AgentSession:
                 )
 
         raise AgentLoopError(f"Agent exceeded max iterations: {self.max_iterations}")
+
+    async def _compact_if_needed(self, prompt: str) -> None:
+        pending_user_message: Message = {"role": "user", "content": prompt}
+        pending_messages: list[Message] = [
+            *self.conversation.provider_messages(),
+            pending_user_message,
+        ]
+        budget = calculate_context_budget(
+            build_messages(
+                Conversation(messages=pending_messages),
+                cwd=self.cwd,
+                registry=self.registry,
+                approval_mode=self.settings.approval_mode,
+                memories=self._current_memory_context(),
+            ),
+            settings=self.settings,
+        )
+        if not budget.compaction_exceeded:
+            return
+        if not split_for_compaction(self.conversation.provider_messages()).older_messages:
+            return
+        entry = await self.compact(reason="automatic")
+        await _emit_callback(
+            "on_compaction",
+            self.callbacks.on_compaction if self.callbacks else None,
+            entry,
+        )
+
+    async def compact(
+        self,
+        *,
+        instructions: str | None = None,
+        reason: CompactionReason = "manual",
+    ) -> CompactionEntry:
+        original_messages = self.conversation.provider_messages()
+        prompt = build_compaction_prompt(
+            original_messages,
+            cwd=self.cwd,
+            instructions=instructions,
+            memories=self._current_memory_context(),
+            skills=self.skill_context,
+            todo_items=self.todo_context,
+        )
+        summary = await self._run_compaction_prompt(prompt)
+        entry = CompactionEntry(
+            id=compaction_id(),
+            reason=reason,
+            summary=summary,
+            instructions=instructions,
+        )
+        self.conversation.messages = compacted_messages(
+            original_messages,
+            summary=summary,
+            reason=reason,
+            instructions=instructions,
+        )
+        return entry
+
+    async def _run_compaction_prompt(self, prompt: str) -> str:
+        text_parts: list[str] = []
+        messages: list[Message] = [
+            {"role": "system", "content": "You compact CodeGopher conversation history."},
+            {"role": "user", "content": prompt},
+        ]
+        async for event in self.provider.stream(
+            messages,
+            [],
+            model=self.settings.model.name,
+            temperature=self.settings.model.temperature,
+            max_output_tokens=self.settings.model.max_output_tokens,
+        ):
+            if event["type"] == "text_delta":
+                text_parts.append(event["content"])
+            elif event["type"] == "error":
+                raise ProviderError(event["message"])
+        summary = "".join(text_parts).strip()
+        if not summary:
+            raise ProviderError("Compaction returned an empty summary")
+        return summary
+
+    def _current_memory_context(self) -> list[str]:
+        if self._memory_context_override:
+            return list(self.memory_context)
+        store = self.tool_context.memory_store or MemoryStore.default()
+        entries = store.context_entries(
+            settings=self.settings,
+            cwd=self.cwd,
+            session_id=self.tool_context.session_id,
+        )
+        self.memory_context = [
+            f"[{entry.scope}:{entry.id}] {entry.content}" for entry in entries
+        ]
+        return list(self.memory_context)
 
 
 async def run_agent(

@@ -15,9 +15,12 @@ from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
+from codegopher.core.context import build_messages
+from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import ToolCall
+from codegopher.core.types import CompactionEntry, Message, ToolCall
+from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.base import ToolContext, ToolResult
@@ -98,12 +101,18 @@ class CodeGopherApp(App[None]):
         self.settings = settings
         self.cwd = cwd
         self.provider_factory = provider_factory
-        self.registry = registry_factory()
-        self.tool_context = ToolContext(cwd=cwd)
         self._agent_session: AgentSession | None = None
         self.session_store = session_store
         self.session_state = session_state or (
             session_store.create(cwd=cwd, settings=settings) if session_store else None
+        )
+        self.registry = registry_factory()
+        memory_store = MemoryStore(data_home=session_store.data_home) if session_store else None
+        self.tool_context = ToolContext(
+            cwd=cwd,
+            settings=settings,
+            memory_store=memory_store,
+            session_id=self.session_state.session_id if self.session_state else None,
         )
         self.session_load_error = session_load_error
         self.shell_timeout_seconds = shell_timeout_seconds
@@ -208,6 +217,7 @@ class CodeGopherApp(App[None]):
             on_tool_call=self._on_agent_tool_call,
             on_tool_result=self._on_agent_tool_result,
             on_approval_request=self._on_agent_approval_request,
+            on_compaction=self._on_agent_compaction,
             on_error=self._on_agent_error,
             on_complete=self._on_agent_complete,
         )
@@ -276,6 +286,10 @@ class CodeGopherApp(App[None]):
         self.approval_count += 1
         return await self._request_tui_approval(request)
 
+    async def _on_agent_compaction(self, entry: CompactionEntry) -> None:
+        self.append_system_message(f"Context compacted ({entry.reason}): {entry.summary}")
+        self.set_status("Context compacted")
+
     async def _on_agent_error(self, message: str) -> None:
         self.set_status(f"Error: {message}")
 
@@ -331,6 +345,8 @@ class CodeGopherApp(App[None]):
             self._handle_help_command(command)
         elif command.name == "clear":
             self._handle_clear_command(command)
+        elif command.name == "compact":
+            self._handle_compact_command(command)
         elif command.name == "model":
             self._handle_model_command(command)
         elif command.name == "mode":
@@ -364,6 +380,43 @@ class CodeGopherApp(App[None]):
         self.query_one("#chat-history", RichLog).clear()
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Chat history cleared")
+
+    def _handle_compact_command(self, command: SlashCommand) -> None:
+        if self.turn_running:
+            self._command_error("Cannot compact while a turn is running")
+            return
+        if not self._provider_conversation_messages():
+            self.append_system_message("Nothing to compact")
+            self.set_status("Nothing to compact")
+            return
+        instructions = command.arguments or None
+        self._set_turn_running(True)
+        self.set_status("Compacting context...")
+        self.run_worker(
+            self._run_manual_compaction(instructions),
+            name="manual-compaction",
+            group="agent",
+            exclusive=True,
+            exit_on_error=False,
+        )
+
+    async def _run_manual_compaction(self, instructions: str | None) -> None:
+        try:
+            entry = await self._ensure_agent_session(AgentCallbacks()).compact(
+                instructions=instructions,
+                reason="manual",
+            )
+        except ProviderError as exc:
+            message = f"Compaction failed: {exc}"
+            self.append_system_message(message)
+            self.set_status(message)
+        else:
+            self.append_system_message(
+                f"Context compacted ({entry.reason}): {entry.summary}"
+            )
+            self.set_status("Context compacted")
+        finally:
+            self._set_turn_running(False)
 
     def _handle_model_command(self, command: SlashCommand) -> None:
         if not command.arguments:
@@ -423,10 +476,38 @@ class CodeGopherApp(App[None]):
         elapsed_seconds = max(0, int(self.monotonic() - self.started_at))
         message = (
             f"Stats: turns={self.turn_count} | tools={self.tool_count} | "
-            f"approvals={self.approval_count} | elapsed={elapsed_seconds}s"
+            f"approvals={self.approval_count} | elapsed={elapsed_seconds}s | "
+            f"{self._context_budget_summary()}"
         )
         self.append_system_message(message)
         self.set_status("Displayed stats")
+
+    def _context_budget_summary(self) -> str:
+        messages = build_messages(
+            Conversation(messages=self._provider_conversation_messages()),
+            cwd=self.cwd,
+            registry=self.registry,
+            approval_mode=self.settings.approval_mode,
+        )
+        budget = calculate_context_budget(messages, settings=self.settings)
+        if budget.context_window is None:
+            return f"context={budget.token_count} tokens (window unknown)"
+        state = (
+            "compact"
+            if budget.compaction_exceeded
+            else "warn"
+            if budget.warning_exceeded
+            else "ok"
+        )
+        percent = int((budget.usage_ratio or 0) * 100)
+        return f"context={budget.token_count}/{budget.context_window} tokens ({percent}%, {state})"
+
+    def _provider_conversation_messages(self) -> list[Message]:
+        if self._agent_session is not None:
+            return self._agent_session.conversation.provider_messages()
+        if self.session_state:
+            return list(self.session_state.provider_messages)
+        return []
 
     def _command_error(self, message: str) -> None:
         full_message = f"Error: {message}"

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import os
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -10,6 +12,7 @@ from textual.containers import Vertical
 from textual.widgets import Input
 
 from codegopher.config.schema import ApprovalMode, ModelConfig, Settings
+from codegopher.core.approval import ApprovalResult
 from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
 
@@ -38,6 +41,8 @@ def make_app(
 
 
 def python_command(source: str) -> str:
+    if os.name == "nt":
+        return subprocess.list2cmdline([sys.executable, "-c", source])
     return f"{shlex.quote(sys.executable)} -c {shlex.quote(source)}"
 
 
@@ -98,7 +103,7 @@ async def test_tui_shell_denial_does_not_execute_subprocess(tmp_path: Path) -> N
     async with app.run_test() as pilot:
         await submit(app, pilot, f"/shell {command}")
         await wait_for_approval(app, pilot)
-        await pilot.click("#approval-deny")
+        app._resolve_pending_approval(ApprovalResult(approved=False, reason="Denied by user"))
         await wait_for_shell(app, pilot)
 
         assert len(provider.calls) == 0

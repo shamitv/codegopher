@@ -8,7 +8,7 @@ import pytest
 from textual.containers import Vertical
 from textual.widgets import Input
 
-from codegopher.config.schema import ApprovalMode, ModelConfig, Settings
+from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, Settings
 from codegopher.core.types import Message, StreamEvent, ToolSchema
 from codegopher.providers.base import ProviderCapabilities
 from codegopher.providers.mock import MockProvider
@@ -90,6 +90,7 @@ async def test_tui_help_command_lists_available_commands(tmp_path: Path) -> None
         assert app.status_message == "Displayed help"
         assert app.chat_messages[0].startswith("Slash commands:")
         assert "/help - Show available slash commands." in app.chat_messages[0]
+        assert "/compact [instructions] - Compact provider context." in app.chat_messages[0]
         assert "/stats - Show session counters." in app.chat_messages[0]
 
 
@@ -104,6 +105,21 @@ async def test_tui_clear_command_clears_visible_chat_history(tmp_path: Path) -> 
 
         assert app.chat_messages == []
         assert app.status_message == "Chat history cleared"
+
+
+@pytest.mark.asyncio
+async def test_tui_compact_command_accepts_optional_instructions_without_history(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider([[{"type": "done"}]])
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/compact focus on decisions")
+
+        assert len(provider.calls) == 0
+        assert app.chat_messages == ["Nothing to compact"]
+        assert app.status_message == "Nothing to compact"
 
 
 @pytest.mark.asyncio
@@ -206,8 +222,32 @@ async def test_tui_stats_command_reports_session_counters(tmp_path: Path) -> Non
         await submit(app, pilot, "/stats")
 
         assert len(provider.calls) == calls_before_stats
-        assert app.chat_messages[-1] == "Stats: turns=1 | tools=1 | approvals=1 | elapsed=12s"
+        assert app.chat_messages[-1].startswith(
+            "Stats: turns=1 | tools=1 | approvals=1 | elapsed=12s | context="
+        )
+        assert app.chat_messages[-1].endswith("tokens (window unknown)")
         assert app.status_message == "Displayed stats"
+
+
+@pytest.mark.asyncio
+async def test_tui_stats_command_reports_known_context_budget(tmp_path: Path) -> None:
+    settings = make_settings()
+    settings.providers = {
+        "openai": [
+            ProviderEntry(id="test-model", name="Test Model", context_window=10_000)
+        ]
+    }
+    provider = MockProvider([[{"type": "text_delta", "content": "answer"}, {"type": "done"}]])
+    app = make_app(tmp_path, provider, settings=settings)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "hello")
+        await wait_for_turn_to_finish(app, pilot)
+        await submit(app, pilot, "/stats")
+
+        assert "context=" in app.chat_messages[-1]
+        assert "/10000 tokens" in app.chat_messages[-1]
+        assert app.chat_messages[-1].endswith(", ok)")
 
 
 @pytest.mark.asyncio

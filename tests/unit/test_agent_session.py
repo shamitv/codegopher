@@ -4,12 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from codegopher.config.schema import ApprovalMode, Settings
+from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
+from codegopher.memory import MemoryStore
 from codegopher.providers.mock import MockProvider
+from codegopher.tools.base import ToolContext
 from codegopher.tools.registry import create_default_registry
 
 
@@ -232,6 +234,195 @@ async def test_agent_session_respects_supplied_initial_conversation(tmp_path: Pa
         {"role": "assistant", "content": "saved answer"},
         {"role": "user", "content": "new question"},
     ]
+
+
+@pytest.mark.asyncio
+async def test_agent_session_manual_compaction_replaces_older_history(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    for index in range(1, 4):
+        conversation.append_user(f"question {index}")
+        conversation.append_assistant(f"answer {index}")
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "summary text"}, {"type": "done"}]]
+    )
+    session = make_session(tmp_path, provider, conversation=conversation)
+
+    entry = await session.compact(instructions="keep decisions")
+
+    assert entry.reason == "manual"
+    assert entry.summary == "summary text"
+    assert provider.calls[0][0]["role"] == "system"
+    assert "keep decisions" in str(provider.calls[0][1]["content"])
+    assert session.conversation.messages[0]["role"] == "system"
+    assert "summary text" in str(session.conversation.messages[0]["content"])
+    assert {"role": "user", "content": "question 1"} not in session.conversation.messages
+    assert {"role": "user", "content": "question 2"} in session.conversation.messages
+
+
+@pytest.mark.asyncio
+async def test_agent_session_automatically_compacts_before_threshold_turn(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from codegopher.core import context_budget
+
+    monkeypatch.setattr(context_budget, "tiktoken", None)
+    conversation = Conversation()
+    for index in range(1, 4):
+        conversation.append_user(f"question {index} with enough text")
+        conversation.append_assistant(f"answer {index} with enough text")
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "automatic summary"}, {"type": "done"}],
+            [{"type": "text_delta", "content": "new answer"}, {"type": "done"}],
+        ]
+    )
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="small"),
+        providers={"openai": [ProviderEntry(id="small", name="Small", context_window=40)]},
+    )
+    compacted = []
+
+    async def on_compaction(entry) -> None:
+        compacted.append(entry)
+
+    session = make_session(
+        tmp_path,
+        provider,
+        settings=settings,
+        conversation=conversation,
+        callbacks=AgentCallbacks(on_compaction=on_compaction),
+    )
+
+    result = await session.run_turn("new question with enough text")
+
+    assert result.final_text == "new answer"
+    assert compacted[0].reason == "automatic"
+    assert provider.calls[0][0]["role"] == "system"
+    assert provider.calls[1][1]["role"] == "system"
+    assert "automatic summary" in str(provider.calls[1][1]["content"])
+    assert {"role": "user", "content": "question 1 with enough text"} not in (
+        session.conversation.messages
+    )
+
+
+@pytest.mark.asyncio
+async def test_agent_session_compaction_includes_extra_context(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("first")
+    conversation.append_assistant("answer")
+    conversation.append_user("second")
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "summary text"}, {"type": "done"}]]
+    )
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        conversation=conversation,
+        memory_context=["Project memory"],
+        skill_context=["Skill context"],
+        todo_context=["TODO context"],
+    )
+
+    await session.compact()
+
+    prompt = str(provider.calls[0][1]["content"])
+    assert "Project memory" in prompt
+    assert "Skill context" in prompt
+    assert "TODO context" in prompt
+
+
+@pytest.mark.asyncio
+async def test_agent_session_compaction_failure_preserves_conversation(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("first")
+    conversation.append_assistant("answer")
+    original = conversation.provider_messages()
+    session = make_session(
+        tmp_path,
+        MockProvider([[{"type": "error", "message": "provider failed"}]]),
+        conversation=conversation,
+    )
+
+    with pytest.raises(ProviderError, match="provider failed"):
+        await session.compact()
+
+    assert session.conversation.messages == original
+
+
+@pytest.mark.asyncio
+async def test_agent_session_feeds_selected_memories_into_provider_context(
+    tmp_path: Path,
+) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+    store.add_entry("project", cwd=tmp_path, content="Project uses pytest")
+    store.add_entry(
+        "session",
+        session_id="session-1",
+        content="Current task is memory tests",
+    )
+    provider = MockProvider([[{"type": "text_delta", "content": "ok"}, {"type": "done"}]])
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        tool_context=ToolContext(
+            cwd=tmp_path,
+            memory_store=store,
+            session_id="session-1",
+        ),
+    )
+
+    await session.run_turn("hello")
+
+    system_prompt = str(provider.calls[0][0]["content"])
+    assert "Selected memories" in system_prompt
+    assert "Project uses pytest" in system_prompt
+    assert "Current task is memory tests" in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_save_memory_tool_result_reaches_next_provider_context(
+    tmp_path: Path,
+) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "save_memory",
+                        "arguments": {"scope": "project", "content": "Remember pytest"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "saved"}, {"type": "done"}],
+        ]
+    )
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+        tool_context=ToolContext(cwd=tmp_path, memory_store=store),
+    )
+
+    await session.run_turn("save this")
+
+    assert store.list_entries("project", cwd=tmp_path)[0].content == "Remember pytest"
+    assert "Remember pytest" in str(provider.calls[1][0]["content"])
 
 
 @pytest.mark.asyncio

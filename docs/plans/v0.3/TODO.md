@@ -55,52 +55,63 @@ Commit rules:
 
 ## Milestone 3 - Context Budget Tracking
 
-- [ ] T017: Add a token-counting helper using `tiktoken` with a deterministic fallback.
+- [x] T017: Add a token-counting helper using `tiktoken` with a deterministic fallback.
   Verify: `python -m pytest tests/unit/test_context_budget.py`
-- [ ] T018: Read provider `context_window` from the selected provider entry.
+- [x] T018: Read provider `context_window` from the selected provider entry.
   Verify: `python -m pytest tests/unit/test_context_budget.py tests/unit/test_config_loader.py`
-- [ ] T019: Add warning and compaction threshold calculations with defaults around 70 and 80 percent.
+- [x] T019: Add warning and compaction threshold calculations with defaults around 70 and 80 percent.
   Verify: `python -m pytest tests/unit/test_context_budget.py`
-- [ ] T020: Surface context budget state in TUI status or `/stats`.
+- [x] T020: Surface context budget state in TUI status or `/stats`.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T021: Add tests for missing context windows and small-window edge cases.
+- [x] T021: Add tests for missing context windows and small-window edge cases.
   Verify: `python -m pytest tests/unit/test_context_budget.py`
 
 ## Milestone 4 - Manual And Automatic Compaction
 
-- [ ] T022: Add a compaction prompt builder that summarizes older conversation and tool context.
+- [x] T022: Add a compaction prompt builder that summarizes older conversation and tool context.
   Verify: `python -m pytest tests/unit/test_compaction.py`
-- [ ] T023: Add manual `/compact [instructions]` command parsing and validation.
+- [x] T023: Add manual `/compact [instructions]` command parsing and validation.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T024: Run manual compaction through the provider and store a visible compaction entry.
+- [x] T024: Run manual compaction through the provider and store a visible compaction entry.
   Verify: `python -m pytest tests/unit/test_tui_compaction.py tests/unit/test_agent_session.py`
-- [ ] T025: Add automatic compaction before a turn that would exceed the threshold.
+- [x] T025: Add automatic compaction before a turn that would exceed the threshold.
   Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_agent_session.py`
-- [ ] T026: Preserve recent turns verbatim after compaction.
+- [x] T026: Preserve recent turns verbatim after compaction.
   Verify: `python -m pytest tests/unit/test_compaction.py`
-- [ ] T027: Include active TODO state, selected memories, and loaded skills in compaction behavior.
+- [x] T027: Include active TODO state, selected memories, and loaded skills in compaction behavior.
   Verify: `python -m pytest tests/unit/test_compaction.py`
-- [ ] T028: Surface compaction failures clearly without losing the current session.
+- [x] T028: Surface compaction failures clearly without losing the current session.
   Verify: `python -m pytest tests/unit/test_tui_compaction.py`
 
 ## Milestone 5 - Memory Store And `save_memory`
 
-- [ ] T029: Add a local memory store rooted under CodeGopher data home.
+- [x] T029: Add a local memory store rooted under CodeGopher data home.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T030: Add session memory keyed by session id.
+- [x] T030: Add session memory keyed by session id.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T031: Add project memory keyed by canonical cwd hash.
+- [x] T031: Add project memory keyed by canonical cwd hash.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T032: Add memory CRUD operations with stable ids and timestamps.
+- [x] T032: Add memory CRUD operations with stable ids and timestamps.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T033: Add safety tests proving memories do not persist API keys or raw environment values.
+- [x] T033: Add safety tests proving memories do not persist API keys or raw environment values.
   Verify: `python -m pytest tests/unit/test_memory_store.py tests/unit/test_tui_session.py`
-- [ ] T034: Add approval-gated `save_memory` tool.
+- [x] T034: Add approval-gated `save_memory` tool.
   Verify: `python -m pytest tests/unit/test_save_memory_tool.py tests/unit/test_approval.py`
-- [ ] T035: Register `save_memory` in the default tool registry.
+- [x] T035: Register `save_memory` in the default tool registry.
   Verify: `python -m pytest tests/unit/test_tools_registry.py tests/unit/test_context_builder.py`
-- [ ] T036: Feed selected memories into provider context.
+- [x] T036: Feed selected memories into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_agent_session.py`
+
+## Milestone 5.5 - Architecture Documentation
+
+- [x] T068: Create `docs/arch/SESSION.md` covering `AgentSession`, TUI resume, provider-ready history, and session safety boundaries.
+  Verify: `test -f docs/arch/SESSION.md && rg -n "AgentSession|provider-ready|resume" docs/arch/SESSION.md`
+- [x] T069: Create `docs/arch/CONTEXT.md` covering system/context building, token accounting, context thresholds, manual compaction, and automatic compaction.
+  Verify: `test -f docs/arch/CONTEXT.md && rg -n "token|threshold|compact" docs/arch/CONTEXT.md`
+- [x] T070: Create `docs/arch/MEMORY.md` covering data-home storage, session/project keying, `save_memory`, redaction, and context injection.
+  Verify: `test -f docs/arch/MEMORY.md && rg -n "session|project|save_memory|redact" docs/arch/MEMORY.md`
+- [x] T071: Create `docs/arch/README.md` and update v0.3 status to reference the architecture docs.
+  Verify: `test -f docs/arch/README.md && rg -n "SESSION|CONTEXT|MEMORY" docs/arch/README.md docs/plans/v0.3/STATUS.md`
 
 ## Milestone 6 - TUI Memory Commands And Transparency
 
