@@ -85,7 +85,7 @@ Commit rules:
 
 ## Milestone 5 - Memory Store And `save_memory`
 
-- [ ] T029: Add a local memory store rooted under CodeGopher data home.
+- [x] T029: Add a local memory store rooted under CodeGopher data home.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
 - [ ] T030: Add session memory keyed by session id.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
