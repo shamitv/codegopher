@@ -43,7 +43,7 @@ Practical readiness estimate:
 | Skill discovery | Implemented | Project, user, and built-in Markdown skills discover, load progressively, and inject read-only context. |
 | Session TODO state | Implemented | `/todo`, `/todo add`, `/todo done`, active provider context, persistence, compaction inclusion, and `update_todo` exist. |
 | Project init | Implemented | `cgopher init [PATH] [--force]` creates default `.codegopher/skills/project/SKILL.md` guidance without writing settings or secrets. |
-| Real endpoint smoke testing | In progress | Pre-implementation smoke passed; opt-in integration coverage exists; final release smoke is pending. |
+| Real endpoint smoke testing | Passed | Pre-implementation and release-readiness smokes passed with local ignored config and dummy key. |
 | Release readiness | In progress | Full suite, lint, typecheck, build, real endpoint smoke, and manual TUI smoke remain to be recorded. |
 
 ## Verified Facts
@@ -70,9 +70,17 @@ Practical readiness estimate:
 - Result payload: `{"final_text": "codegopher-smoke-ok", "tool_results": [], "iterations": 1}`.
 - No endpoint issue was found during the smoke test.
 
+## Release-Readiness Real Endpoint Smoke Test
+
+2026-05-17 on `feature/v0.3-release-readiness`:
+
+- Confirmed `.codegopher/settings.toml` points `openai/local-llm` at `http://192.168.96.26:8090/v1`.
+- Ran `OPENAI_API_KEY=dummy-key .venv/bin/cgopher -p "Reply with exactly: codegopher-smoke-ok" --json`.
+- Confirmed the local OpenAI-compatible endpoint returned `codegopher-smoke-ok`.
+- Result payload: `{"final_text": "codegopher-smoke-ok", "tool_results": [], "iterations": 1}`.
+
 ## Immediate Blockers
 
-- Final real endpoint smoke must pass against the ignored local config.
 - Full pytest, ruff, mypy, and hatch build must pass on the release-readiness branch.
 - Manual TUI v0.3 smoke must be recorded before release readiness is complete.
 

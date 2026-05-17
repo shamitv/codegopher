@@ -174,7 +174,7 @@ Commit rules:
   Verify: `rg -n "v0.3|Context|Memory|Skills" docs/plans/v0.3/STATUS.md`
 - [x] T061: Update release checklist with v0.3 smoke tests.
   Verify: `rg -n "memory|skills|compact|todo" docs/release/CHECKLIST.md`
-- [ ] T062: Run a real OpenAI-compatible endpoint smoke test using local ignored config.
+- [x] T062: Run a real OpenAI-compatible endpoint smoke test using local ignored config.
   Verify: manual run of `cgopher -p "hello"` with local endpoint and dummy key
 - [ ] T063: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
