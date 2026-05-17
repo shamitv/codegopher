@@ -128,6 +128,7 @@ class CodeGopherApp(App[None]):
             cwd=cwd,
             settings=settings,
             memory_store=memory_store,
+            todo_state=self.todo_state,
             session_id=self.session_state.session_id if self.session_state else None,
         )
         self.session_load_error = session_load_error

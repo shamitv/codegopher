@@ -155,7 +155,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
 - [x] T053: Add `/todo done ID` command.
   Verify: `python -m pytest tests/unit/test_tui_todo.py`
-- [ ] T054: Add model-facing `update_todo` tool.
+- [x] T054: Add model-facing `update_todo` tool.
   Verify: `python -m pytest tests/unit/test_update_todo_tool.py tests/unit/test_tools_registry.py`
 - [ ] T055: Feed active TODO state into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_todo_state.py`

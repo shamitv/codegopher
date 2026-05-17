@@ -43,6 +43,7 @@ class ToolRegistry:
 
 def create_default_registry() -> ToolRegistry:
     from codegopher.tools.agent_tools.save_memory import SaveMemoryTool
+    from codegopher.tools.agent_tools.update_todo import UpdateTodoTool
     from codegopher.tools.fs.edit_file import EditFileTool
     from codegopher.tools.fs.glob_search import GlobSearchTool
     from codegopher.tools.fs.grep_search import GrepSearchTool
@@ -63,6 +64,7 @@ def create_default_registry() -> ToolRegistry:
         EditFileTool(),
         RunShellCommandTool(),
         SaveMemoryTool(),
+        UpdateTodoTool(),
     ):
         registry.register(tool)
     return registry

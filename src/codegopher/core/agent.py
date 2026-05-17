@@ -30,6 +30,7 @@ from codegopher.core.types import CompactionEntry, CompactionReason, Message, To
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.skills import SkillManager, discover_skills
+from codegopher.todo import TodoState
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry
 from codegopher.utils.json import dumps_json
@@ -106,6 +107,8 @@ class AgentSession:
         self.callbacks = callbacks
         self.tool_context = tool_context or ToolContext(cwd=cwd, settings=settings)
         self.tool_context.settings = settings
+        if self.tool_context.todo_state is None:
+            self.tool_context.todo_state = TodoState(max_items=settings.todo.max_items)
         self.conversation = conversation or Conversation()
         self.memory_context = memory_context or []
         self._memory_context_override = memory_context is not None
