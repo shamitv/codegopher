@@ -180,7 +180,7 @@ Commit rules:
   Verify: `source .venv/bin/activate && python -m pytest`
 - [x] T064: Run lint and formatting checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
-- [ ] T065: Run static type checking.
+- [x] T065: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
 - [ ] T066: Build the distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
