@@ -9,8 +9,8 @@ from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.providers.mock import MockProvider
 from codegopher.memory import MemoryStore
+from codegopher.providers.mock import MockProvider
 from codegopher.tools.base import ToolContext
 from codegopher.tools.registry import create_default_registry
 

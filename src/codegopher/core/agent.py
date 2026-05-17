@@ -16,8 +16,12 @@ from codegopher.core.approval import (
     resolve_approval,
     should_prompt,
 )
-from codegopher.core.compaction import build_compaction_prompt, compacted_messages
-from codegopher.core.compaction import compaction_id, split_for_compaction
+from codegopher.core.compaction import (
+    build_compaction_prompt,
+    compacted_messages,
+    compaction_id,
+    split_for_compaction,
+)
 from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
@@ -215,9 +219,10 @@ class AgentSession:
         raise AgentLoopError(f"Agent exceeded max iterations: {self.max_iterations}")
 
     async def _compact_if_needed(self, prompt: str) -> None:
-        pending_messages = [
+        pending_user_message: Message = {"role": "user", "content": prompt}
+        pending_messages: list[Message] = [
             *self.conversation.provider_messages(),
-            {"role": "user", "content": prompt},
+            pending_user_message,
         ]
         budget = calculate_context_budget(
             build_messages(

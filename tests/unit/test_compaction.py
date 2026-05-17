@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from codegopher.core.compaction import compacted_messages
-from codegopher.core.compaction import build_compaction_prompt, split_for_compaction
+from codegopher.core.compaction import (
+    build_compaction_prompt,
+    compacted_messages,
+    split_for_compaction,
+)
 from codegopher.core.types import Message
 
 

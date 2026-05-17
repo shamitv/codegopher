@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 from uuid import uuid4
 
 from codegopher.core.types import CompactionReason, Message
 from codegopher.utils.json import dumps_json
-
 
 RECENT_USER_TURNS_TO_KEEP = 2
 
