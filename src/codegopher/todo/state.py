@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import builtins
 from collections.abc import Callable
 from datetime import UTC, datetime
 from uuid import uuid4
@@ -14,14 +15,14 @@ class TodoState:
 
     def __init__(
         self,
-        items: list[TodoItem] | None = None,
+        items: builtins.list[TodoItem] | None = None,
         *,
         max_items: int = 100,
         now: Callable[[], datetime] | None = None,
     ) -> None:
         self.max_items = max_items
         self._now = now or (lambda: datetime.now(UTC))
-        self.items: list[TodoItem] = list(items or [])
+        self.items: builtins.list[TodoItem] = list(items or [])
 
     @classmethod
     def from_raw(
@@ -80,18 +81,18 @@ class TodoState:
     def done(self, item_id: str) -> TodoItem:
         return self.set_status(item_id, "done")
 
-    def list(self, *, include_done: bool = True) -> list[TodoItem]:
+    def list(self, *, include_done: bool = True) -> builtins.list[TodoItem]:
         if include_done:
             return list(self.items)
         return [item for item in self.items if item.status != "done"]
 
-    def context_items(self) -> list[str]:
+    def context_items(self) -> builtins.list[str]:
         return [
             f"[{item.id}] {item.status}: {item.text}"
             for item in self.list(include_done=False)
         ]
 
-    def to_jsonable(self) -> list[dict[str, object]]:
+    def to_jsonable(self) -> builtins.list[dict[str, object]]:
         return [item.model_dump(mode="json") for item in self.items]
 
     def _item_id(self) -> str:

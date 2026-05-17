@@ -31,10 +31,10 @@ from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.skills import Skill, SkillDiscovery, SkillManager, discover_skills
+from codegopher.todo import TodoState
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
 from codegopher.tools.shell.run_shell import RunShellCommandTool
-from codegopher.todo import TodoState
 from codegopher.tui.commands import COMMAND_DEFINITIONS, SlashCommand, parse_slash_command
 from codegopher.tui.mentions import MentionExpansion, expand_mentions
 from codegopher.tui.session import MessageRole, SessionMessage, TuiSessionState, TuiSessionStore

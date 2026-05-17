@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from codegopher.core.types import TodoStatus
 from codegopher.tools.base import ToolContext, ToolResult
 
 
@@ -67,7 +68,7 @@ class UpdateTodoTool:
                     content=f"id is required for {action}",
                     is_error=True,
                 )
-            status = "in_progress" if action == "start" else "done"
+            status: TodoStatus = "in_progress" if action == "start" else "done"
             try:
                 item = context.todo_state.set_status(item_id, status)
             except KeyError:
