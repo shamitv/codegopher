@@ -97,7 +97,8 @@ class AgentSession:
         self.max_iterations = max_iterations
         self.stdin_is_tty = stdin_is_tty
         self.callbacks = callbacks
-        self.tool_context = tool_context or ToolContext(cwd=cwd)
+        self.tool_context = tool_context or ToolContext(cwd=cwd, settings=settings)
+        self.tool_context.settings = settings
         self.conversation = conversation or Conversation()
         self.memory_context = memory_context or []
         self.skill_context = skill_context or []
