@@ -29,6 +29,18 @@ def make_app(tmp_path: Path, provider) -> CodeGopherApp:
     )
 
 
+async def submit(app: CodeGopherApp, pilot, value: str, *, pause: float = 0.1) -> None:
+    input_widget = app.query_one("#prompt-input", Input)
+    input_widget.focus()
+    input_widget.value = value
+    await pilot.press("enter")
+    await pilot.pause(pause)
+    for _ in range(20):
+        if not app.turn_running:
+            break
+        await pilot.pause(0.05)
+
+
 @pytest.mark.asyncio
 async def test_tui_submitted_input_streams_agent_text(tmp_path: Path) -> None:
     provider = MockProvider(
@@ -103,6 +115,115 @@ async def test_tui_runs_integration_style_mock_provider_turn(tmp_path: Path) -> 
 
         assert app.chat_messages[-1] == "Assistant: final answer"
         assert provider.calls[0][-1]["content"] == "question"
+
+
+@pytest.mark.asyncio
+async def test_tui_preserves_provider_context_across_submitted_turns(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "first answer"}, {"type": "done"}],
+            [{"type": "text_delta", "content": "second answer"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "first question")
+        await submit(app, pilot, "second question")
+
+        assert provider.calls[1][1:] == [
+            {"role": "user", "content": "first question"},
+            {"role": "assistant", "content": "first answer"},
+            {"role": "user", "content": "second question"},
+        ]
+
+
+@pytest.mark.asyncio
+async def test_tui_clear_keeps_provider_context_for_future_turns(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "first answer"}, {"type": "done"}],
+            [{"type": "text_delta", "content": "second answer"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "first question")
+        await submit(app, pilot, "/clear")
+        await submit(app, pilot, "second question")
+
+        assert app.chat_messages == ["You: second question", "Assistant: second answer"]
+        assert provider.calls[1][1:] == [
+            {"role": "user", "content": "first question"},
+            {"role": "assistant", "content": "first answer"},
+            {"role": "user", "content": "second question"},
+        ]
+
+
+@pytest.mark.asyncio
+async def test_tui_slash_commands_do_not_enter_provider_context(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "first answer"}, {"type": "done"}],
+            [{"type": "text_delta", "content": "second answer"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "first question")
+        await submit(app, pilot, "/stats")
+        await submit(app, pilot, "second question")
+
+        provider_contents = [
+            message.get("content")
+            for message in provider.calls[1][1:]
+            if message["role"] in {"user", "assistant"}
+        ]
+        assert provider_contents == ["first question", "first answer", "second question"]
+        assert all("Stats:" not in str(content) for content in provider_contents)
+
+
+@pytest.mark.asyncio
+async def test_tui_preserves_tool_call_history_for_future_turns(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "read complete"}, {"type": "done"}],
+            [{"type": "text_delta", "content": "second answer"}, {"type": "done"}],
+        ]
+    )
+    app = CodeGopherApp(
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "read the file")
+        await submit(app, pilot, "what did you read?")
+
+        messages = provider.calls[2][1:]
+        assert messages[1]["role"] == "assistant"
+        assert messages[1]["tool_calls"][0]["function"]["name"] == "read_file"
+        assert messages[2] == {
+            "role": "tool",
+            "tool_call_id": "call-1",
+            "content": "project notes",
+        }
+        assert messages[4] == {"role": "user", "content": "what did you read?"}
 
 
 class WaitingProvider:
