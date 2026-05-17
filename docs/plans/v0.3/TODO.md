@@ -76,7 +76,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_compaction.py tests/unit/test_agent_session.py`
 - [x] T025: Add automatic compaction before a turn that would exceed the threshold.
   Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_agent_session.py`
-- [ ] T026: Preserve recent turns verbatim after compaction.
+- [x] T026: Preserve recent turns verbatim after compaction.
   Verify: `python -m pytest tests/unit/test_compaction.py`
 - [ ] T027: Include active TODO state, selected memories, and loaded skills in compaction behavior.
   Verify: `python -m pytest tests/unit/test_compaction.py`

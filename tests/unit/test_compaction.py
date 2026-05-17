@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from codegopher.core.compaction import compacted_messages
 from codegopher.core.compaction import build_compaction_prompt, split_for_compaction
 from codegopher.core.types import Message
 
@@ -68,3 +69,39 @@ def test_build_compaction_prompt_includes_manual_instructions(tmp_path: Path) ->
 
     assert "User compaction instructions" in prompt
     assert "focus on file decisions" in prompt
+
+
+def test_compacted_messages_preserves_recent_turns_verbatim() -> None:
+    messages: list[Message] = [
+        {"role": "user", "content": "old question"},
+        {"role": "assistant", "content": "old answer"},
+        {"role": "user", "content": "recent question"},
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call-2",
+                    "type": "function",
+                    "function": {"name": "read_file", "arguments": '{"path":"x.py"}'},
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call-2", "content": "file body"},
+        {"role": "assistant", "content": "recent answer"},
+        {"role": "user", "content": "latest question"},
+    ]
+
+    compacted = compacted_messages(
+        messages,
+        summary="summary text",
+        reason="manual",
+        instructions="keep files",
+        preserve_recent_user_turns=2,
+    )
+
+    assert compacted[0]["role"] == "system"
+    assert "summary text" in str(compacted[0]["content"])
+    assert "keep files" in str(compacted[0]["content"])
+    assert compacted[1:] == messages[2:]
+    assert messages[0] not in compacted
