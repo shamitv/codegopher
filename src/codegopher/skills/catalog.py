@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from importlib import resources
 from pathlib import Path
 
 from codegopher.config.schema import Settings
@@ -66,10 +67,13 @@ def discover_skills(
     warnings: list[str] = []
     project_result = discover_project_skills(cwd=cwd, settings=settings)
     user_result = discover_user_skills(settings=settings, home=home)
+    builtin_result = discover_builtin_skills(settings=settings)
     skills.extend(project_result.catalog.list())
     skills.extend(user_result.catalog.list())
+    skills.extend(builtin_result.catalog.list())
     warnings.extend(project_result.warnings)
     warnings.extend(user_result.warnings)
+    warnings.extend(builtin_result.warnings)
     return SkillDiscovery(catalog=SkillCatalog(skills), warnings=tuple(warnings))
 
 
@@ -93,6 +97,32 @@ def discover_user_skills(
 
     root = (home or Path.home()) / ".codegopher" / settings.skills.user_dir
     return _discover_skill_dir(root=root, source="user")
+
+
+def discover_builtin_skills(*, settings: Settings) -> SkillDiscovery:
+    """Discover packaged built-in SKILL.md files."""
+    if not settings.skills.enabled or not settings.skills.builtins_enabled:
+        return SkillDiscovery(catalog=SkillCatalog())
+
+    skills: list[Skill] = []
+    warnings: list[str] = []
+    try:
+        root = resources.files("codegopher.skills.builtins")
+    except ModuleNotFoundError as exc:
+        return SkillDiscovery(catalog=SkillCatalog(), warnings=(str(exc),))
+
+    for child in sorted(root.iterdir(), key=lambda item: item.name):
+        skill_file = child / "SKILL.md"
+        if not child.is_dir() or not skill_file.is_file():
+            continue
+        try:
+            with resources.as_file(skill_file) as path:
+                skills.append(parse_skill_file(path, source="builtin"))
+        except OSError as exc:
+            warnings.append(f"{skill_file}: {exc}")
+        except UnicodeDecodeError:
+            warnings.append(f"{skill_file}: not a UTF-8 text file")
+    return SkillDiscovery(catalog=SkillCatalog(skills), warnings=tuple(warnings))
 
 
 def parse_skill_file(path: Path, *, source: SkillSource) -> Skill:

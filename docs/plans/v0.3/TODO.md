@@ -132,7 +132,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_skills.py`
 - [x] T043: Add skill discovery for user `~/.codegopher/skills/*/SKILL.md`.
   Verify: `python -m pytest tests/unit/test_skills.py`
-- [ ] T044: Add built-in package skill discovery.
+- [x] T044: Add built-in package skill discovery.
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_imports.py`
 - [ ] T045: Parse simple skill metadata and Markdown content.
   Verify: `python -m pytest tests/unit/test_skills.py`

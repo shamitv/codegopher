@@ -4,6 +4,7 @@ from pathlib import Path
 
 from codegopher.config.schema import Settings
 from codegopher.skills import (
+    discover_builtin_skills,
     discover_project_skills,
     discover_skills,
     discover_user_skills,
@@ -63,9 +64,10 @@ def test_project_discovery_honors_disabled_skills(tmp_path: Path) -> None:
 
 
 def test_discover_skills_includes_project_skills(tmp_path: Path) -> None:
+    settings = Settings.model_validate({"skills": {"builtins_enabled": False}})
     write_skill(tmp_path / ".codegopher" / "skills", "testing", "Testing skill")
 
-    result = discover_skills(cwd=tmp_path, settings=Settings())
+    result = discover_skills(cwd=tmp_path, settings=settings)
 
     assert [skill.id for skill in result.catalog.list()] == ["testing"]
 
@@ -97,10 +99,11 @@ def test_user_discovery_uses_custom_user_dir(tmp_path: Path) -> None:
 
 
 def test_discover_skills_includes_user_skills(tmp_path: Path) -> None:
+    settings = Settings.model_validate({"skills": {"builtins_enabled": False}})
     write_skill(tmp_path / ".codegopher" / "skills", "project-skill", "Project")
     write_skill(tmp_path / "home" / ".codegopher" / "skills", "user-skill", "User")
 
-    result = discover_skills(cwd=tmp_path, settings=Settings(), home=tmp_path / "home")
+    result = discover_skills(cwd=tmp_path, settings=settings, home=tmp_path / "home")
 
     assert {skill.id for skill in result.catalog.list()} == {
         "project-skill",
@@ -118,6 +121,44 @@ def test_project_skills_take_precedence_over_user_skills(tmp_path: Path) -> None
     assert skill is not None
     assert skill.source == "project"
     assert skill.content == "Project"
+
+
+def test_discovers_builtin_package_skills() -> None:
+    result = discover_builtin_skills(settings=Settings())
+
+    skill = result.catalog.get("codegopher")
+    assert result.warnings == ()
+    assert skill is not None
+    assert skill.source == "builtin"
+    assert "CodeGopher's existing safety model" in skill.content
+
+
+def test_builtin_discovery_can_be_disabled() -> None:
+    settings = Settings.model_validate({"skills": {"builtins_enabled": False}})
+
+    result = discover_builtin_skills(settings=settings)
+
+    assert result.catalog.list() == []
+
+
+def test_project_and_user_skills_take_precedence_over_builtin_skills(
+    tmp_path: Path,
+) -> None:
+    write_skill(tmp_path / ".codegopher" / "skills", "codegopher", "Project")
+    write_skill(tmp_path / "home" / ".codegopher" / "skills", "codegopher", "User")
+
+    result = discover_skills(cwd=tmp_path, settings=Settings(), home=tmp_path / "home")
+
+    skill = result.catalog.get("codegopher")
+    assert skill is not None
+    assert skill.source == "project"
+    assert skill.content == "Project"
+
+
+def test_discover_skills_includes_builtin_skills(tmp_path: Path) -> None:
+    result = discover_skills(cwd=tmp_path, settings=Settings(), home=tmp_path / "home")
+
+    assert result.catalog.get("codegopher") is not None
 
 
 def test_parse_skill_file_uses_parent_directory_as_id(tmp_path: Path) -> None:
