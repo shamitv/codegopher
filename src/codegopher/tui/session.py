@@ -13,9 +13,10 @@ from typing import Any, Literal
 from uuid import uuid4
 
 from codegopher.config.schema import Settings
+from codegopher.core.types import Message
 from codegopher.utils.paths import canonical_path
 
-SESSION_VERSION = 1
+SESSION_VERSION = 2
 MessageRole = Literal["user", "assistant", "system"]
 
 
@@ -35,6 +36,7 @@ class TuiSessionState:
     model: str
     approval_mode: str
     messages: list[SessionMessage] = field(default_factory=list)
+    provider_messages: list[Message] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -138,12 +140,14 @@ class TuiSessionStore:
                 {"role": message.role, "content": message.content}
                 for message in state.messages
             ],
+            "provider_messages": state.provider_messages,
         }
 
     def _decode_state(self, data: Any, *, expected_cwd: str) -> TuiSessionState:
         if not isinstance(data, dict):
             raise ValueError("session root must be an object")
-        if data.get("version") != SESSION_VERSION:
+        version = data.get("version")
+        if version not in {1, SESSION_VERSION}:
             raise ValueError("incompatible session version")
         metadata = data.get("metadata")
         if not isinstance(metadata, dict):
@@ -167,6 +171,12 @@ class TuiSessionStore:
                 raise ValueError("session message content must be a string")
             messages.append(SessionMessage(role=role, content=content))
 
+        provider_messages = (
+            []
+            if version == 1 and "provider_messages" not in data
+            else self._decode_provider_messages(data.get("provider_messages", []))
+        )
+
         return TuiSessionState(
             session_id=str(data.get("session_id", "")) or f"{self._cwd_key(Path(cwd))}-{uuid4().hex[:12]}",
             created_at=str(data.get("created_at", "")),
@@ -176,4 +186,36 @@ class TuiSessionStore:
             model=str(metadata.get("model", "")),
             approval_mode=str(metadata.get("approval_mode", "")),
             messages=messages,
+            provider_messages=provider_messages,
         )
+
+    def _decode_provider_messages(self, raw_messages: Any) -> list[Message]:
+        if not isinstance(raw_messages, list):
+            raise ValueError("provider messages must be a list")
+
+        messages: list[Message] = []
+        for raw_message in raw_messages:
+            if not isinstance(raw_message, dict):
+                raise ValueError("provider message must be an object")
+            role = raw_message.get("role")
+            if role not in {"system", "user", "assistant", "tool"}:
+                raise ValueError("provider message role is invalid")
+            content = raw_message.get("content")
+            if content is not None and not isinstance(content, str):
+                raise ValueError("provider message content must be a string or null")
+            message: Message = {"role": role, "content": content}
+            if name := raw_message.get("name"):
+                if not isinstance(name, str):
+                    raise ValueError("provider message name must be a string")
+                message["name"] = name
+            if tool_call_id := raw_message.get("tool_call_id"):
+                if not isinstance(tool_call_id, str):
+                    raise ValueError("provider message tool_call_id must be a string")
+                message["tool_call_id"] = tool_call_id
+            if "tool_calls" in raw_message:
+                tool_calls = raw_message["tool_calls"]
+                if not isinstance(tool_calls, list):
+                    raise ValueError("provider message tool_calls must be a list")
+                message["tool_calls"] = tool_calls
+            messages.append(message)
+        return messages

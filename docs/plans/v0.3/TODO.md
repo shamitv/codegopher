@@ -46,7 +46,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_agent_loop.py tests/integration/test_headless_cli.py`
 - [x] T013: Move TUI agent turns onto the session/context runner without changing visible behavior, including `/clear`, slash command, mention expansion, and tool-history regressions.
   Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_tui_session.py tests/unit/test_tui_mentions.py`
-- [ ] T014: Persist enough session metadata to resume provider-ready context safely.
+- [x] T014: Persist enough session metadata to resume provider-ready context safely, including legacy session compatibility and provider-message validation.
   Verify: `python -m pytest tests/unit/test_tui_session.py tests/unit/test_agent_session.py`
 - [ ] T015: Ensure prior-read and directory-inspection state remains session-scoped.
   Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_tool_context.py`

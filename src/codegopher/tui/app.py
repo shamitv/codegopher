@@ -15,6 +15,7 @@ from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
+from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
 from codegopher.providers.base import Provider
@@ -229,6 +230,11 @@ class CodeGopherApp(App[None]):
                 stdin_is_tty=True,
                 callbacks=callbacks,
                 tool_context=self.tool_context,
+                conversation=Conversation(
+                    messages=list(self.session_state.provider_messages)
+                    if self.session_state
+                    else []
+                ),
             )
             self.tool_context = self._agent_session.tool_context
         else:
@@ -303,6 +309,10 @@ class CodeGopherApp(App[None]):
     def _persist_session(self) -> None:
         if not self.session_store or not self.session_state:
             return
+        if self._agent_session is not None:
+            self.session_state.provider_messages = (
+                self._agent_session.conversation.provider_messages()
+            )
         try:
             self.session_store.save(self.session_state, settings=self.settings)
         except OSError as exc:
