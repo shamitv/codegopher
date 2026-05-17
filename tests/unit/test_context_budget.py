@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from codegopher.config.schema import ModelConfig, ProviderEntry, Settings
 from codegopher.core import context_budget
-from codegopher.core.context_budget import count_message_tokens, count_text_tokens
+from codegopher.core.context_budget import calculate_context_budget, count_message_tokens
+from codegopher.core.context_budget import count_text_tokens, evaluate_context_budget
 from codegopher.core.context_budget import selected_context_window, selected_provider_entry
 
 
@@ -67,3 +68,51 @@ def test_selected_context_window_falls_back_to_first_provider_entry() -> None:
 
 def test_selected_context_window_returns_none_when_missing() -> None:
     assert selected_context_window(Settings()) is None
+
+
+def test_evaluate_context_budget_calculates_warning_and_compaction_thresholds() -> None:
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="test"),
+        providers={"openai": [ProviderEntry(id="test", name="Test", context_window=100)]},
+    )
+
+    below = evaluate_context_budget(69, settings=settings)
+    warning = evaluate_context_budget(70, settings=settings)
+    compact = evaluate_context_budget(80, settings=settings)
+
+    assert below.warning_tokens == 70
+    assert below.compaction_tokens == 80
+    assert below.warning_exceeded is False
+    assert warning.warning_exceeded is True
+    assert warning.compaction_exceeded is False
+    assert compact.compaction_exceeded is True
+    assert compact.usage_ratio == 0.8
+
+
+def test_evaluate_context_budget_is_open_when_context_window_is_unknown() -> None:
+    status = evaluate_context_budget(10_000, settings=Settings())
+
+    assert status.context_window is None
+    assert status.warning_tokens is None
+    assert status.compaction_tokens is None
+    assert status.warning_exceeded is False
+    assert status.compaction_exceeded is False
+    assert status.usage_ratio is None
+
+
+def test_calculate_context_budget_counts_messages_and_extra_tokens(monkeypatch) -> None:
+    monkeypatch.setattr(context_budget, "tiktoken", None)
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="test"),
+        providers={"openai": [ProviderEntry(id="test", name="Test", context_window=10)]},
+    )
+
+    status = calculate_context_budget(
+        [{"role": "user", "content": "abcdefgh"}],
+        settings=settings,
+        extra_tokens=2,
+    )
+
+    assert status.token_count == 9
+    assert status.warning_exceeded is True
+    assert status.compaction_exceeded is True

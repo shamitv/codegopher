@@ -59,7 +59,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_context_budget.py`
 - [x] T018: Read provider `context_window` from the selected provider entry.
   Verify: `python -m pytest tests/unit/test_context_budget.py tests/unit/test_config_loader.py`
-- [ ] T019: Add warning and compaction threshold calculations with defaults around 70 and 80 percent.
+- [x] T019: Add warning and compaction threshold calculations with defaults around 70 and 80 percent.
   Verify: `python -m pytest tests/unit/test_context_budget.py`
 - [ ] T020: Surface context budget state in TUI status or `/stats`.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
