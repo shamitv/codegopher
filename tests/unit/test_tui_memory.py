@@ -123,3 +123,113 @@ async def test_memory_command_rejects_arguments(tmp_path: Path) -> None:
 
     assert app.chat_messages == ["Error: Usage: /memory"]
     assert app.status_message == "Error: Usage: /memory"
+
+
+@pytest.mark.asyncio
+async def test_forget_command_requires_confirmation(tmp_path: Path) -> None:
+    app = make_app(tmp_path)
+    assert app.tool_context.memory_store is not None
+    entry = app.tool_context.memory_store.add_entry(
+        "project",
+        cwd=tmp_path,
+        content="Forget only after confirmation",
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, f"/forget {entry.id}")
+
+    assert app.tool_context.memory_store.list_entries("project", cwd=tmp_path) == [entry]
+    assert app.chat_messages == [
+        f"Confirm forget {entry.id}: run /forget {entry.id} --yes"
+    ]
+    assert app.status_message == "Memory forget needs confirmation"
+
+
+@pytest.mark.asyncio
+async def test_forget_command_deletes_project_memory_with_confirmation(
+    tmp_path: Path,
+) -> None:
+    app = make_app(tmp_path)
+    assert app.tool_context.memory_store is not None
+    entry = app.tool_context.memory_store.add_entry(
+        "project",
+        cwd=tmp_path,
+        content="Forget this project memory",
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, f"/forget {entry.id} --yes")
+
+    assert app.tool_context.memory_store.list_entries("project", cwd=tmp_path) == []
+    assert app.chat_messages == [f"Forgot memory {entry.id}"]
+    assert app.status_message == "Memory deleted"
+
+
+@pytest.mark.asyncio
+async def test_forget_command_deletes_session_memory_with_confirmation(
+    tmp_path: Path,
+) -> None:
+    app = make_app(tmp_path)
+    assert app.session_state is not None
+    assert app.tool_context.memory_store is not None
+    entry = app.tool_context.memory_store.add_entry(
+        "session",
+        session_id=app.session_state.session_id,
+        content="Forget this session memory",
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, f"/forget {entry.id} --yes")
+
+    assert (
+        app.tool_context.memory_store.list_entries(
+            "session",
+            session_id=app.session_state.session_id,
+        )
+        == []
+    )
+    assert app.chat_messages == [f"Forgot memory {entry.id}"]
+
+
+@pytest.mark.asyncio
+async def test_forget_command_reports_missing_memory(tmp_path: Path) -> None:
+    app = make_app(tmp_path)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/forget mem-missing --yes")
+
+    assert app.chat_messages == ["Error: Memory not found: mem-missing"]
+    assert app.status_message == "Error: Memory not found: mem-missing"
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "/forget",
+        "/forget mem-1 --no",
+        "/forget mem-1 --yes extra",
+    ],
+)
+@pytest.mark.asyncio
+async def test_forget_command_rejects_invalid_usage(
+    tmp_path: Path,
+    command: str,
+) -> None:
+    app = make_app(tmp_path)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, command)
+
+    assert app.chat_messages == ["Error: Usage: /forget ID [--yes]"]
+
+
+@pytest.mark.asyncio
+async def test_forget_command_honors_disabled_memory(tmp_path: Path) -> None:
+    settings = make_settings()
+    settings.memory.enabled = False
+    app = make_app(tmp_path, settings=settings)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/forget mem-1 --yes")
+
+    assert app.chat_messages == ["Error: Memory is disabled"]

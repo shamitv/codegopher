@@ -347,6 +347,8 @@ class CodeGopherApp(App[None]):
             self._handle_clear_command(command)
         elif command.name == "compact":
             self._handle_compact_command(command)
+        elif command.name == "forget":
+            self._handle_forget_command(command)
         elif command.name == "memory":
             self._handle_memory_command(command)
         elif command.name == "model":
@@ -420,6 +422,49 @@ class CodeGopherApp(App[None]):
         finally:
             self._set_turn_running(False)
 
+    def _handle_forget_command(self, command: SlashCommand) -> None:
+        parsed = self._parse_forget_arguments(command.arguments)
+        if parsed is None:
+            self._command_error("Usage: /forget ID [--yes]")
+            return
+        entry_id, confirmed = parsed
+        if not self.settings.memory.enabled:
+            self._command_error("Memory is disabled")
+            return
+
+        found = self._find_memory_entry(entry_id)
+        if found is None:
+            self._command_error(f"Memory not found: {entry_id}")
+            return
+
+        scope, entry = found
+        if not confirmed:
+            message = f"Confirm forget {entry.id}: run /forget {entry.id} --yes"
+            self.append_system_message(message)
+            self.set_status("Memory forget needs confirmation")
+            return
+
+        store = self.tool_context.memory_store or MemoryStore.default()
+        deleted = store.delete_entry(
+            scope,
+            entry.id,
+            session_id=self.tool_context.session_id if scope == "session" else None,
+            cwd=self.cwd if scope == "project" else None,
+        )
+        if not deleted:
+            self._command_error(f"Memory not found: {entry.id}")
+            return
+        self.append_system_message(f"Forgot memory {entry.id}")
+        self.set_status("Memory deleted")
+
+    def _parse_forget_arguments(self, arguments: str) -> tuple[str, bool] | None:
+        parts = arguments.split()
+        if len(parts) == 1:
+            return parts[0], False
+        if len(parts) == 2 and parts[1] == "--yes":
+            return parts[0], True
+        return None
+
     def _handle_memory_command(self, command: SlashCommand) -> None:
         if command.arguments:
             self._command_error("Usage: /memory")
@@ -459,6 +504,18 @@ class CodeGopherApp(App[None]):
                 return []
             return store.list_entries("session", session_id=self.tool_context.session_id)
         return store.list_entries("project", cwd=self.cwd)
+
+    def _find_memory_entry(self, entry_id: str) -> tuple[MemoryScope, MemoryEntry] | None:
+        scopes: tuple[MemoryScope, MemoryScope] = ("session", "project")
+        for scope in scopes:
+            if scope == "session" and not self.settings.memory.session_enabled:
+                continue
+            if scope == "project" and not self.settings.memory.project_enabled:
+                continue
+            for entry in self._list_memory_entries(scope):
+                if entry.id == entry_id:
+                    return scope, entry
+        return None
 
     def _format_memory_entry(self, entry: MemoryEntry) -> str:
         return f"- {entry.id} [{entry.scope}/{entry.source}] {entry.content}"

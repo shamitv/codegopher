@@ -117,7 +117,7 @@ Commit rules:
 
 - [x] T037: Add `/memory` command to list session and project memories.
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_commands.py`
-- [ ] T038: Add `/forget ID` command with approval or confirmation behavior.
+- [x] T038: Add `/forget ID` command with approval or confirmation behavior.
   Verify: `python -m pytest tests/unit/test_tui_memory.py`
 - [ ] T039: Show memory save/delete events in chat history.
   Verify: `python -m pytest tests/unit/test_tui_memory.py`
