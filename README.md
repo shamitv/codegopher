@@ -10,9 +10,11 @@ CodeGopher v0.2 includes both the original headless command and an interactive T
 cgopher
 cgopher -p "What does this project do?"
 cgopher -p "read this test log and summarize it" < test.log
+cgopher init
 ```
 
 Run plain `cgopher` in an interactive terminal to open the TUI. Use `-p/--prompt` for the headless one-shot path.
+Run `cgopher init [PATH]` to create default project-local Markdown skill guidance under `.codegopher/skills`.
 
 Useful flags:
 

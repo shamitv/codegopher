@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from click.testing import CliRunner
 
@@ -10,6 +11,7 @@ from codegopher.config.schema import ModelConfig, ProviderEntry, Settings
 from codegopher.core.agent import AgentResult
 from codegopher.providers.mock import MockProvider
 from codegopher.providers.openai_compat import OpenAICompatProvider
+from codegopher.skills import discover_project_skills
 
 
 def test_cli_without_prompt_requires_interactive_tty() -> None:
@@ -174,3 +176,71 @@ def test_cli_builds_real_openai_compatible_provider(monkeypatch) -> None:
     assert isinstance(provider, OpenAICompatProvider)
     assert provider.base_url == "http://127.0.0.1:8000/v1"
     assert provider.api_key == "sk-local"
+
+
+def test_cli_init_creates_default_project_skill(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(app, ["init"])
+        skill_path = Path.cwd() / ".codegopher/skills/project/SKILL.md"
+
+        assert result.exit_code == 0
+        assert "Created" in result.output
+        assert skill_path.exists()
+        assert "# Project" in skill_path.read_text(encoding="utf-8")
+
+
+def test_cli_init_supports_explicit_target_path(tmp_path: Path) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+
+    result = CliRunner().invoke(app, ["init", str(target)])
+
+    assert result.exit_code == 0
+    assert (target / ".codegopher/skills/project/SKILL.md").exists()
+
+
+def test_cli_init_skips_existing_skill_without_force(tmp_path: Path) -> None:
+    skill_path = tmp_path / ".codegopher/skills/project/SKILL.md"
+    skill_path.parent.mkdir(parents=True)
+    skill_path.write_text("custom guidance", encoding="utf-8")
+
+    result = CliRunner().invoke(app, ["init", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "Skipped existing" in result.output
+    assert skill_path.read_text(encoding="utf-8") == "custom guidance"
+
+
+def test_cli_init_overwrites_existing_skill_with_force(tmp_path: Path) -> None:
+    skill_path = tmp_path / ".codegopher/skills/project/SKILL.md"
+    skill_path.parent.mkdir(parents=True)
+    skill_path.write_text("custom guidance", encoding="utf-8")
+
+    result = CliRunner().invoke(app, ["init", str(tmp_path), "--force"])
+
+    assert result.exit_code == 0
+    assert "Overwrote" in result.output
+    assert "# Project" in skill_path.read_text(encoding="utf-8")
+
+
+def test_cli_init_does_not_write_settings_or_secrets(tmp_path: Path) -> None:
+    result = CliRunner().invoke(app, ["init", str(tmp_path)])
+
+    raw = (tmp_path / ".codegopher/skills/project/SKILL.md").read_text(encoding="utf-8")
+    assert result.exit_code == 0
+    assert not (tmp_path / ".codegopher/settings.toml").exists()
+    assert "api_key" not in raw.lower()
+    assert "OPENAI_API_KEY" not in raw
+
+
+def test_cli_init_generated_skill_is_discoverable(tmp_path: Path) -> None:
+    result = CliRunner().invoke(app, ["init", str(tmp_path)])
+
+    discovery = discover_project_skills(cwd=tmp_path, settings=Settings())
+    skill = discovery.catalog.get("project")
+    assert result.exit_code == 0
+    assert discovery.warnings == ()
+    assert skill is not None
+    assert skill.metadata.name == "Project"

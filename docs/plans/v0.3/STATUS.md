@@ -53,7 +53,7 @@ Practical readiness estimate:
 - Existing `ToolContext` tracks prior file reads and directory inspections.
 - Existing `.codegopherignore` support is used by traversal and search tools.
 - `.codegopher/` is local config/runtime state and should not be committed.
-- Project init/default skill population should be added in Milestone 9 so target codebases can bootstrap `.codegopher/skills`.
+- Project init/default skill population is implemented so target codebases can bootstrap `.codegopher/skills`.
 - Local ignored config currently points the OpenAI-compatible provider at `http://192.168.96.26:8090/v1`.
 
 ## Pre-Implementation Real Endpoint Smoke Test
@@ -68,7 +68,7 @@ Practical readiness estimate:
 ## Immediate Blockers
 
 - No runtime TODO state exists yet.
-- Project init/default skill population is not implemented yet and is tracked as a Milestone 9 follow-up.
+- Release readiness checks and final docs refresh remain as Milestone 9 follow-ups.
 
 ## Implementation Recommendation
 
