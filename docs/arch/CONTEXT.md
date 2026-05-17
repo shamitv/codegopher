@@ -5,7 +5,7 @@ CodeGopher builds provider context from a system prompt, selected runtime contex
 ## Context Builder
 
 - `build_messages` prepends a system message to provider-ready conversation messages.
-- The system prompt includes cwd, approval mode, available tools, safety rules, and selected memories.
+- The system prompt includes cwd, approval mode, available tools, safety rules, selected memories, loaded skills, and active TODO state.
 - Slash commands do not enter provider-ready user history unless they intentionally mutate context, such as `/compact`.
 
 ## Token Budget
@@ -21,5 +21,12 @@ CodeGopher builds provider context from a system prompt, selected runtime contex
 - Manual compaction is exposed as `/compact [instructions]`.
 - Automatic compaction runs before a turn when the pending provider context would exceed the compaction threshold.
 - Compaction prompts summarize older user, assistant, tool-call, and tool-result context.
+- Compaction prompts include selected memories, loaded skills, and active TODOs so summarized history keeps current working state.
 - The most recent user turns stay verbatim in provider-ready history.
 - Compaction failure leaves the original conversation unchanged and reports a visible error.
+
+## Runtime Context Sources
+
+- Memory context comes from session and project memory selected by `MemoryStore`.
+- Skill context comes from Markdown skills loaded by explicit `@skill:ID`, keyword autoload, or `/skills load ID`.
+- TODO context comes from active session TODO items created through `/todo add` or the `update_todo` tool.
