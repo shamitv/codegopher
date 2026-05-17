@@ -123,7 +123,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_memory.py`
 - [x] T040: Show active memory count in status or `/stats`.
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_commands.py`
-- [ ] T041: Add resume tests proving session memory remains associated with the resumed session.
+- [x] T041: Add resume tests proving session memory remains associated with the resumed session.
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_session.py`
 
 ## Milestone 7 - Markdown Skill Discovery And Loading

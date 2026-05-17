@@ -12,13 +12,14 @@ Last reviewed: 2026-05-17
 - Milestone 3 context budget tracking is implemented.
 - Milestone 4 manual and automatic compaction is implemented.
 - Milestone 5 memory store and `save_memory` are implemented.
+- Milestone 6 TUI memory commands and transparency are implemented.
 - Existing v0.1 and v0.2 behavior must stay compatible.
 
 Practical readiness estimate:
 
 - Plan and TODO docs are ready for implementation.
-- The first runtime implementation steps are complete through memory.
-- The next runtime implementation step is TUI memory commands and transparency.
+- The first runtime implementation steps are complete through TUI memory transparency.
+- The next runtime implementation step is Markdown skill discovery and loading.
 
 ## Current Repository State
 
@@ -35,6 +36,7 @@ Practical readiness estimate:
 | Context budget tracking | Implemented | Token counting, selected provider context windows, thresholds, and `/stats` reporting exist. |
 | Compaction pipeline | Implemented | Manual `/compact`, automatic threshold compaction, visible summaries, and failure rollback exist. |
 | Memory store | Implemented | Local session/project memory, redaction, `save_memory`, and provider context injection exist. |
+| TUI memory transparency | Implemented | `/memory`, `/forget`, memory save/delete events, `/stats` counts, and resume association tests exist. |
 | Architecture docs | Present | `docs/arch/SESSION.md`, `docs/arch/CONTEXT.md`, and `docs/arch/MEMORY.md` document the implemented architecture. |
 | Skill discovery | Not started | `src/codegopher/skills` is a placeholder package. |
 | Session TODO state | Not started | No persistent TODO state or model-facing TODO tool exists yet. |
@@ -65,8 +67,7 @@ Practical readiness estimate:
 
 - No skill discovery or loading exists yet.
 - No runtime TODO state exists yet.
-- No TUI memory inspection or forget commands exist yet.
 
 ## Implementation Recommendation
 
-Next, add TUI memory commands and transparency before moving on to skills or TODO runtime behavior. Keep `run_agent`, TUI resume, compaction, memory redaction, and session-scoped tool access tests in the verification loop for regression coverage.
+Next, add Markdown skill discovery and loading before moving on to TODO runtime behavior. Keep `run_agent`, TUI resume, compaction, memory redaction, and session-scoped tool access tests in the verification loop for regression coverage.
