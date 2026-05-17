@@ -225,7 +225,8 @@ async def test_tui_stats_command_reports_session_counters(tmp_path: Path) -> Non
 
         assert len(provider.calls) == calls_before_stats
         assert app.chat_messages[-1].startswith(
-            "Stats: turns=1 | tools=1 | approvals=1 | elapsed=12s | context="
+            "Stats: turns=1 | tools=1 | approvals=1 | elapsed=12s | "
+            "memory=0 (session=0, project=0) | context="
         )
         assert app.chat_messages[-1].endswith("tokens (window unknown)")
         assert app.status_message == "Displayed stats"

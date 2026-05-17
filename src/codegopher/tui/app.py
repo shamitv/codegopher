@@ -593,10 +593,28 @@ class CodeGopherApp(App[None]):
         message = (
             f"Stats: turns={self.turn_count} | tools={self.tool_count} | "
             f"approvals={self.approval_count} | elapsed={elapsed_seconds}s | "
-            f"{self._context_budget_summary()}"
+            f"{self._memory_count_summary()} | {self._context_budget_summary()}"
         )
         self.append_system_message(message)
         self.set_status("Displayed stats")
+
+    def _memory_count_summary(self) -> str:
+        if not self.settings.memory.enabled:
+            return "memory=disabled"
+        session_count = (
+            len(self._list_memory_entries("session"))
+            if self.settings.memory.session_enabled and self.tool_context.session_id
+            else 0
+        )
+        project_count = (
+            len(self._list_memory_entries("project"))
+            if self.settings.memory.project_enabled
+            else 0
+        )
+        return (
+            f"memory={session_count + project_count} "
+            f"(session={session_count}, project={project_count})"
+        )
 
     def _context_budget_summary(self) -> str:
         messages = build_messages(

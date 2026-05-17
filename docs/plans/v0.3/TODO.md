@@ -121,7 +121,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_memory.py`
 - [x] T039: Show memory save/delete events in chat history.
   Verify: `python -m pytest tests/unit/test_tui_memory.py`
-- [ ] T040: Show active memory count in status or `/stats`.
+- [x] T040: Show active memory count in status or `/stats`.
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_commands.py`
 - [ ] T041: Add resume tests proving session memory remains associated with the resumed session.
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_session.py`

@@ -309,3 +309,38 @@ async def test_failed_save_memory_tool_keeps_visible_error(tmp_path: Path) -> No
         await wait_for_turn_to_finish(app, pilot)
 
     assert "Tool failed: save_memory: scope must be 'session' or 'project'" in app.chat_messages
+
+
+@pytest.mark.asyncio
+async def test_stats_command_reports_active_memory_counts(tmp_path: Path) -> None:
+    app = make_app(tmp_path)
+    assert app.session_state is not None
+    assert app.tool_context.memory_store is not None
+    app.tool_context.memory_store.add_entry(
+        "session",
+        session_id=app.session_state.session_id,
+        content="Stats session memory",
+    )
+    app.tool_context.memory_store.add_entry(
+        "project",
+        cwd=tmp_path,
+        content="Stats project memory",
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/stats")
+
+    assert "memory=2 (session=1, project=1)" in app.chat_messages[-1]
+    assert app.status_message == "Displayed stats"
+
+
+@pytest.mark.asyncio
+async def test_stats_command_reports_disabled_memory(tmp_path: Path) -> None:
+    settings = make_settings()
+    settings.memory.enabled = False
+    app = make_app(tmp_path, settings=settings)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/stats")
+
+    assert "memory=disabled" in app.chat_messages[-1]
