@@ -47,6 +47,12 @@ def test_parse_mentions_handles_paths_and_globs() -> None:
     )
 
 
+def test_parse_mentions_ignores_skill_mentions() -> None:
+    assert parse_mentions("use @skill:pytest and @README.md") == (
+        MentionToken(raw="@README.md", value="README.md", kind="path"),
+    )
+
+
 def test_expand_literal_path_relative_to_cwd_and_marks_prior_read(tmp_path: Path) -> None:
     (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
     context = ToolContext(cwd=tmp_path)

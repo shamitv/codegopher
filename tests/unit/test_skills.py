@@ -4,10 +4,12 @@ from pathlib import Path
 
 from codegopher.config.schema import Settings
 from codegopher.skills import (
+    SkillManager,
     discover_builtin_skills,
     discover_project_skills,
     discover_skills,
     discover_user_skills,
+    extract_skill_mentions,
     parse_skill_file,
 )
 
@@ -245,3 +247,75 @@ name: Broken
 
     assert skill.metadata.name == "Broken"
     assert skill.content.startswith("---")
+
+
+def test_extract_skill_mentions_from_prompt() -> None:
+    assert extract_skill_mentions("use @skill:pytest and @skill:reviews.") == (
+        "pytest",
+        "reviews",
+    )
+
+
+def test_skill_manager_loads_explicit_skills(tmp_path: Path) -> None:
+    write_skill(tmp_path / ".codegopher" / "skills", "pytest", "Pytest")
+    manager = SkillManager(
+        discover_project_skills(cwd=tmp_path, settings=Settings()).catalog
+    )
+
+    result = manager.load_for_prompt("use @skill:pytest")
+
+    assert [skill.id for skill in result.loaded] == ["pytest"]
+    assert result.missing == ()
+    assert manager.loaded_ids == ("pytest",)
+
+
+def test_skill_manager_reports_missing_explicit_skills(tmp_path: Path) -> None:
+    manager = SkillManager(
+        discover_project_skills(cwd=tmp_path, settings=Settings()).catalog
+    )
+
+    result = manager.load_for_prompt("use @skill:missing")
+
+    assert result.loaded == ()
+    assert result.missing == ("missing",)
+
+
+def test_skill_manager_autoloads_keyword_matches(tmp_path: Path) -> None:
+    write_skill(
+        tmp_path / ".codegopher" / "skills",
+        "pytest",
+        """---
+keywords: pytest, tests
+---
+Use pytest.
+""",
+    )
+    manager = SkillManager(
+        discover_project_skills(cwd=tmp_path, settings=Settings()).catalog
+    )
+
+    result = manager.load_for_prompt("please run focused pytest checks")
+
+    assert [skill.id for skill in result.loaded] == ["pytest"]
+    assert manager.loaded_ids == ("pytest",)
+
+
+def test_skill_manager_respects_disabled_autoload(tmp_path: Path) -> None:
+    write_skill(
+        tmp_path / ".codegopher" / "skills",
+        "pytest",
+        """---
+keywords: pytest
+---
+Use pytest.
+""",
+    )
+    manager = SkillManager(
+        discover_project_skills(cwd=tmp_path, settings=Settings()).catalog,
+        autoload=False,
+    )
+
+    result = manager.load_for_prompt("please run pytest")
+
+    assert result.loaded == ()
+    assert manager.loaded_ids == ()

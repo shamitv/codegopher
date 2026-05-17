@@ -80,6 +80,7 @@ async def test_tui_session_persists_completed_turn_messages_and_metadata(tmp_pat
         {"role": "user", "content": "question"},
         {"role": "assistant", "content": "answer"},
     ]
+    assert data["loaded_skill_ids"] == []
 
 
 @pytest.mark.asyncio
@@ -159,6 +160,20 @@ def test_tui_session_loads_legacy_v1_without_provider_messages(tmp_path: Path) -
     assert result.state is not None
     assert result.state.messages == [SessionMessage(role="user", content="You: saved")]
     assert result.state.provider_messages == []
+    assert result.state.loaded_skill_ids == []
+
+
+def test_tui_session_persists_loaded_skill_ids(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    state.loaded_skill_ids.extend(["pytest", "reviews"])
+    store.save(state, settings=make_settings())
+
+    result = store.load_latest(cwd=tmp_path)
+
+    assert result.error is None
+    assert result.state is not None
+    assert result.state.loaded_skill_ids == ["pytest", "reviews"]
 
 
 def test_tui_session_rejects_invalid_provider_messages(tmp_path: Path) -> None:
