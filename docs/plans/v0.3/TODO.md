@@ -172,7 +172,7 @@ Commit rules:
   Verify: `rg -n "memory|skills|compact|todo" docs/product/INTRO.md`
 - [x] T060: Update v0.3 status doc with implemented components and remaining gaps.
   Verify: `rg -n "v0.3|Context|Memory|Skills" docs/plans/v0.3/STATUS.md`
-- [ ] T061: Update release checklist with v0.3 smoke tests.
+- [x] T061: Update release checklist with v0.3 smoke tests.
   Verify: `rg -n "memory|skills|compact|todo" docs/release/CHECKLIST.md`
 - [ ] T062: Run a real OpenAI-compatible endpoint smoke test using local ignored config.
   Verify: manual run of `cgopher -p "hello"` with local endpoint and dummy key
