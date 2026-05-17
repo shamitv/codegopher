@@ -184,7 +184,7 @@ Commit rules:
   Verify: `source .venv/bin/activate && mypy src/`
 - [x] T066: Build the distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
-- [ ] T067: Add a manual TUI v0.3 smoke-test note to the v0.3 status doc.
+- [x] T067: Add a manual TUI v0.3 smoke-test note to the v0.3 status doc.
   Verify: manual run of `cgopher`
 - [x] T072: Add project init support that creates default `.codegopher/skills` for target codebases.
   Verify: `rg -n "init|default.*skills|\\.codegopher/skills" docs/plans/v0.3/STATUS.md README.md`

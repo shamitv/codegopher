@@ -79,10 +79,18 @@ Practical readiness estimate:
 - Confirmed the local OpenAI-compatible endpoint returned `codegopher-smoke-ok`.
 - Result payload: `{"final_text": "codegopher-smoke-ok", "tool_results": [], "iterations": 1}`.
 
+## Manual TUI v0.3 Smoke Test
+
+2026-05-17 on `feature/v0.3-release-readiness`:
+
+- Launched `.venv/bin/cgopher` in a PTY from the repository root.
+- Confirmed the TUI rendered the session header with `Model: local-llm`, `Provider: openai`, `Approval: review`, and the current cwd.
+- Confirmed the prompt input rendered and the app quit cleanly with Ctrl-Q.
+
 ## Immediate Blockers
 
 - Full pytest, ruff, mypy, and hatch build must pass on the release-readiness branch.
-- Manual TUI v0.3 smoke must be recorded before release readiness is complete.
+- PR CI must pass before release readiness is complete.
 
 ## Implementation Recommendation
 
