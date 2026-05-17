@@ -62,6 +62,21 @@ def test_context_builder_includes_loaded_skills(tmp_path: Path) -> None:
     assert "Prefer focused tests." in str(messages[0]["content"])
 
 
+def test_context_builder_includes_active_todos(tmp_path: Path) -> None:
+    conversation = Conversation()
+
+    messages = build_messages(
+        conversation,
+        cwd=tmp_path,
+        registry=create_default_registry(),
+        approval_mode=ApprovalMode.review,
+        todo_items=["[todo-1] pending: Write TODO tests"],
+    )
+
+    assert "Active TODOs" in str(messages[0]["content"])
+    assert "[todo-1] pending: Write TODO tests" in str(messages[0]["content"])
+
+
 def test_context_builder_mentions_only_implemented_v0_1_features(tmp_path: Path) -> None:
     prompt = build_system_prompt(tmp_path, create_default_registry(), ApprovalMode.review)
 

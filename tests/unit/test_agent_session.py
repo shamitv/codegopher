@@ -11,6 +11,7 @@ from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.memory import MemoryStore
 from codegopher.providers.mock import MockProvider
+from codegopher.todo import TodoState
 from codegopher.tools.base import ToolContext
 from codegopher.tools.registry import create_default_registry
 
@@ -240,6 +241,61 @@ async def test_agent_session_respects_supplied_initial_conversation(tmp_path: Pa
         {"role": "assistant", "content": "saved answer"},
         {"role": "user", "content": "new question"},
     ]
+
+
+@pytest.mark.asyncio
+async def test_agent_session_feeds_active_todo_state_into_provider_context(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider([[{"type": "text_delta", "content": "done"}, {"type": "done"}]])
+    todo_state = TodoState()
+    active = todo_state.add("Keep provider context fresh", source="user")
+    completed = todo_state.add("Old item", source="user")
+    todo_state.done(completed.id)
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        tool_context=ToolContext(cwd=tmp_path, todo_state=todo_state),
+    )
+
+    await session.run_turn("continue")
+
+    system_prompt = str(provider.calls[0][0]["content"])
+    assert "Active TODOs" in system_prompt
+    assert f"[{active.id}] pending: Keep provider context fresh" in system_prompt
+    assert "Old item" not in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_agent_session_update_todo_tool_reaches_next_provider_context(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "update_todo",
+                        "arguments": {"action": "add", "text": "Review prompt wiring"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "tracked"}, {"type": "done"}],
+        ]
+    )
+    session = make_session(tmp_path, provider)
+
+    result = await session.run_turn("track this")
+
+    assert result.final_text == "tracked"
+    system_prompt = str(provider.calls[1][0]["content"])
+    assert "Active TODOs" in system_prompt
+    assert "pending: Review prompt wiring" in system_prompt
 
 
 @pytest.mark.asyncio

@@ -115,6 +115,7 @@ class AgentSession:
         self.skill_context = skill_context or []
         self._skill_context_override = skill_context is not None
         self.todo_context = todo_context or []
+        self._todo_context_override = todo_context is not None
         self.skill_manager = skill_manager or SkillManager(
             discover_skills(cwd=cwd, settings=settings).catalog,
             autoload=settings.skills.autoload,
@@ -140,6 +141,7 @@ class AgentSession:
                     approval_mode=self.settings.approval_mode,
                     memories=self._current_memory_context(),
                     skills=self._current_skill_context(),
+                    todo_items=self._current_todo_context(),
                 ),
                 self.registry.schemas(),
                 model=self.settings.model.name,
@@ -244,6 +246,7 @@ class AgentSession:
                 approval_mode=self.settings.approval_mode,
                 memories=self._current_memory_context(),
                 skills=self._current_skill_context(),
+                todo_items=self._current_todo_context(),
             ),
             settings=self.settings,
         )
@@ -271,7 +274,7 @@ class AgentSession:
             instructions=instructions,
             memories=self._current_memory_context(),
             skills=self._current_skill_context(),
-            todo_items=self.todo_context,
+            todo_items=self._current_todo_context(),
         )
         summary = await self._run_compaction_prompt(prompt)
         entry = CompactionEntry(
@@ -335,6 +338,15 @@ class AgentSession:
             return list(self.skill_context)
         self.skill_context = self.skill_manager.context_items()
         return list(self.skill_context)
+
+    def _current_todo_context(self) -> list[str]:
+        if self._todo_context_override:
+            return list(self.todo_context)
+        if not self.settings.todo.enabled or self.tool_context.todo_state is None:
+            self.todo_context = []
+            return []
+        self.todo_context = self.tool_context.todo_state.context_items()
+        return list(self.todo_context)
 
 
 async def run_agent(

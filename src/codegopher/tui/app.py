@@ -773,6 +773,9 @@ class CodeGopherApp(App[None]):
             registry=self.registry,
             approval_mode=self.settings.approval_mode,
             skills=self.skill_manager.context_items(),
+            todo_items=self.todo_state.context_items()
+            if self.settings.todo.enabled
+            else (),
         )
         budget = calculate_context_budget(messages, settings=self.settings)
         if budget.context_window is None:
