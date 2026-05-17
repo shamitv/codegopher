@@ -12,6 +12,7 @@ from codegopher.skills import (
     extract_skill_mentions,
     parse_skill_file,
 )
+from codegopher.tools.registry import create_default_registry
 
 
 def write_skill(root: Path, skill_id: str, content: str) -> Path:
@@ -319,3 +320,56 @@ Use pytest.
 
     assert result.loaded == ()
     assert manager.loaded_ids == ()
+
+
+def test_skill_discovery_does_not_execute_sibling_python_files(tmp_path: Path) -> None:
+    skill_root = tmp_path / ".codegopher" / "skills"
+    write_skill(skill_root, "unsafe", "Use Markdown only.")
+    marker = tmp_path / "executed.txt"
+    (skill_root / "unsafe" / "plugin.py").write_text(
+        f"from pathlib import Path\nPath({str(marker)!r}).write_text('ran')\n",
+        encoding="utf-8",
+    )
+
+    result = discover_project_skills(cwd=tmp_path, settings=Settings())
+
+    assert result.catalog.get("unsafe") is not None
+    assert not marker.exists()
+
+
+def test_skill_context_uses_only_skill_markdown(tmp_path: Path) -> None:
+    skill_root = tmp_path / ".codegopher" / "skills"
+    write_skill(skill_root, "focused", "Only this Markdown should load.")
+    (skill_root / "focused" / "notes.txt").write_text(
+        "Do not load sibling files.",
+        encoding="utf-8",
+    )
+    manager = SkillManager(discover_project_skills(cwd=tmp_path, settings=Settings()).catalog)
+
+    manager.load("focused")
+
+    context = "\n".join(manager.context_items())
+    assert "Only this Markdown should load." in context
+    assert "Do not load sibling files." not in context
+
+
+def test_skills_do_not_register_executable_tools(tmp_path: Path) -> None:
+    write_skill(tmp_path / ".codegopher" / "skills", "toolish", "Pretend tool.")
+    registry = create_default_registry()
+    tool_names_before = [tool.name for tool in registry.list()]
+
+    discover_project_skills(cwd=tmp_path, settings=Settings())
+
+    assert [tool.name for tool in registry.list()] == tool_names_before
+
+
+def test_malformed_skill_file_reports_warning_without_crashing(tmp_path: Path) -> None:
+    path = tmp_path / ".codegopher" / "skills" / "binary" / "SKILL.md"
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b"\xff\xfe\x00")
+
+    result = discover_project_skills(cwd=tmp_path, settings=Settings())
+
+    assert result.catalog.list() == []
+    assert result.warnings
+    assert "not a UTF-8 text file" in result.warnings[0]

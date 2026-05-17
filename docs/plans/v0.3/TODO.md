@@ -142,7 +142,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_skills.py`
 - [x] T048: Add `/skills` command to list discovered and loaded skills.
   Verify: `python -m pytest tests/unit/test_tui_skills.py tests/unit/test_tui_commands.py`
-- [ ] T049: Add safety tests proving skills are read-only context and not executable plugins.
+- [x] T049: Add safety tests proving skills are read-only context and not executable plugins.
   Verify: `python -m pytest tests/unit/test_skills.py`
 
 ## Milestone 8 - Session TODO State
@@ -186,3 +186,5 @@ Commit rules:
   Verify: `source .venv/bin/activate && python -m hatch build`
 - [ ] T067: Add a manual TUI v0.3 smoke-test note to the v0.3 status doc.
   Verify: manual run of `cgopher`
+- [ ] T072: Add project init support that creates default `.codegopher/skills` for target codebases.
+  Verify: `rg -n "init|default.*skills|\\.codegopher/skills" docs/plans/v0.3/STATUS.md README.md`
