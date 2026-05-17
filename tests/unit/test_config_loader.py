@@ -8,8 +8,8 @@ from codegopher.config.loader import CliOverrides, load_settings
 from codegopher.core.errors import ConfigurationError
 
 
-def test_load_settings_returns_defaults() -> None:
-    settings = load_settings()
+def test_load_settings_returns_defaults(tmp_path: Path) -> None:
+    settings = load_settings(cwd=tmp_path, home=tmp_path, environ={})
 
     assert settings.model.provider == "openai"
     assert settings.approval_mode.value == "review"
@@ -18,12 +18,14 @@ def test_load_settings_returns_defaults() -> None:
 def test_load_settings_reads_user_toml(tmp_path: Path) -> None:
     config_dir = tmp_path / ".codegopher"
     config_dir.mkdir()
+    project = tmp_path / "project"
+    project.mkdir()
     (config_dir / "settings.toml").write_text(
         '[model]\nname = "user-model"\n',
         encoding="utf-8",
     )
 
-    settings = load_settings(home=tmp_path)
+    settings = load_settings(cwd=project, home=tmp_path, environ={})
 
     assert settings.model.name == "user-model"
 
@@ -37,7 +39,7 @@ def test_load_settings_reads_project_toml(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    settings = load_settings(cwd=project, home=tmp_path)
+    settings = load_settings(cwd=project, home=tmp_path, environ={})
 
     assert settings.approval_mode.value == "auto"
 
@@ -57,7 +59,7 @@ def test_load_settings_merges_nested_config_deterministically(tmp_path: Path) ->
         encoding="utf-8",
     )
 
-    settings = load_settings(cwd=project, home=tmp_path)
+    settings = load_settings(cwd=project, home=tmp_path, environ={})
 
     assert settings.model.provider == "openai"
     assert settings.model.name == "project-model"
@@ -114,4 +116,4 @@ def test_load_settings_reports_malformed_toml_source(tmp_path: Path) -> None:
     path.write_text("[model\n", encoding="utf-8")
 
     with pytest.raises(ConfigurationError, match="Invalid TOML"):
-        load_settings(cwd=tmp_path, home=tmp_path)
+        load_settings(cwd=tmp_path, home=tmp_path, environ={})
