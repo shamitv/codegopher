@@ -102,6 +102,17 @@ Commit rules:
 - [x] T036: Feed selected memories into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_agent_session.py`
 
+## Milestone 5.5 - Architecture Documentation
+
+- [x] T068: Create `docs/arch/SESSION.md` covering `AgentSession`, TUI resume, provider-ready history, and session safety boundaries.
+  Verify: `test -f docs/arch/SESSION.md && rg -n "AgentSession|provider-ready|resume" docs/arch/SESSION.md`
+- [ ] T069: Create `docs/arch/CONTEXT.md` covering system/context building, token accounting, context thresholds, manual compaction, and automatic compaction.
+  Verify: `test -f docs/arch/CONTEXT.md && rg -n "token|threshold|compact" docs/arch/CONTEXT.md`
+- [ ] T070: Create `docs/arch/MEMORY.md` covering data-home storage, session/project keying, `save_memory`, redaction, and context injection.
+  Verify: `test -f docs/arch/MEMORY.md && rg -n "session|project|save_memory|redact" docs/arch/MEMORY.md`
+- [ ] T071: Create `docs/arch/README.md` and update v0.3 status to reference the architecture docs.
+  Verify: `test -f docs/arch/README.md && rg -n "SESSION|CONTEXT|MEMORY" docs/arch/README.md docs/plans/v0.3/STATUS.md`
+
 ## Milestone 6 - TUI Memory Commands And Transparency
 
 - [ ] T037: Add `/memory` command to list session and project memories.
