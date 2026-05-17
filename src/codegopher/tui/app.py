@@ -377,8 +377,34 @@ class CodeGopherApp(App[None]):
             self.append_system_message("Nothing to compact")
             self.set_status("Nothing to compact")
             return
-        self.append_system_message("Compaction requested")
-        self.set_status("Compaction requested")
+        instructions = command.arguments or None
+        self._set_turn_running(True)
+        self.set_status("Compacting context...")
+        self.run_worker(
+            self._run_manual_compaction(instructions),
+            name="manual-compaction",
+            group="agent",
+            exclusive=True,
+            exit_on_error=False,
+        )
+
+    async def _run_manual_compaction(self, instructions: str | None) -> None:
+        try:
+            entry = await self._ensure_agent_session(AgentCallbacks()).compact(
+                instructions=instructions,
+                reason="manual",
+            )
+        except ProviderError as exc:
+            message = f"Compaction failed: {exc}"
+            self.append_system_message(message)
+            self.set_status(message)
+        else:
+            self.append_system_message(
+                f"Context compacted ({entry.reason}): {entry.summary}"
+            )
+            self.set_status("Context compacted")
+        finally:
+            self._set_turn_running(False)
 
     def _handle_model_command(self, command: SlashCommand) -> None:
         if not command.arguments:

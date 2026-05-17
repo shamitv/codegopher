@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+from uuid import uuid4
 
-from codegopher.core.types import Message
+from codegopher.core.types import CompactionReason, Message
 from codegopher.utils.json import dumps_json
 
 
@@ -76,6 +77,28 @@ def build_compaction_prompt(
         sections.append("Loaded skills:\n" + "\n".join(f"- {item}" for item in skill_items))
     sections.append("Return only the compaction summary text.")
     return "\n\n".join(sections)
+
+
+def compacted_messages(
+    messages: list[Message],
+    *,
+    summary: str,
+    reason: CompactionReason,
+    instructions: str | None = None,
+    preserve_recent_user_turns: int = RECENT_USER_TURNS_TO_KEEP,
+) -> list[Message]:
+    split = split_for_compaction(
+        messages,
+        preserve_recent_user_turns=preserve_recent_user_turns,
+    )
+    content = f"Compaction summary ({reason}):\n{summary}"
+    if instructions:
+        content += f"\n\nInstructions used: {instructions}"
+    return [{"role": "system", "content": content}, *split.recent_messages]
+
+
+def compaction_id() -> str:
+    return f"compact-{uuid4().hex[:12]}"
 
 
 def _format_messages(messages: list[Message]) -> str:

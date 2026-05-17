@@ -72,7 +72,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_compaction.py`
 - [x] T023: Add manual `/compact [instructions]` command parsing and validation.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T024: Run manual compaction through the provider and store a visible compaction entry.
+- [x] T024: Run manual compaction through the provider and store a visible compaction entry.
   Verify: `python -m pytest tests/unit/test_tui_compaction.py tests/unit/test_agent_session.py`
 - [ ] T025: Add automatic compaction before a turn that would exceed the threshold.
   Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_agent_session.py`

@@ -16,10 +16,12 @@ from codegopher.core.approval import (
     resolve_approval,
     should_prompt,
 )
+from codegopher.core.compaction import build_compaction_prompt, compacted_messages
+from codegopher.core.compaction import compaction_id
 from codegopher.core.context import build_messages
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import ToolCall
+from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
 from codegopher.providers.base import Provider
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry
@@ -198,6 +200,55 @@ class AgentSession:
                 )
 
         raise AgentLoopError(f"Agent exceeded max iterations: {self.max_iterations}")
+
+    async def compact(
+        self,
+        *,
+        instructions: str | None = None,
+        reason: CompactionReason = "manual",
+    ) -> CompactionEntry:
+        original_messages = self.conversation.provider_messages()
+        prompt = build_compaction_prompt(
+            original_messages,
+            cwd=self.cwd,
+            instructions=instructions,
+        )
+        summary = await self._run_compaction_prompt(prompt)
+        entry = CompactionEntry(
+            id=compaction_id(),
+            reason=reason,
+            summary=summary,
+            instructions=instructions,
+        )
+        self.conversation.messages = compacted_messages(
+            original_messages,
+            summary=summary,
+            reason=reason,
+            instructions=instructions,
+        )
+        return entry
+
+    async def _run_compaction_prompt(self, prompt: str) -> str:
+        text_parts: list[str] = []
+        messages: list[Message] = [
+            {"role": "system", "content": "You compact CodeGopher conversation history."},
+            {"role": "user", "content": prompt},
+        ]
+        async for event in self.provider.stream(
+            messages,
+            [],
+            model=self.settings.model.name,
+            temperature=self.settings.model.temperature,
+            max_output_tokens=self.settings.model.max_output_tokens,
+        ):
+            if event["type"] == "text_delta":
+                text_parts.append(event["content"])
+            elif event["type"] == "error":
+                raise ProviderError(event["message"])
+        summary = "".join(text_parts).strip()
+        if not summary:
+            raise ProviderError("Compaction returned an empty summary")
+        return summary
 
 
 async def run_agent(

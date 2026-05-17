@@ -235,6 +235,31 @@ async def test_agent_session_respects_supplied_initial_conversation(tmp_path: Pa
 
 
 @pytest.mark.asyncio
+async def test_agent_session_manual_compaction_replaces_older_history(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    for index in range(1, 4):
+        conversation.append_user(f"question {index}")
+        conversation.append_assistant(f"answer {index}")
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "summary text"}, {"type": "done"}]]
+    )
+    session = make_session(tmp_path, provider, conversation=conversation)
+
+    entry = await session.compact(instructions="keep decisions")
+
+    assert entry.reason == "manual"
+    assert entry.summary == "summary text"
+    assert provider.calls[0][0]["role"] == "system"
+    assert "keep decisions" in str(provider.calls[0][1]["content"])
+    assert session.conversation.messages[0]["role"] == "system"
+    assert "summary text" in str(session.conversation.messages[0]["content"])
+    assert {"role": "user", "content": "question 1"} not in session.conversation.messages
+    assert {"role": "user", "content": "question 2"} in session.conversation.messages
+
+
+@pytest.mark.asyncio
 async def test_agent_session_tool_context_persists_across_turns(tmp_path: Path) -> None:
     (tmp_path / "existing.txt").write_text("old", encoding="utf-8")
     provider = MockProvider(
