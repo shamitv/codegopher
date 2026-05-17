@@ -15,6 +15,8 @@ from textual.widgets import Button, Footer, Header, Input, RichLog, Static
 from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
+from codegopher.core.context import build_messages
+from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
 from codegopher.core.types import ToolCall
@@ -423,10 +425,38 @@ class CodeGopherApp(App[None]):
         elapsed_seconds = max(0, int(self.monotonic() - self.started_at))
         message = (
             f"Stats: turns={self.turn_count} | tools={self.tool_count} | "
-            f"approvals={self.approval_count} | elapsed={elapsed_seconds}s"
+            f"approvals={self.approval_count} | elapsed={elapsed_seconds}s | "
+            f"{self._context_budget_summary()}"
         )
         self.append_system_message(message)
         self.set_status("Displayed stats")
+
+    def _context_budget_summary(self) -> str:
+        provider_messages = (
+            self._agent_session.conversation.provider_messages()
+            if self._agent_session is not None
+            else list(self.session_state.provider_messages)
+            if self.session_state
+            else []
+        )
+        messages = build_messages(
+            Conversation(messages=provider_messages),
+            cwd=self.cwd,
+            registry=self.registry,
+            approval_mode=self.settings.approval_mode,
+        )
+        budget = calculate_context_budget(messages, settings=self.settings)
+        if budget.context_window is None:
+            return f"context={budget.token_count} tokens (window unknown)"
+        state = (
+            "compact"
+            if budget.compaction_exceeded
+            else "warn"
+            if budget.warning_exceeded
+            else "ok"
+        )
+        percent = int((budget.usage_ratio or 0) * 100)
+        return f"context={budget.token_count}/{budget.context_window} tokens ({percent}%, {state})"
 
     def _command_error(self, message: str) -> None:
         full_message = f"Error: {message}"
