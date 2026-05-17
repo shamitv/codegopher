@@ -116,3 +116,47 @@ def test_calculate_context_budget_counts_messages_and_extra_tokens(monkeypatch) 
     assert status.token_count == 9
     assert status.warning_exceeded is True
     assert status.compaction_exceeded is True
+
+
+def test_calculate_context_budget_still_counts_tokens_without_context_window(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(context_budget, "tiktoken", None)
+
+    status = calculate_context_budget(
+        [{"role": "user", "content": "abcdefgh"}],
+        settings=Settings(),
+    )
+
+    assert status.token_count > 0
+    assert status.context_window is None
+    assert status.compaction_exceeded is False
+
+
+def test_evaluate_context_budget_handles_one_token_context_window() -> None:
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="tiny"),
+        providers={"openai": [ProviderEntry(id="tiny", name="Tiny", context_window=1)]},
+    )
+
+    empty = evaluate_context_budget(0, settings=settings)
+    full = evaluate_context_budget(1, settings=settings)
+
+    assert empty.warning_tokens == 1
+    assert empty.compaction_tokens == 1
+    assert empty.warning_exceeded is False
+    assert full.warning_exceeded is True
+    assert full.compaction_exceeded is True
+
+
+def test_evaluate_context_budget_handles_small_threshold_rounding() -> None:
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="tiny"),
+        providers={"openai": [ProviderEntry(id="tiny", name="Tiny", context_window=3)]},
+    )
+
+    status = evaluate_context_budget(2, settings=settings)
+
+    assert status.warning_tokens == 3
+    assert status.compaction_tokens == 3
+    assert status.warning_exceeded is False

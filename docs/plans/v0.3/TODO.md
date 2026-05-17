@@ -63,7 +63,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_context_budget.py`
 - [x] T020: Surface context budget state in TUI status or `/stats`.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
-- [ ] T021: Add tests for missing context windows and small-window edge cases.
+- [x] T021: Add tests for missing context windows and small-window edge cases.
   Verify: `python -m pytest tests/unit/test_context_budget.py`
 
 ## Milestone 4 - Manual And Automatic Compaction
