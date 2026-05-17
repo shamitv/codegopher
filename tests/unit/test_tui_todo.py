@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -158,3 +159,44 @@ async def test_todo_done_rejects_unknown_id(tmp_path: Path) -> None:
 
     assert app.chat_messages == ["Error: TODO not found: todo-missing"]
     assert app.status_message == "Error: TODO not found: todo-missing"
+
+
+@pytest.mark.asyncio
+async def test_todo_state_persists_in_session_json(tmp_path: Path) -> None:
+    app = make_app(tmp_path)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/todo add Persist this item")
+
+    assert app.session_store is not None
+    assert app.session_state is not None
+    path = app.session_store.sessions_dir / f"{app.session_state.session_id}.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["todo_items"][0]["text"] == "Persist this item"
+    assert data["todo_items"][0]["status"] == "pending"
+    assert data["todo_items"][0]["source"] == "user"
+
+
+@pytest.mark.asyncio
+async def test_todo_state_resumes_from_session_json(tmp_path: Path) -> None:
+    first = make_app(tmp_path)
+
+    async with first.run_test() as pilot:
+        await submit(first, pilot, "/todo add Resume this item")
+
+    assert first.session_store is not None
+    result = first.session_store.load_latest(cwd=tmp_path)
+    assert result.error is None
+    assert result.state is not None
+    second = CodeGopherApp(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: MockProvider([[{"type": "done"}]]),
+        session_store=first.session_store,
+        session_state=result.state,
+    )
+
+    async with second.run_test() as pilot:
+        await submit(second, pilot, "/todo")
+
+    assert "Resume this item" in second.chat_messages[-1]

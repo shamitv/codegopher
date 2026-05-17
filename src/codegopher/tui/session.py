@@ -13,10 +13,11 @@ from typing import Any, Literal
 from uuid import uuid4
 
 from codegopher.config.schema import Settings
-from codegopher.core.types import Message
+from codegopher.core.types import Message, TodoItem
 from codegopher.utils.paths import canonical_path
 
-SESSION_VERSION = 3
+SESSION_VERSION = 4
+COMPATIBLE_SESSION_VERSIONS = {1, 2, 3, SESSION_VERSION}
 MessageRole = Literal["user", "assistant", "system"]
 
 
@@ -38,6 +39,7 @@ class TuiSessionState:
     messages: list[SessionMessage] = field(default_factory=list)
     provider_messages: list[Message] = field(default_factory=list)
     loaded_skill_ids: list[str] = field(default_factory=list)
+    todo_items: list[TodoItem] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -143,13 +145,14 @@ class TuiSessionStore:
             ],
             "provider_messages": state.provider_messages,
             "loaded_skill_ids": state.loaded_skill_ids,
+            "todo_items": [item.model_dump(mode="json") for item in state.todo_items],
         }
 
     def _decode_state(self, data: Any, *, expected_cwd: str) -> TuiSessionState:
         if not isinstance(data, dict):
             raise ValueError("session root must be an object")
         version = data.get("version")
-        if version not in {1, SESSION_VERSION}:
+        if version not in COMPATIBLE_SESSION_VERSIONS:
             raise ValueError("incompatible session version")
         metadata = data.get("metadata")
         if not isinstance(metadata, dict):
@@ -179,9 +182,11 @@ class TuiSessionStore:
             else self._decode_provider_messages(data.get("provider_messages", []))
         )
         loaded_skill_ids = self._decode_loaded_skill_ids(data.get("loaded_skill_ids", []))
+        todo_items = self._decode_todo_items(data.get("todo_items", []))
 
         return TuiSessionState(
-            session_id=str(data.get("session_id", "")) or f"{self._cwd_key(Path(cwd))}-{uuid4().hex[:12]}",
+            session_id=str(data.get("session_id", ""))
+            or f"{self._cwd_key(Path(cwd))}-{uuid4().hex[:12]}",
             created_at=str(data.get("created_at", "")),
             updated_at=str(data.get("updated_at", "")),
             cwd=cwd,
@@ -191,6 +196,7 @@ class TuiSessionStore:
             messages=messages,
             provider_messages=provider_messages,
             loaded_skill_ids=loaded_skill_ids,
+            todo_items=todo_items,
         )
 
     def _decode_provider_messages(self, raw_messages: Any) -> list[Message]:
@@ -234,3 +240,16 @@ class TuiSessionStore:
             if raw_skill_id not in skill_ids:
                 skill_ids.append(raw_skill_id)
         return skill_ids
+
+    def _decode_todo_items(self, raw_items: Any) -> list[TodoItem]:
+        if not isinstance(raw_items, list):
+            raise ValueError("todo items must be a list")
+        items: list[TodoItem] = []
+        for raw_item in raw_items:
+            if not isinstance(raw_item, dict):
+                raise ValueError("todo item must be an object")
+            try:
+                items.append(TodoItem.model_validate(raw_item))
+            except Exception as exc:
+                raise ValueError(f"todo item is invalid: {exc}") from exc
+        return items

@@ -122,7 +122,10 @@ class CodeGopherApp(App[None]):
             loaded_ids=self.session_state.loaded_skill_ids if self.session_state else (),
             autoload=settings.skills.autoload,
         )
-        self.todo_state = TodoState(max_items=settings.todo.max_items)
+        self.todo_state = TodoState(
+            items=self.session_state.todo_items if self.session_state else [],
+            max_items=settings.todo.max_items,
+        )
         memory_store = MemoryStore(data_home=session_store.data_home) if session_store else None
         self.tool_context = ToolContext(
             cwd=cwd,
@@ -349,6 +352,7 @@ class CodeGopherApp(App[None]):
                 self._agent_session.conversation.provider_messages()
             )
         self.session_state.loaded_skill_ids = list(self.skill_manager.loaded_ids)
+        self.session_state.todo_items = self.todo_state.list()
         try:
             self.session_store.save(self.session_state, settings=self.settings)
         except OSError as exc:

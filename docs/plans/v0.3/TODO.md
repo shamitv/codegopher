@@ -159,8 +159,8 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_update_todo_tool.py tests/unit/test_tools_registry.py`
 - [x] T055: Feed active TODO state into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_todo_state.py tests/unit/test_agent_session.py`
-- [ ] T056: Persist TODO state with session resume.
-  Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_session.py`
+- [x] T056: Persist TODO state with session resume.
+  Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_session.py tests/integration/test_tui_todo_resume.py`
 - [ ] T057: Include TODO state in compaction behavior.
   Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_todo_state.py`
 
