@@ -19,7 +19,7 @@ from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import ToolCall
+from codegopher.core.types import Message, ToolCall
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.base import ToolContext, ToolResult
@@ -333,6 +333,8 @@ class CodeGopherApp(App[None]):
             self._handle_help_command(command)
         elif command.name == "clear":
             self._handle_clear_command(command)
+        elif command.name == "compact":
+            self._handle_compact_command(command)
         elif command.name == "model":
             self._handle_model_command(command)
         elif command.name == "mode":
@@ -366,6 +368,17 @@ class CodeGopherApp(App[None]):
         self.query_one("#chat-history", RichLog).clear()
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Chat history cleared")
+
+    def _handle_compact_command(self, command: SlashCommand) -> None:
+        if self.turn_running:
+            self._command_error("Cannot compact while a turn is running")
+            return
+        if not self._provider_conversation_messages():
+            self.append_system_message("Nothing to compact")
+            self.set_status("Nothing to compact")
+            return
+        self.append_system_message("Compaction requested")
+        self.set_status("Compaction requested")
 
     def _handle_model_command(self, command: SlashCommand) -> None:
         if not command.arguments:
@@ -432,15 +445,8 @@ class CodeGopherApp(App[None]):
         self.set_status("Displayed stats")
 
     def _context_budget_summary(self) -> str:
-        provider_messages = (
-            self._agent_session.conversation.provider_messages()
-            if self._agent_session is not None
-            else list(self.session_state.provider_messages)
-            if self.session_state
-            else []
-        )
         messages = build_messages(
-            Conversation(messages=provider_messages),
+            Conversation(messages=self._provider_conversation_messages()),
             cwd=self.cwd,
             registry=self.registry,
             approval_mode=self.settings.approval_mode,
@@ -457,6 +463,13 @@ class CodeGopherApp(App[None]):
         )
         percent = int((budget.usage_ratio or 0) * 100)
         return f"context={budget.token_count}/{budget.context_window} tokens ({percent}%, {state})"
+
+    def _provider_conversation_messages(self) -> list[Message]:
+        if self._agent_session is not None:
+            return self._agent_session.conversation.provider_messages()
+        if self.session_state:
+            return list(self.session_state.provider_messages)
+        return []
 
     def _command_error(self, message: str) -> None:
         full_message = f"Error: {message}"

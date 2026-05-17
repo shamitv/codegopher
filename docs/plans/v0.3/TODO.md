@@ -70,7 +70,7 @@ Commit rules:
 
 - [x] T022: Add a compaction prompt builder that summarizes older conversation and tool context.
   Verify: `python -m pytest tests/unit/test_compaction.py`
-- [ ] T023: Add manual `/compact [instructions]` command parsing and validation.
+- [x] T023: Add manual `/compact [instructions]` command parsing and validation.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
 - [ ] T024: Run manual compaction through the provider and store a visible compaction entry.
   Verify: `python -m pytest tests/unit/test_tui_compaction.py tests/unit/test_agent_session.py`

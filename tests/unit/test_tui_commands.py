@@ -90,6 +90,7 @@ async def test_tui_help_command_lists_available_commands(tmp_path: Path) -> None
         assert app.status_message == "Displayed help"
         assert app.chat_messages[0].startswith("Slash commands:")
         assert "/help - Show available slash commands." in app.chat_messages[0]
+        assert "/compact [instructions] - Compact provider context." in app.chat_messages[0]
         assert "/stats - Show session counters." in app.chat_messages[0]
 
 
@@ -104,6 +105,21 @@ async def test_tui_clear_command_clears_visible_chat_history(tmp_path: Path) -> 
 
         assert app.chat_messages == []
         assert app.status_message == "Chat history cleared"
+
+
+@pytest.mark.asyncio
+async def test_tui_compact_command_accepts_optional_instructions_without_history(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider([[{"type": "done"}]])
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/compact focus on decisions")
+
+        assert len(provider.calls) == 0
+        assert app.chat_messages == ["Nothing to compact"]
+        assert app.status_message == "Nothing to compact"
 
 
 @pytest.mark.asyncio
