@@ -19,10 +19,18 @@ from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import CompactionEntry, MemoryEntry, MemoryScope, Message, ToolCall
+from codegopher.core.types import (
+    CompactionEntry,
+    MemoryEntry,
+    MemoryScope,
+    Message,
+    SkillSource,
+    ToolCall,
+)
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
+from codegopher.skills import Skill, SkillDiscovery, SkillManager, discover_skills
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
 from codegopher.tools.shell.run_shell import RunShellCommandTool
@@ -107,6 +115,12 @@ class CodeGopherApp(App[None]):
             session_store.create(cwd=cwd, settings=settings) if session_store else None
         )
         self.registry = registry_factory()
+        self.skill_discovery: SkillDiscovery = discover_skills(cwd=cwd, settings=settings)
+        self.skill_manager = SkillManager(
+            self.skill_discovery.catalog,
+            loaded_ids=self.session_state.loaded_skill_ids if self.session_state else (),
+            autoload=settings.skills.autoload,
+        )
         memory_store = MemoryStore(data_home=session_store.data_home) if session_store else None
         self.tool_context = ToolContext(
             cwd=cwd,
@@ -228,6 +242,7 @@ class CodeGopherApp(App[None]):
             self.append_system_message(message)
             self.set_status(message)
         finally:
+            self._persist_session()
             self._set_turn_running(False)
 
     def _ensure_agent_session(self, callbacks: AgentCallbacks) -> AgentSession:
@@ -245,6 +260,7 @@ class CodeGopherApp(App[None]):
                     if self.session_state
                     else []
                 ),
+                skill_manager=self.skill_manager,
             )
             self.tool_context = self._agent_session.tool_context
         else:
@@ -329,6 +345,7 @@ class CodeGopherApp(App[None]):
             self.session_state.provider_messages = (
                 self._agent_session.conversation.provider_messages()
             )
+        self.session_state.loaded_skill_ids = list(self.skill_manager.loaded_ids)
         try:
             self.session_store.save(self.session_state, settings=self.settings)
         except OSError as exc:
@@ -359,6 +376,8 @@ class CodeGopherApp(App[None]):
             self._handle_mode_command(command)
         elif command.name == "shell":
             self._handle_shell_command(command)
+        elif command.name == "skills":
+            self._handle_skills_command(command)
         elif command.name == "stats":
             self._handle_stats_command(command)
         else:
@@ -585,6 +604,66 @@ class CodeGopherApp(App[None]):
             exit_on_error=False,
         )
 
+    def _handle_skills_command(self, command: SlashCommand) -> None:
+        if not self.settings.skills.enabled:
+            self.append_system_message("Skills are disabled")
+            self.set_status("Skills disabled")
+            return
+        if not command.arguments:
+            self.append_system_message(self._format_skills_listing())
+            self.set_status("Displayed skills")
+            return
+
+        parts = command.arguments.split()
+        if len(parts) != 2 or parts[0] != "load":
+            self._command_error("Usage: /skills [load ID]")
+            return
+
+        skill_id = parts[1]
+        result = self.skill_manager.load(skill_id)
+        if result.missing:
+            self._command_error(f"Skill not found: {skill_id}")
+            return
+        if result.already_loaded:
+            self.append_system_message(f"Skill already loaded: {skill_id}")
+            self.set_status("Skill already loaded")
+            return
+
+        skill = result.loaded[0]
+        self.append_system_message(
+            f"Skill loaded: {skill.id} ({skill.source}) {skill.metadata.name}"
+        )
+        self._persist_session()
+        self.set_status("Skill loaded")
+
+    def _format_skills_listing(self) -> str:
+        lines = ["Skills:"]
+        sources: tuple[SkillSource, ...] = ("project", "user", "builtin")
+        for source in sources:
+            skills = self.skill_discovery.catalog.by_source(source)
+            label = source.title()
+            if not skills:
+                lines.append(f"{label}: none")
+                continue
+            lines.append(f"{label} ({len(skills)}):")
+            lines.extend(self._format_skill_entry(skill) for skill in skills)
+        if self.skill_discovery.warnings:
+            lines.append("Warnings:")
+            lines.extend(f"- {warning}" for warning in self.skill_discovery.warnings)
+        return "\n".join(lines)
+
+    def _format_skill_entry(self, skill: Skill) -> str:
+        state = "loaded" if skill.id in self.skill_manager.loaded_ids else "available"
+        description = (
+            f" - {skill.metadata.description}" if skill.metadata.description else ""
+        )
+        keywords = (
+            f" (keywords: {', '.join(skill.metadata.keywords)})"
+            if skill.metadata.keywords
+            else ""
+        )
+        return f"- {skill.id} [{state}] {skill.metadata.name}{description}{keywords}"
+
     def _handle_stats_command(self, command: SlashCommand) -> None:
         if command.arguments:
             self._command_error("Usage: /stats")
@@ -622,6 +701,7 @@ class CodeGopherApp(App[None]):
             cwd=self.cwd,
             registry=self.registry,
             approval_mode=self.settings.approval_mode,
+            skills=self.skill_manager.context_items(),
         )
         budget = calculate_context_budget(messages, settings=self.settings)
         if budget.context_window is None:

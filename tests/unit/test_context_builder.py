@@ -47,9 +47,25 @@ def test_context_builder_includes_selected_memories(tmp_path: Path) -> None:
     assert "[project:mem-1] Use pytest" in str(messages[0]["content"])
 
 
+def test_context_builder_includes_loaded_skills(tmp_path: Path) -> None:
+    conversation = Conversation()
+
+    messages = build_messages(
+        conversation,
+        cwd=tmp_path,
+        registry=create_default_registry(),
+        approval_mode=ApprovalMode.review,
+        skills=["## Pytest (project:pytest)\nPrefer focused tests."],
+    )
+
+    assert "Loaded skills" in str(messages[0]["content"])
+    assert "Prefer focused tests." in str(messages[0]["content"])
+
+
 def test_context_builder_mentions_only_implemented_v0_1_features(tmp_path: Path) -> None:
     prompt = build_system_prompt(tmp_path, create_default_registry(), ApprovalMode.review)
 
     assert "save_memory" in prompt
-    for future_feature in ("TUI", "MCP", "skills", "sub-agents"):
+    for future_feature in ("TUI", "MCP", "sub-agents"):
         assert future_feature not in prompt
+    assert "Loaded skills" not in prompt

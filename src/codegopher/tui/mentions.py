@@ -62,6 +62,8 @@ def parse_mentions(prompt: str) -> tuple[MentionToken, ...]:
         if not raw_part.startswith("@") or raw_part == "@":
             continue
         value = raw_part[1:]
+        if value.startswith("skill:"):
+            continue
         if value.startswith("glob:"):
             mentions.append(MentionToken(raw=raw_part, value=value[5:], kind="glob"))
         elif any(char in value for char in _GLOB_CHARS):

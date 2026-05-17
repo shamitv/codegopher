@@ -128,21 +128,21 @@ Commit rules:
 
 ## Milestone 7 - Markdown Skill Discovery And Loading
 
-- [ ] T042: Add skill discovery for project `.codegopher/skills/*/SKILL.md`.
+- [x] T042: Add skill discovery for project `.codegopher/skills/*/SKILL.md`.
   Verify: `python -m pytest tests/unit/test_skills.py`
-- [ ] T043: Add skill discovery for user `~/.codegopher/skills/*/SKILL.md`.
+- [x] T043: Add skill discovery for user `~/.codegopher/skills/*/SKILL.md`.
   Verify: `python -m pytest tests/unit/test_skills.py`
-- [ ] T044: Add built-in package skill discovery.
+- [x] T044: Add built-in package skill discovery.
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_imports.py`
-- [ ] T045: Parse simple skill metadata and Markdown content.
+- [x] T045: Parse simple skill metadata and Markdown content.
   Verify: `python -m pytest tests/unit/test_skills.py`
-- [ ] T046: Add progressive skill loading by explicit mention or keyword match.
+- [x] T046: Add progressive skill loading by explicit mention or keyword match.
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_agent_session.py`
-- [ ] T047: Feed loaded skill Markdown into provider context.
+- [x] T047: Feed loaded skill Markdown into provider context.
   Verify: `python -m pytest tests/unit/test_context_builder.py tests/unit/test_skills.py`
-- [ ] T048: Add `/skills` command to list discovered and loaded skills.
+- [x] T048: Add `/skills` command to list discovered and loaded skills.
   Verify: `python -m pytest tests/unit/test_tui_skills.py tests/unit/test_tui_commands.py`
-- [ ] T049: Add safety tests proving skills are read-only context and not executable plugins.
+- [x] T049: Add safety tests proving skills are read-only context and not executable plugins.
   Verify: `python -m pytest tests/unit/test_skills.py`
 
 ## Milestone 8 - Session TODO State
@@ -186,3 +186,5 @@ Commit rules:
   Verify: `source .venv/bin/activate && python -m hatch build`
 - [ ] T067: Add a manual TUI v0.3 smoke-test note to the v0.3 status doc.
   Verify: manual run of `cgopher`
+- [ ] T072: Add project init support that creates default `.codegopher/skills` for target codebases.
+  Verify: `rg -n "init|default.*skills|\\.codegopher/skills" docs/plans/v0.3/STATUS.md README.md`

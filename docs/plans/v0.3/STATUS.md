@@ -13,13 +13,14 @@ Last reviewed: 2026-05-17
 - Milestone 4 manual and automatic compaction is implemented.
 - Milestone 5 memory store and `save_memory` are implemented.
 - Milestone 6 TUI memory commands and transparency are implemented.
+- Milestone 7 Markdown skill discovery and loading are implemented.
 - Existing v0.1 and v0.2 behavior must stay compatible.
 
 Practical readiness estimate:
 
 - Plan and TODO docs are ready for implementation.
-- The first runtime implementation steps are complete through TUI memory transparency.
-- The next runtime implementation step is Markdown skill discovery and loading.
+- The first runtime implementation steps are complete through Markdown skill discovery and loading.
+- The next runtime implementation step is session TODO state.
 
 ## Current Repository State
 
@@ -38,7 +39,7 @@ Practical readiness estimate:
 | Memory store | Implemented | Local session/project memory, redaction, `save_memory`, and provider context injection exist. |
 | TUI memory transparency | Implemented | `/memory`, `/forget`, memory save/delete events, `/stats` counts, and resume association tests exist. |
 | Architecture docs | Present | `docs/arch/SESSION.md`, `docs/arch/CONTEXT.md`, and `docs/arch/MEMORY.md` document the implemented architecture. |
-| Skill discovery | Not started | `src/codegopher/skills` is a placeholder package. |
+| Skill discovery | Implemented | Project, user, and built-in Markdown skills discover, load progressively, and inject read-only context. |
 | Session TODO state | Not started | No persistent TODO state or model-facing TODO tool exists yet. |
 | Real endpoint smoke testing | Passed | Pre-implementation smoke passed with local ignored config and dummy key. |
 
@@ -52,6 +53,7 @@ Practical readiness estimate:
 - Existing `ToolContext` tracks prior file reads and directory inspections.
 - Existing `.codegopherignore` support is used by traversal and search tools.
 - `.codegopher/` is local config/runtime state and should not be committed.
+- Project init/default skill population should be added in Milestone 9 so target codebases can bootstrap `.codegopher/skills`.
 - Local ignored config currently points the OpenAI-compatible provider at `http://192.168.96.26:8090/v1`.
 
 ## Pre-Implementation Real Endpoint Smoke Test
@@ -65,9 +67,9 @@ Practical readiness estimate:
 
 ## Immediate Blockers
 
-- No skill discovery or loading exists yet.
 - No runtime TODO state exists yet.
+- Project init/default skill population is not implemented yet and is tracked as a Milestone 9 follow-up.
 
 ## Implementation Recommendation
 
-Next, add Markdown skill discovery and loading before moving on to TODO runtime behavior. Keep `run_agent`, TUI resume, compaction, memory redaction, and session-scoped tool access tests in the verification loop for regression coverage.
+Next, add session TODO runtime behavior. Keep `run_agent`, TUI resume, compaction, memory redaction, skills, and session-scoped tool access tests in the verification loop for regression coverage.

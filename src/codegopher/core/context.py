@@ -17,6 +17,7 @@ def build_system_prompt(
     approval_mode: ApprovalMode,
     *,
     memories: Iterable[str] = (),
+    skills: Iterable[str] = (),
 ) -> str:
     tool_names = ", ".join(tool.name for tool in registry.list())
     prompt = (
@@ -32,6 +33,9 @@ def build_system_prompt(
         prompt += "\nSelected memories:\n" + "\n".join(
             f"- {memory}" for memory in memory_items
         )
+    skill_items = list(skills)
+    if skill_items:
+        prompt += "\nLoaded skills:\n" + "\n\n".join(skill_items)
     return prompt
 
 
@@ -42,6 +46,7 @@ def build_messages(
     registry: ToolRegistry,
     approval_mode: ApprovalMode,
     memories: Iterable[str] = (),
+    skills: Iterable[str] = (),
 ) -> list[Message]:
     return [
         {
@@ -51,6 +56,7 @@ def build_messages(
                 registry,
                 approval_mode,
                 memories=memories,
+                skills=skills,
             ),
         },
         *conversation.provider_messages(),

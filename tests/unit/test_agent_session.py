@@ -35,6 +35,12 @@ def make_session(
     )
 
 
+def write_skill(root: Path, skill_id: str, content: str) -> None:
+    path = root / ".codegopher" / "skills" / skill_id / "SKILL.md"
+    path.parent.mkdir(parents=True)
+    path.write_text(content, encoding="utf-8")
+
+
 @pytest.mark.asyncio
 async def test_agent_session_preserves_text_conversation_across_turns(tmp_path: Path) -> None:
     provider = MockProvider(
@@ -388,6 +394,56 @@ async def test_agent_session_feeds_selected_memories_into_provider_context(
     assert "Selected memories" in system_prompt
     assert "Project uses pytest" in system_prompt
     assert "Current task is memory tests" in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_agent_session_loads_explicit_skill_into_provider_context(
+    tmp_path: Path,
+) -> None:
+    write_skill(
+        tmp_path,
+        "pytest",
+        """---
+name: Pytest
+keywords: pytest
+---
+Prefer focused pytest commands.
+""",
+    )
+    provider = MockProvider([[{"type": "text_delta", "content": "ok"}, {"type": "done"}]])
+    session = make_session(tmp_path, provider)
+
+    await session.run_turn("use @skill:pytest for this")
+
+    system_prompt = str(provider.calls[0][0]["content"])
+    assert "Loaded skills" in system_prompt
+    assert "Pytest (project:pytest)" in system_prompt
+    assert "Prefer focused pytest commands." in system_prompt
+    assert session.skill_manager.loaded_ids == ("pytest",)
+
+
+@pytest.mark.asyncio
+async def test_agent_session_autoloads_keyword_skill_into_provider_context(
+    tmp_path: Path,
+) -> None:
+    write_skill(
+        tmp_path,
+        "reviews",
+        """---
+name: Reviews
+keywords: review
+---
+Review diffs for regressions.
+""",
+    )
+    provider = MockProvider([[{"type": "text_delta", "content": "ok"}, {"type": "done"}]])
+    session = make_session(tmp_path, provider)
+
+    await session.run_turn("please review this change")
+
+    system_prompt = str(provider.calls[0][0]["content"])
+    assert "Review diffs for regressions." in system_prompt
+    assert session.skill_manager.loaded_ids == ("reviews",)
 
 
 @pytest.mark.asyncio

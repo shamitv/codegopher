@@ -16,7 +16,7 @@ from codegopher.config.schema import Settings
 from codegopher.core.types import Message
 from codegopher.utils.paths import canonical_path
 
-SESSION_VERSION = 2
+SESSION_VERSION = 3
 MessageRole = Literal["user", "assistant", "system"]
 
 
@@ -37,6 +37,7 @@ class TuiSessionState:
     approval_mode: str
     messages: list[SessionMessage] = field(default_factory=list)
     provider_messages: list[Message] = field(default_factory=list)
+    loaded_skill_ids: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -141,6 +142,7 @@ class TuiSessionStore:
                 for message in state.messages
             ],
             "provider_messages": state.provider_messages,
+            "loaded_skill_ids": state.loaded_skill_ids,
         }
 
     def _decode_state(self, data: Any, *, expected_cwd: str) -> TuiSessionState:
@@ -176,6 +178,7 @@ class TuiSessionStore:
             if version == 1 and "provider_messages" not in data
             else self._decode_provider_messages(data.get("provider_messages", []))
         )
+        loaded_skill_ids = self._decode_loaded_skill_ids(data.get("loaded_skill_ids", []))
 
         return TuiSessionState(
             session_id=str(data.get("session_id", "")) or f"{self._cwd_key(Path(cwd))}-{uuid4().hex[:12]}",
@@ -187,6 +190,7 @@ class TuiSessionStore:
             approval_mode=str(metadata.get("approval_mode", "")),
             messages=messages,
             provider_messages=provider_messages,
+            loaded_skill_ids=loaded_skill_ids,
         )
 
     def _decode_provider_messages(self, raw_messages: Any) -> list[Message]:
@@ -219,3 +223,14 @@ class TuiSessionStore:
                 message["tool_calls"] = tool_calls
             messages.append(message)
         return messages
+
+    def _decode_loaded_skill_ids(self, raw_skill_ids: Any) -> list[str]:
+        if not isinstance(raw_skill_ids, list):
+            raise ValueError("loaded skill ids must be a list")
+        skill_ids: list[str] = []
+        for raw_skill_id in raw_skill_ids:
+            if not isinstance(raw_skill_id, str):
+                raise ValueError("loaded skill id must be a string")
+            if raw_skill_id not in skill_ids:
+                skill_ids.append(raw_skill_id)
+        return skill_ids
