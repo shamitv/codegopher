@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import builtins
 from collections.abc import Iterable
 from dataclasses import dataclass
 from importlib import resources
@@ -31,7 +32,7 @@ class Skill:
 class SkillDiscovery:
     """Skill discovery result plus non-fatal warnings."""
 
-    catalog: "SkillCatalog"
+    catalog: SkillCatalog
     warnings: tuple[str, ...] = ()
 
 
@@ -46,10 +47,10 @@ class SkillCatalog:
     def get(self, skill_id: str) -> Skill | None:
         return self._skills.get(skill_id)
 
-    def list(self) -> list[Skill]:
+    def list(self) -> builtins.list[Skill]:
         return sorted(self._skills.values(), key=lambda skill: (skill.source, skill.id))
 
-    def by_source(self, source: SkillSource) -> list[Skill]:
+    def by_source(self, source: SkillSource) -> builtins.list[Skill]:
         return [skill for skill in self.list() if skill.source == source]
 
 
