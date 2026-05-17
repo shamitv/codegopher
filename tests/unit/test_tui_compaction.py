@@ -71,3 +71,28 @@ async def test_tui_manual_compaction_persists_visible_summary(tmp_path: Path) ->
     assert "first question" not in [
         message.get("content") for message in state.provider_messages
     ]
+
+
+@pytest.mark.asyncio
+async def test_tui_manual_compaction_failure_preserves_session_context(
+    tmp_path: Path,
+) -> None:
+    store = TuiSessionStore(data_home=tmp_path / "data")
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    original = provider_history()
+    state.provider_messages = list(original)
+    provider = MockProvider([[{"type": "error", "message": "provider failed"}]])
+    app = CodeGopherApp(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+        session_store=store,
+        session_state=state,
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/compact")
+
+    assert app.chat_messages[-1] == "Compaction failed: provider failed"
+    assert app.status_message == "Compaction failed: provider failed"
+    assert state.provider_messages == original

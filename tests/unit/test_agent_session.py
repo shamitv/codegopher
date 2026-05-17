@@ -337,6 +337,26 @@ async def test_agent_session_compaction_includes_extra_context(
 
 
 @pytest.mark.asyncio
+async def test_agent_session_compaction_failure_preserves_conversation(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("first")
+    conversation.append_assistant("answer")
+    original = conversation.provider_messages()
+    session = make_session(
+        tmp_path,
+        MockProvider([[{"type": "error", "message": "provider failed"}]]),
+        conversation=conversation,
+    )
+
+    with pytest.raises(ProviderError, match="provider failed"):
+        await session.compact()
+
+    assert session.conversation.messages == original
+
+
+@pytest.mark.asyncio
 async def test_agent_session_tool_context_persists_across_turns(tmp_path: Path) -> None:
     (tmp_path / "existing.txt").write_text("old", encoding="utf-8")
     provider = MockProvider(

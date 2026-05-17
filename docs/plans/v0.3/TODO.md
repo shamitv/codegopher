@@ -80,7 +80,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_compaction.py`
 - [x] T027: Include active TODO state, selected memories, and loaded skills in compaction behavior.
   Verify: `python -m pytest tests/unit/test_compaction.py`
-- [ ] T028: Surface compaction failures clearly without losing the current session.
+- [x] T028: Surface compaction failures clearly without losing the current session.
   Verify: `python -m pytest tests/unit/test_tui_compaction.py`
 
 ## Milestone 5 - Memory Store And `save_memory`
