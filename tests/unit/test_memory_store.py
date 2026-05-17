@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from codegopher.memory import MemoryStore
@@ -69,3 +70,70 @@ def test_memory_store_different_projects_have_different_files(tmp_path: Path) ->
     second.mkdir()
 
     assert store.project_file(first) != store.project_file(second)
+
+
+def test_memory_store_adds_and_lists_session_entries(tmp_path: Path) -> None:
+    clock = FakeClock(datetime(2026, 5, 17, tzinfo=UTC))
+    store = MemoryStore(data_home=tmp_path / "data", now=clock)
+
+    entry = store.add_entry(
+        "session",
+        session_id="session-1",
+        content="remember this",
+        source="user",
+        tags=["alpha"],
+    )
+
+    entries = store.list_entries("session", session_id="session-1")
+    assert entry.id.startswith("mem-")
+    assert entries == [entry]
+    assert entries[0].created_at == datetime(2026, 5, 17, tzinfo=UTC)
+    assert entries[0].updated_at == datetime(2026, 5, 17, tzinfo=UTC)
+    assert entries[0].tags == ["alpha"]
+
+
+def test_memory_store_updates_and_deletes_project_entries(tmp_path: Path) -> None:
+    clock = FakeClock(datetime(2026, 5, 17, tzinfo=UTC))
+    store = MemoryStore(data_home=tmp_path / "data", now=clock)
+    project = tmp_path / "project"
+    project.mkdir()
+    entry = store.add_entry("project", cwd=project, content="old")
+
+    updated = store.update_entry("project", entry.id, cwd=project, content="new")
+    deleted = store.delete_entry("project", entry.id, cwd=project)
+
+    assert updated.id == entry.id
+    assert updated.created_at == entry.created_at
+    assert updated.updated_at > entry.updated_at
+    assert updated.content == "new"
+    assert deleted is True
+    assert store.list_entries("project", cwd=project) == []
+
+
+def test_memory_store_enforces_limits(tmp_path: Path) -> None:
+    store = MemoryStore(data_home=tmp_path / "data")
+
+    try:
+        store.add_entry("session", session_id="s", content="abcdef", max_entry_chars=5)
+    except ValueError as exc:
+        assert "max_entry_chars" in str(exc)
+    else:
+        raise AssertionError("oversized memory was accepted")
+
+    store.add_entry("session", session_id="s", content="one", max_entries=1)
+    try:
+        store.add_entry("session", session_id="s", content="two", max_entries=1)
+    except ValueError as exc:
+        assert "max_entries" in str(exc)
+    else:
+        raise AssertionError("scope limit was not enforced")
+
+
+class FakeClock:
+    def __init__(self, value: datetime) -> None:
+        self.value = value
+
+    def __call__(self) -> datetime:
+        current = self.value
+        self.value = self.value + timedelta(seconds=1)
+        return current

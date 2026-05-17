@@ -91,7 +91,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_memory_store.py`
 - [x] T031: Add project memory keyed by canonical cwd hash.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
-- [ ] T032: Add memory CRUD operations with stable ids and timestamps.
+- [x] T032: Add memory CRUD operations with stable ids and timestamps.
   Verify: `python -m pytest tests/unit/test_memory_store.py`
 - [ ] T033: Add safety tests proving memories do not persist API keys or raw environment values.
   Verify: `python -m pytest tests/unit/test_memory_store.py tests/unit/test_tui_session.py`
