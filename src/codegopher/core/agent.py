@@ -86,6 +86,9 @@ class AgentSession:
         callbacks: AgentCallbacks | None = None,
         tool_context: ToolContext | None = None,
         conversation: Conversation | None = None,
+        memory_context: list[str] | None = None,
+        skill_context: list[str] | None = None,
+        todo_context: list[str] | None = None,
     ) -> None:
         self.provider = provider
         self.registry = registry
@@ -96,6 +99,9 @@ class AgentSession:
         self.callbacks = callbacks
         self.tool_context = tool_context or ToolContext(cwd=cwd)
         self.conversation = conversation or Conversation()
+        self.memory_context = memory_context or []
+        self.skill_context = skill_context or []
+        self.todo_context = todo_context or []
 
     async def run_turn(self, prompt: str) -> AgentResult:
         if not self.provider.capabilities.tool_calls:
@@ -240,6 +246,9 @@ class AgentSession:
             original_messages,
             cwd=self.cwd,
             instructions=instructions,
+            memories=self.memory_context,
+            skills=self.skill_context,
+            todo_items=self.todo_context,
         )
         summary = await self._run_compaction_prompt(prompt)
         entry = CompactionEntry(

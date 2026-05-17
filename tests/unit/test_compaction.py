@@ -71,6 +71,25 @@ def test_build_compaction_prompt_includes_manual_instructions(tmp_path: Path) ->
     assert "focus on file decisions" in prompt
 
 
+def test_build_compaction_prompt_includes_todo_memory_and_skill_context(
+    tmp_path: Path,
+) -> None:
+    prompt = build_compaction_prompt(
+        sample_messages(),
+        cwd=tmp_path,
+        todo_items=["finish parser tests"],
+        memories=["Project uses pytest"],
+        skills=["python-testing: prefer focused tests"],
+    )
+
+    assert "Active TODO state" in prompt
+    assert "finish parser tests" in prompt
+    assert "Selected memories" in prompt
+    assert "Project uses pytest" in prompt
+    assert "Loaded skills" in prompt
+    assert "python-testing" in prompt
+
+
 def test_compacted_messages_preserves_recent_turns_verbatim() -> None:
     messages: list[Message] = [
         {"role": "user", "content": "old question"},

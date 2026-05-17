@@ -78,7 +78,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_compaction.py tests/unit/test_agent_session.py`
 - [x] T026: Preserve recent turns verbatim after compaction.
   Verify: `python -m pytest tests/unit/test_compaction.py`
-- [ ] T027: Include active TODO state, selected memories, and loaded skills in compaction behavior.
+- [x] T027: Include active TODO state, selected memories, and loaded skills in compaction behavior.
   Verify: `python -m pytest tests/unit/test_compaction.py`
 - [ ] T028: Surface compaction failures clearly without losing the current session.
   Verify: `python -m pytest tests/unit/test_tui_compaction.py`

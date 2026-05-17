@@ -307,6 +307,36 @@ async def test_agent_session_automatically_compacts_before_threshold_turn(
 
 
 @pytest.mark.asyncio
+async def test_agent_session_compaction_includes_extra_context(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("first")
+    conversation.append_assistant("answer")
+    conversation.append_user("second")
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "summary text"}, {"type": "done"}]]
+    )
+    session = AgentSession(
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(),
+        cwd=tmp_path,
+        conversation=conversation,
+        memory_context=["Project memory"],
+        skill_context=["Skill context"],
+        todo_context=["TODO context"],
+    )
+
+    await session.compact()
+
+    prompt = str(provider.calls[0][1]["content"])
+    assert "Project memory" in prompt
+    assert "Skill context" in prompt
+    assert "TODO context" in prompt
+
+
+@pytest.mark.asyncio
 async def test_agent_session_tool_context_persists_across_turns(tmp_path: Path) -> None:
     (tmp_path / "existing.txt").write_text("old", encoding="utf-8")
     provider = MockProvider(
