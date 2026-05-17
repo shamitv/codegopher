@@ -68,7 +68,7 @@ Commit rules:
 
 ## Milestone 4 - Manual And Automatic Compaction
 
-- [ ] T022: Add a compaction prompt builder that summarizes older conversation and tool context.
+- [x] T022: Add a compaction prompt builder that summarizes older conversation and tool context.
   Verify: `python -m pytest tests/unit/test_compaction.py`
 - [ ] T023: Add manual `/compact [instructions]` command parsing and validation.
   Verify: `python -m pytest tests/unit/test_tui_commands.py`
