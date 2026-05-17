@@ -200,3 +200,62 @@ async def test_todo_state_resumes_from_session_json(tmp_path: Path) -> None:
         await submit(second, pilot, "/todo")
 
     assert "Resume this item" in second.chat_messages[-1]
+
+
+@pytest.mark.asyncio
+async def test_update_todo_tool_add_renders_visible_todo_event(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-add",
+                        "name": "update_todo",
+                        "arguments": {"action": "add", "text": "Model tracked task"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "tracked"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "track this")
+
+    assert any(
+        message.startswith("TODO added: todo-") and "Model tracked task" in message
+        for message in app.chat_messages
+    )
+    assert "Tool completed: update_todo" not in app.chat_messages
+
+
+@pytest.mark.asyncio
+async def test_update_todo_tool_done_renders_visible_todo_event(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-done",
+                        "name": "update_todo",
+                        "arguments": {"action": "done", "id": "todo-existing"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, provider)
+    item = app.todo_state.add("Close model task", source="user")
+    app.todo_state.items[0] = item.model_copy(update={"id": "todo-existing"})
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "finish this")
+
+    assert "TODO done: todo-existing Close model task" in app.chat_messages
+    assert "Tool completed: update_todo" not in app.chat_messages

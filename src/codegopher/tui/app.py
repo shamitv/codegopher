@@ -25,6 +25,7 @@ from codegopher.core.types import (
     MemoryScope,
     Message,
     SkillSource,
+    TodoItem,
     ToolCall,
 )
 from codegopher.memory import MemoryStore
@@ -302,6 +303,8 @@ class CodeGopherApp(App[None]):
             self.append_system_message(f"Tool failed: {tool_name}: {result.content}")
         elif tool_name == "save_memory":
             self.append_system_message(self._format_memory_save_event(result.content))
+        elif tool_name == "update_todo":
+            self.append_system_message(self._format_todo_tool_event(result.content))
         else:
             self.append_system_message(f"Tool completed: {tool_name}")
         self.set_status(f"Tool {state}: {tool_name}")
@@ -561,6 +564,33 @@ class CodeGopherApp(App[None]):
 
     def _format_memory_delete_event(self, entry: MemoryEntry) -> str:
         return f"Memory deleted: {entry.id} [{entry.scope}/{entry.source}] {entry.content}"
+
+    def _format_todo_tool_event(self, content: str) -> str:
+        added_prefix = "Added TODO "
+        updated_prefix = "Updated TODO "
+        if content.startswith(added_prefix):
+            item_id = content[len(added_prefix) :].strip()
+            item = self._find_todo_item(item_id)
+            if item is not None:
+                return f"TODO added: {item.id} {item.text}"
+            return f"TODO added: {item_id}"
+
+        if content.startswith(updated_prefix) and " to " in content:
+            item_id, status = content[len(updated_prefix) :].split(" to ", maxsplit=1)
+            item = self._find_todo_item(item_id.strip())
+            if item is not None and item.status == "done":
+                return f"TODO done: {item.id} {item.text}"
+            if item is not None:
+                return f"TODO updated: {item.id} [{item.status}] {item.text}"
+            return f"TODO updated: {item_id.strip()} [{status.strip()}]"
+
+        return f"TODO updated: {content}"
+
+    def _find_todo_item(self, item_id: str) -> TodoItem | None:
+        for item in self.todo_state.list():
+            if item.id == item_id:
+                return item
+        return None
 
     def _handle_model_command(self, command: SlashCommand) -> None:
         if not command.arguments:

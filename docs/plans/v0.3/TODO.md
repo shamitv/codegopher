@@ -192,3 +192,5 @@ Commit rules:
   Verify: `source .venv/bin/activate && python -m pytest tests/integration/test_real_llm_endpoint.py`
 - [x] T074: Refresh architecture docs for completed v0.3 memory, skills, and TODO behavior.
   Verify: `rg -n "TODO|/todo|update_todo|/memory|/forget|/skills|loaded skills" docs/arch`
+- [x] T075: Render model-triggered `update_todo` results as explicit TUI TODO events.
+  Verify: `source .venv/bin/activate && python -m pytest tests/unit/test_tui_todo.py`
