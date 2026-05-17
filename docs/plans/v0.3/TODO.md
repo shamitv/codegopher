@@ -147,7 +147,7 @@ Commit rules:
 
 ## Milestone 8 - Session TODO State
 
-- [ ] T050: Add TODO state models and store.
+- [x] T050: Add TODO state models and store.
   Verify: `python -m pytest tests/unit/test_todo_state.py`
 - [ ] T051: Add `/todo` command to display current TODO state.
   Verify: `python -m pytest tests/unit/test_tui_todo.py tests/unit/test_tui_commands.py`
