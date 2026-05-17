@@ -176,7 +176,7 @@ Commit rules:
   Verify: `rg -n "memory|skills|compact|todo" docs/release/CHECKLIST.md`
 - [x] T062: Run a real OpenAI-compatible endpoint smoke test using local ignored config.
   Verify: manual run of `cgopher -p "hello"` with local endpoint and dummy key
-- [ ] T063: Run the complete unit and integration suite.
+- [x] T063: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
 - [ ] T064: Run lint and formatting checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
