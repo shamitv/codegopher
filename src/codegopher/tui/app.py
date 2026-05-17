@@ -19,7 +19,7 @@ from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError
-from codegopher.core.types import CompactionEntry, Message, ToolCall
+from codegopher.core.types import CompactionEntry, MemoryEntry, MemoryScope, Message, ToolCall
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
@@ -347,6 +347,8 @@ class CodeGopherApp(App[None]):
             self._handle_clear_command(command)
         elif command.name == "compact":
             self._handle_compact_command(command)
+        elif command.name == "memory":
+            self._handle_memory_command(command)
         elif command.name == "model":
             self._handle_model_command(command)
         elif command.name == "mode":
@@ -417,6 +419,49 @@ class CodeGopherApp(App[None]):
             self.set_status("Context compacted")
         finally:
             self._set_turn_running(False)
+
+    def _handle_memory_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /memory")
+            return
+        self.append_system_message(self._format_memory_listing())
+        self.set_status("Displayed memory")
+
+    def _format_memory_listing(self) -> str:
+        if not self.settings.memory.enabled:
+            return "Memory is disabled"
+        lines = ["Memories:"]
+        lines.extend(self._format_memory_scope("Session", "session"))
+        lines.extend(self._format_memory_scope("Project", "project"))
+        return "\n".join(lines)
+
+    def _format_memory_scope(self, label: str, scope: MemoryScope) -> list[str]:
+        if scope == "session":
+            if not self.settings.memory.session_enabled:
+                return [f"{label}: disabled"]
+            if not self.tool_context.session_id:
+                return [f"{label}: unavailable"]
+        if scope == "project" and not self.settings.memory.project_enabled:
+            return [f"{label}: disabled"]
+
+        entries = self._list_memory_entries(scope)
+        if not entries:
+            return [f"{label}: none"]
+        return [
+            f"{label} ({len(entries)}):",
+            *[self._format_memory_entry(entry) for entry in entries],
+        ]
+
+    def _list_memory_entries(self, scope: MemoryScope) -> list[MemoryEntry]:
+        store = self.tool_context.memory_store or MemoryStore.default()
+        if scope == "session":
+            if not self.tool_context.session_id:
+                return []
+            return store.list_entries("session", session_id=self.tool_context.session_id)
+        return store.list_entries("project", cwd=self.cwd)
+
+    def _format_memory_entry(self, entry: MemoryEntry) -> str:
+        return f"- {entry.id} [{entry.scope}/{entry.source}] {entry.content}"
 
     def _handle_model_command(self, command: SlashCommand) -> None:
         if not command.arguments:

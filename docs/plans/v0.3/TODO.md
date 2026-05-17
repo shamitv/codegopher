@@ -115,7 +115,7 @@ Commit rules:
 
 ## Milestone 6 - TUI Memory Commands And Transparency
 
-- [ ] T037: Add `/memory` command to list session and project memories.
+- [x] T037: Add `/memory` command to list session and project memories.
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_commands.py`
 - [ ] T038: Add `/forget ID` command with approval or confirmation behavior.
   Verify: `python -m pytest tests/unit/test_tui_memory.py`

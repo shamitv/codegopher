@@ -91,6 +91,7 @@ async def test_tui_help_command_lists_available_commands(tmp_path: Path) -> None
         assert app.chat_messages[0].startswith("Slash commands:")
         assert "/help - Show available slash commands." in app.chat_messages[0]
         assert "/compact [instructions] - Compact provider context." in app.chat_messages[0]
+        assert "/memory - List session and project memories." in app.chat_messages[0]
         assert "/stats - Show session counters." in app.chat_messages[0]
 
 
@@ -272,6 +273,7 @@ async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
         "/model next-model",
         "/mode",
         "/mode yolo",
+        "/memory",
         "/stats",
         "/unknown",
     ],
