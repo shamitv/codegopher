@@ -2,7 +2,7 @@
 
 > A Python-native, provider-agnostic AI coding agent for your terminal.
 
-CodeGopher v0.2 includes both the original headless command and an interactive Textual TUI for iterative project work. It can stream through an OpenAI-compatible model provider, execute approved tools, expand file mentions, run approved shell commands, and resume local terminal sessions.
+CodeGopher v0.3 includes both the original headless command and an interactive Textual TUI for iterative project work. It can stream through an OpenAI-compatible model provider, execute approved tools, expand file mentions, manage context, compact long sessions, save memory, load Markdown skills, track session TODOs, and resume local terminal sessions.
 
 ## Usage
 
@@ -31,16 +31,30 @@ Slash commands:
 
 - `/help`: show commands.
 - `/clear`: clear visible chat history without deleting saved session data.
+- `/compact [instructions]`: summarize older provider context while preserving recent turns.
+- `/forget ID --yes`: delete a saved memory after confirmation.
+- `/memory`: list session and project memories.
 - `/model [NAME]`: show or update the active model.
 - `/mode [review|auto|yolo]`: show or update approval mode.
 - `/stats`: show session counters.
 - `/shell COMMAND`: run a shell command after approval unless `yolo` is active.
+- `/skills [load ID]`: list or explicitly load Markdown skills.
+- `/todo`, `/todo add TEXT`, `/todo done ID`: manage session TODO state.
 
 Prompt helpers:
 
 - `@path`, glob-style mentions such as `@src/**/*.py`, and `@glob:pattern` expand readable text files into the submitted prompt.
+- `@skill:ID` explicitly loads a discovered Markdown skill into provider context.
 - Mention expansion respects project boundaries and `.codegopherignore`.
 - Models that emit `reasoning_content` show thinking separately from final answer text; TUI reasoning is collapsed by default.
+
+Context, memory, skills, and TODOs:
+
+- `/stats` reports context token usage when a provider `context_window` is configured.
+- Automatic compaction runs before a turn would exceed the configured threshold; manual `/compact` is always visible in chat.
+- `save_memory` stores approved session or project memories under CodeGopher's user data directory, with secret-like values redacted.
+- Project skills live in `.codegopher/skills/*/SKILL.md`, user skills live in `~/.codegopher/skills/*/SKILL.md`, and built-in skills ship with the package.
+- Active TODOs are included in provider context and can also be updated by the model through the `update_todo` tool.
 
 ## Implemented Features
 
@@ -49,7 +63,7 @@ Prompt helpers:
 - Pydantic settings with CLI, environment, project, user, and default precedence.
 - OpenAI-compatible streaming provider with streamed tool-call and reasoning parsing.
 - Approval-aware file and shell tools with prior-read and parent-inspection gates.
-- Slash commands, file mentions, shell passthrough, and local session save/resume.
+- Context-window accounting, manual/automatic compaction, memory, Markdown skills, session TODOs, slash commands, file mentions, shell passthrough, and local session save/resume.
 - JSON output for automation and focused unit/integration test coverage.
 
 ## Development
@@ -70,9 +84,9 @@ hatch run typecheck
 
 ## Planned Direction
 
-- Memory, skills, MCP, additional providers, sub-agents, and sandboxing remain future roadmap items.
+- MCP, additional providers, sub-agents, and sandboxing remain future roadmap items.
 - Provider capability checks will expand as more model APIs are added.
-- Context-window tracking and compaction are planned for larger project sessions.
+- Git/worktree helpers and richer initialization workflows may expand after the v0.3 release.
 
 ## Docs
 
@@ -95,6 +109,8 @@ id = "gpt-4o"
 name = "GPT-4o"
 api_key_env = "OPENAI_API_KEY"
 ```
+
+For OpenAI-compatible local endpoints, set `base_url` on the provider entry and export a key through the configured `api_key_env`.
 
 ## License
 

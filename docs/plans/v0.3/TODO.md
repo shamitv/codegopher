@@ -166,7 +166,7 @@ Commit rules:
 
 ## Milestone 9 - Docs, Real Endpoint Smoke, And Release Readiness
 
-- [ ] T058: Update README with v0.3 context, memory, skills, and TODO usage.
+- [x] T058: Update README with v0.3 context, memory, skills, and TODO usage.
   Verify: `rg -n "memory|skills|compact|todo" README.md`
 - [ ] T059: Update product intro to describe implemented v0.3 behavior.
   Verify: `rg -n "memory|skills|compact|todo" docs/product/INTRO.md`
