@@ -6,6 +6,7 @@ from codegopher.skills.catalog import (
     SkillDiscovery,
     discover_project_skills,
     discover_skills,
+    discover_user_skills,
     parse_skill_file,
 )
 
@@ -15,5 +16,6 @@ __all__ = [
     "SkillDiscovery",
     "discover_project_skills",
     "discover_skills",
+    "discover_user_skills",
     "parse_skill_file",
 ]

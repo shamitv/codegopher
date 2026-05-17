@@ -56,6 +56,7 @@ def discover_skills(
     *,
     cwd: Path,
     settings: Settings,
+    home: Path | None = None,
 ) -> SkillDiscovery:
     """Discover configured Markdown skills."""
     if not settings.skills.enabled:
@@ -64,8 +65,11 @@ def discover_skills(
     skills: list[Skill] = []
     warnings: list[str] = []
     project_result = discover_project_skills(cwd=cwd, settings=settings)
+    user_result = discover_user_skills(settings=settings, home=home)
     skills.extend(project_result.catalog.list())
+    skills.extend(user_result.catalog.list())
     warnings.extend(project_result.warnings)
+    warnings.extend(user_result.warnings)
     return SkillDiscovery(catalog=SkillCatalog(skills), warnings=tuple(warnings))
 
 
@@ -76,6 +80,19 @@ def discover_project_skills(*, cwd: Path, settings: Settings) -> SkillDiscovery:
 
     root = cwd / settings.skills.project_dir
     return _discover_skill_dir(root=root, source="project")
+
+
+def discover_user_skills(
+    *,
+    settings: Settings,
+    home: Path | None = None,
+) -> SkillDiscovery:
+    """Discover user-level ~/.codegopher/skills/*/SKILL.md files."""
+    if not settings.skills.enabled:
+        return SkillDiscovery(catalog=SkillCatalog())
+
+    root = (home or Path.home()) / ".codegopher" / settings.skills.user_dir
+    return _discover_skill_dir(root=root, source="user")
 
 
 def parse_skill_file(path: Path, *, source: SkillSource) -> Skill:

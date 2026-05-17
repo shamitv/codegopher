@@ -130,7 +130,7 @@ Commit rules:
 
 - [x] T042: Add skill discovery for project `.codegopher/skills/*/SKILL.md`.
   Verify: `python -m pytest tests/unit/test_skills.py`
-- [ ] T043: Add skill discovery for user `~/.codegopher/skills/*/SKILL.md`.
+- [x] T043: Add skill discovery for user `~/.codegopher/skills/*/SKILL.md`.
   Verify: `python -m pytest tests/unit/test_skills.py`
 - [ ] T044: Add built-in package skill discovery.
   Verify: `python -m pytest tests/unit/test_skills.py tests/unit/test_imports.py`
