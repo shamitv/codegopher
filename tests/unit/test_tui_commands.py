@@ -281,6 +281,7 @@ async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
         "/skills",
         "/skills load missing",
         "/stats",
+        "/todo",
         "/unknown",
     ],
 )

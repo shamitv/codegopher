@@ -34,6 +34,7 @@ from codegopher.skills import Skill, SkillDiscovery, SkillManager, discover_skil
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry, create_default_registry
 from codegopher.tools.shell.run_shell import RunShellCommandTool
+from codegopher.todo import TodoState
 from codegopher.tui.commands import COMMAND_DEFINITIONS, SlashCommand, parse_slash_command
 from codegopher.tui.mentions import MentionExpansion, expand_mentions
 from codegopher.tui.session import MessageRole, SessionMessage, TuiSessionState, TuiSessionStore
@@ -121,6 +122,7 @@ class CodeGopherApp(App[None]):
             loaded_ids=self.session_state.loaded_skill_ids if self.session_state else (),
             autoload=settings.skills.autoload,
         )
+        self.todo_state = TodoState(max_items=settings.todo.max_items)
         memory_store = MemoryStore(data_home=session_store.data_home) if session_store else None
         self.tool_context = ToolContext(
             cwd=cwd,
@@ -380,6 +382,8 @@ class CodeGopherApp(App[None]):
             self._handle_skills_command(command)
         elif command.name == "stats":
             self._handle_stats_command(command)
+        elif command.name == "todo":
+            self._handle_todo_command(command)
         else:
             unknown = command.raw.split(maxsplit=1)[0]
             self._command_error(f"Unknown slash command: {unknown}")
@@ -676,6 +680,29 @@ class CodeGopherApp(App[None]):
         )
         self.append_system_message(message)
         self.set_status("Displayed stats")
+
+    def _handle_todo_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /todo")
+            return
+        self.append_system_message(self._format_todo_listing())
+        self.set_status("Displayed TODO")
+
+    def _format_todo_listing(self) -> str:
+        if not self.settings.todo.enabled:
+            return "TODO is disabled"
+        items = self.todo_state.list()
+        if not items:
+            return "TODO:\n- none"
+        return "\n".join(
+            [
+                "TODO:",
+                *[
+                    f"- {item.id} [{item.status}] {item.text}"
+                    for item in items
+                ],
+            ]
+        )
 
     def _memory_count_summary(self) -> str:
         if not self.settings.memory.enabled:
