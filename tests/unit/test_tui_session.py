@@ -224,6 +224,64 @@ async def test_tui_session_resumes_provider_messages_for_next_turn(tmp_path: Pat
         ]
 
 
+@pytest.mark.asyncio
+async def test_tui_session_resume_does_not_restore_stale_prior_reads(tmp_path: Path) -> None:
+    (tmp_path / "existing.txt").write_text("old", encoding="utf-8")
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    state.provider_messages.extend(
+        [
+            {"role": "user", "content": "read existing.txt"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": "call-old",
+                        "type": "function",
+                        "function": {
+                            "name": "read_file",
+                            "arguments": '{"path": "existing.txt"}',
+                        },
+                    }
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call-old", "content": "old"},
+            {"role": "assistant", "content": "read complete"},
+        ]
+    )
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-new",
+                        "name": "write_file",
+                        "arguments": {"path": "existing.txt", "content": "new"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    app = CodeGopherApp(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+        session_store=store,
+        session_state=state,
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "write existing.txt")
+
+        assert (tmp_path / "existing.txt").read_text(encoding="utf-8") == "old"
+        assert provider.calls[1][-1]["role"] == "tool"
+        assert "must read it first" in str(provider.calls[1][-1]["content"])
+
+
 def test_tui_launcher_auto_resumes_latest_session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     store = make_store(tmp_path)
     state = store.create(cwd=tmp_path, settings=make_settings())

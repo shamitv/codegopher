@@ -48,8 +48,8 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_tui_session.py tests/unit/test_tui_mentions.py`
 - [x] T014: Persist enough session metadata to resume provider-ready context safely, including legacy session compatibility and provider-message validation.
   Verify: `python -m pytest tests/unit/test_tui_session.py tests/unit/test_agent_session.py`
-- [ ] T015: Ensure prior-read and directory-inspection state remains session-scoped.
-  Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_tool_context.py`
+- [x] T015: Ensure prior-read and directory-inspection state remains session-scoped, without restoring stale access grants after resume.
+  Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_tool_context.py tests/unit/test_tui_session.py`
 - [ ] T016: Add tests proving multi-turn TUI context reaches the provider.
   Verify: `python -m pytest tests/unit/test_tui_agent.py tests/unit/test_agent_session.py`
 

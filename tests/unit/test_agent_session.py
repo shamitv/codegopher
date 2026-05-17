@@ -274,6 +274,44 @@ async def test_agent_session_tool_context_persists_across_turns(tmp_path: Path) 
 
 
 @pytest.mark.asyncio
+async def test_agent_session_directory_inspection_persists_across_turns(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "list_dir",
+                        "arguments": {"path": "."},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "listed"}, {"type": "done"}],
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-2",
+                        "name": "write_file",
+                        "arguments": {"path": "created.txt", "content": "new"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "created"}, {"type": "done"}],
+        ]
+    )
+    session = make_session(tmp_path, provider, settings=Settings(approval_mode=ApprovalMode.yolo))
+
+    await session.run_turn("list")
+    await session.run_turn("create")
+
+    assert (tmp_path / "created.txt").read_text(encoding="utf-8") == "new"
+
+
+@pytest.mark.asyncio
 async def test_agent_sessions_do_not_share_conversation_or_tool_access(tmp_path: Path) -> None:
     (tmp_path / "existing.txt").write_text("old", encoding="utf-8")
     first_provider = MockProvider(
