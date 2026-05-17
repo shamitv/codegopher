@@ -9,13 +9,16 @@ Last reviewed: 2026-05-17
 - Planning docs are present in `docs/plans/v0.3`.
 - Milestone 1 config/schema and typed data models are implemented.
 - Milestone 2 reusable session/context runner is implemented.
+- Milestone 3 context budget tracking is implemented.
+- Milestone 4 manual and automatic compaction is implemented.
+- Milestone 5 memory store and `save_memory` are implemented.
 - Existing v0.1 and v0.2 behavior must stay compatible.
 
 Practical readiness estimate:
 
 - Plan and TODO docs are ready for implementation.
-- The first runtime implementation steps are complete.
-- The next runtime implementation step is context budget tracking.
+- The first runtime implementation steps are complete through memory.
+- The next runtime implementation step is TUI memory commands and transparency.
 
 ## Current Repository State
 
@@ -29,9 +32,10 @@ Practical readiness estimate:
 | v0.3 typed data models | Implemented | Memory, skill, compaction, and TODO data models exist with validation tests. |
 | Session/context runner | Implemented | `AgentSession` preserves provider-ready conversation state across turns while `run_agent` remains one-shot. |
 | Provider-ready TUI history | Implemented | TUI sessions persist display messages separately from provider-ready conversation messages, with legacy v0.2 compatibility. |
-| Context budget tracking | Not started | `tiktoken` exists as a dependency, but no budget tracker exists yet. |
-| Compaction pipeline | Not started | No manual or automatic compaction exists yet. |
-| Memory store | Not started | `src/codegopher/memory` is a placeholder package. |
+| Context budget tracking | Implemented | Token counting, selected provider context windows, thresholds, and `/stats` reporting exist. |
+| Compaction pipeline | Implemented | Manual `/compact`, automatic threshold compaction, visible summaries, and failure rollback exist. |
+| Memory store | Implemented | Local session/project memory, redaction, `save_memory`, and provider context injection exist. |
+| Architecture docs | Present | `docs/arch/SESSION.md`, `docs/arch/CONTEXT.md`, and `docs/arch/MEMORY.md` document the implemented architecture. |
 | Skill discovery | Not started | `src/codegopher/skills` is a placeholder package. |
 | Session TODO state | Not started | No persistent TODO state or model-facing TODO tool exists yet. |
 | Real endpoint smoke testing | Passed | Pre-implementation smoke passed with local ignored config and dummy key. |
@@ -59,12 +63,10 @@ Practical readiness estimate:
 
 ## Immediate Blockers
 
-- No memory store exists yet.
 - No skill discovery or loading exists yet.
-- No compaction pipeline exists yet.
-- No runtime context budget accounting exists yet.
 - No runtime TODO state exists yet.
+- No TUI memory inspection or forget commands exist yet.
 
 ## Implementation Recommendation
 
-Next, add context budget accounting before compaction, memory, skills, or TODO runtime behavior. Keep `run_agent`, TUI resume, and session-scoped tool access tests in the verification loop for regression coverage.
+Next, add TUI memory commands and transparency before moving on to skills or TODO runtime behavior. Keep `run_agent`, TUI resume, compaction, memory redaction, and session-scoped tool access tests in the verification loop for regression coverage.

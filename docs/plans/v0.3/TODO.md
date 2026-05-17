@@ -110,7 +110,7 @@ Commit rules:
   Verify: `test -f docs/arch/CONTEXT.md && rg -n "token|threshold|compact" docs/arch/CONTEXT.md`
 - [x] T070: Create `docs/arch/MEMORY.md` covering data-home storage, session/project keying, `save_memory`, redaction, and context injection.
   Verify: `test -f docs/arch/MEMORY.md && rg -n "session|project|save_memory|redact" docs/arch/MEMORY.md`
-- [ ] T071: Create `docs/arch/README.md` and update v0.3 status to reference the architecture docs.
+- [x] T071: Create `docs/arch/README.md` and update v0.3 status to reference the architecture docs.
   Verify: `test -f docs/arch/README.md && rg -n "SESSION|CONTEXT|MEMORY" docs/arch/README.md docs/plans/v0.3/STATUS.md`
 
 ## Milestone 6 - TUI Memory Commands And Transparency
