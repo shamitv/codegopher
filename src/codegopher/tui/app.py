@@ -278,6 +278,8 @@ class CodeGopherApp(App[None]):
         state = "failed" if result.is_error else "completed"
         if result.is_error:
             self.append_system_message(f"Tool failed: {tool_name}: {result.content}")
+        elif tool_name == "save_memory":
+            self.append_system_message(self._format_memory_save_event(result.content))
         else:
             self.append_system_message(f"Tool completed: {tool_name}")
         self.set_status(f"Tool {state}: {tool_name}")
@@ -454,7 +456,7 @@ class CodeGopherApp(App[None]):
         if not deleted:
             self._command_error(f"Memory not found: {entry.id}")
             return
-        self.append_system_message(f"Forgot memory {entry.id}")
+        self.append_system_message(self._format_memory_delete_event(entry))
         self.set_status("Memory deleted")
 
     def _parse_forget_arguments(self, arguments: str) -> tuple[str, bool] | None:
@@ -519,6 +521,18 @@ class CodeGopherApp(App[None]):
 
     def _format_memory_entry(self, entry: MemoryEntry) -> str:
         return f"- {entry.id} [{entry.scope}/{entry.source}] {entry.content}"
+
+    def _format_memory_save_event(self, content: str) -> str:
+        prefix = "Saved "
+        separator = " memory "
+        if content.startswith(prefix) and separator in content:
+            scope, entry_id = content[len(prefix) :].split(separator, maxsplit=1)
+            if scope in {"session", "project"} and entry_id:
+                return f"Memory saved: {entry_id} ({scope})"
+        return f"Memory saved: {content}"
+
+    def _format_memory_delete_event(self, entry: MemoryEntry) -> str:
+        return f"Memory deleted: {entry.id} [{entry.scope}/{entry.source}] {entry.content}"
 
     def _handle_model_command(self, command: SlashCommand) -> None:
         if not command.arguments:

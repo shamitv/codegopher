@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from textual.widgets import Input
 
-from codegopher.config.schema import ModelConfig, Settings
+from codegopher.config.schema import ApprovalMode, ModelConfig, Settings
 from codegopher.providers.mock import MockProvider
 from codegopher.tui import CodeGopherApp
 from codegopher.tui.session import TuiSessionStore
@@ -41,6 +41,14 @@ async def submit(app: CodeGopherApp, pilot: Any, value: str) -> None:
     input_widget.value = value
     await pilot.press("enter")
     await pilot.pause(0.1)
+
+
+async def wait_for_turn_to_finish(app: CodeGopherApp, pilot: Any) -> None:
+    for _ in range(40):
+        if not app.turn_running:
+            return
+        await pilot.pause(0.05)
+    raise AssertionError("agent turn did not finish")
 
 
 @pytest.mark.asyncio
@@ -161,7 +169,9 @@ async def test_forget_command_deletes_project_memory_with_confirmation(
         await submit(app, pilot, f"/forget {entry.id} --yes")
 
     assert app.tool_context.memory_store.list_entries("project", cwd=tmp_path) == []
-    assert app.chat_messages == [f"Forgot memory {entry.id}"]
+    assert app.chat_messages == [
+        f"Memory deleted: {entry.id} [project/user] Forget this project memory"
+    ]
     assert app.status_message == "Memory deleted"
 
 
@@ -188,7 +198,9 @@ async def test_forget_command_deletes_session_memory_with_confirmation(
         )
         == []
     )
-    assert app.chat_messages == [f"Forgot memory {entry.id}"]
+    assert app.chat_messages == [
+        f"Memory deleted: {entry.id} [session/user] Forget this session memory"
+    ]
 
 
 @pytest.mark.asyncio
@@ -233,3 +245,67 @@ async def test_forget_command_honors_disabled_memory(tmp_path: Path) -> None:
         await submit(app, pilot, "/forget mem-1 --yes")
 
     assert app.chat_messages == ["Error: Memory is disabled"]
+
+
+@pytest.mark.asyncio
+async def test_save_memory_tool_renders_memory_event(tmp_path: Path) -> None:
+    settings = make_settings()
+    settings.approval_mode = ApprovalMode.yolo
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-save",
+                        "name": "save_memory",
+                        "arguments": {
+                            "scope": "project",
+                            "content": "Remember visible save events",
+                        },
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "saved"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, settings=settings, provider=provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "remember this")
+        await wait_for_turn_to_finish(app, pilot)
+
+    assert app.tool_context.memory_store is not None
+    entry = app.tool_context.memory_store.list_entries("project", cwd=tmp_path)[0]
+    assert f"Memory saved: {entry.id} (project)" in app.chat_messages
+    assert "Tool completed: save_memory" not in app.chat_messages
+
+
+@pytest.mark.asyncio
+async def test_failed_save_memory_tool_keeps_visible_error(tmp_path: Path) -> None:
+    settings = make_settings()
+    settings.approval_mode = ApprovalMode.yolo
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-save",
+                        "name": "save_memory",
+                        "arguments": {"scope": "global", "content": "bad"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "saw failure"}, {"type": "done"}],
+        ]
+    )
+    app = make_app(tmp_path, settings=settings, provider=provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "remember this")
+        await wait_for_turn_to_finish(app, pilot)
+
+    assert "Tool failed: save_memory: scope must be 'session' or 'project'" in app.chat_messages

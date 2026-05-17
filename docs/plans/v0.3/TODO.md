@@ -119,7 +119,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_commands.py`
 - [x] T038: Add `/forget ID` command with approval or confirmation behavior.
   Verify: `python -m pytest tests/unit/test_tui_memory.py`
-- [ ] T039: Show memory save/delete events in chat history.
+- [x] T039: Show memory save/delete events in chat history.
   Verify: `python -m pytest tests/unit/test_tui_memory.py`
 - [ ] T040: Show active memory count in status or `/stats`.
   Verify: `python -m pytest tests/unit/test_tui_memory.py tests/unit/test_tui_commands.py`
