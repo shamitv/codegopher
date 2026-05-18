@@ -65,17 +65,17 @@ Commit rules:
 
 ## Milestone 3 - Events Session Runner
 
-- [ ] T021: Add an events session wrapper around the existing agent session that owns settings, provider, registry, cwd, MCP manager, and `ToolContext`.
+- [x] T021: Add an events session wrapper around the existing agent session that owns settings, provider, registry, cwd, MCP manager, and `ToolContext`.
   Verify: `python -m pytest tests/unit/test_events_session.py`
-- [ ] T022: Keep existing `run_agent` behavior compatible while sharing reusable session code where appropriate.
+- [x] T022: Keep existing `run_agent` behavior compatible while sharing reusable session code where appropriate.
   Verify: `python -m pytest tests/unit/test_agent_loop.py tests/integration/test_headless_cli.py`
-- [ ] T023: Add multi-turn events-session tests proving prior-read and directory-inspection state persists within a session.
+- [x] T023: Add multi-turn events-session tests proving prior-read and directory-inspection state persists within a session.
   Verify: `python -m pytest tests/unit/test_events_session.py tests/unit/test_tool_context.py`
-- [ ] T024: Add callback-to-protocol event translation for text, reasoning, tools, approvals, errors, and completion.
+- [x] T024: Add callback-to-protocol event translation for text, reasoning, tools, approvals, errors, and completion.
   Verify: `python -m pytest tests/unit/test_events_session.py tests/unit/test_events_protocol.py`
-- [ ] T025: Add cancellation hooks for an active events session turn.
+- [x] T025: Add cancellation hooks for an active events session turn.
   Verify: `python -m pytest tests/unit/test_events_session.py`
-- [ ] T026: Add structured events-session errors for provider failure, agent-loop failure, cancellation, config failure, and bad approval state.
+- [x] T026: Add structured events-session errors for provider failure, agent-loop failure, cancellation, config failure, and bad approval state.
   Verify: `python -m pytest tests/unit/test_events_session.py`
 
 ## Milestone 4 - `cgopher --events` CLI Mode
