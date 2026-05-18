@@ -8,6 +8,7 @@ Earlier roadmap items remain in place:
 - v0.4: OpenAI Responses API And MCP.
 - v0.5: Repository Documentation And Static Security Skill Packs.
 - v0.7: Advanced Coding Workflows.
+- v0.8: Richer IDE UI And Webview Work.
 
 ## Summary
 
@@ -27,11 +28,14 @@ The first IDE layer is intentionally not an LSP integration and not a webview ap
 
 The v0.6 extension should be a thin IDE shell around the existing local agent. VS Code owns the user-facing chat participant, commands, progress rendering, approval buttons, and simple command-palette flows. Python owns the agent session, configuration semantics, provider selection, MCP lifecycle, tool execution, approvals, redaction, and workspace safety.
 
+A future custom webview can still keep the same Python engine boundary. In that design, the webview would be the frontend UI, the TypeScript extension host would bridge messages between the webview and subprocess, and `cgopher --events` would continue to own agent execution through the JSONL protocol. A webview would not require moving provider calls, MCP lifecycle, config validation, tool execution, or approval policy into TypeScript.
+
 Tradeoffs of this design:
 
 - Faster first useful IDE release: the extension can reuse the existing CLI, provider, MCP, approval, and tool code instead of rebuilding agent behavior in TypeScript.
 - Smaller correctness surface: terminal, TUI, headless, and VS Code paths share the same Python safety rules, reducing the chance that IDE behavior diverges from the CLI.
 - Less custom UI control: native VS Code Chat and command-palette controls are simpler and more familiar, but they are less flexible than a full custom webview for complex settings screens.
+- Clear webview deferral: richer panels for chat, MCP forms, logs, and visual state can be added later on top of the same Python protocol, but v0.6 avoids the frontend, accessibility, styling, state sync, and webview security work needed to do that well.
 - No editor-native intelligence yet: skipping LSP means v0.6 will not provide diagnostics, hovers, code actions, autocomplete, or inline fixes outside the chat flow.
 - More subprocess/protocol work: the extension needs a robust JSONL protocol, lifecycle handling, cancellation, and error mapping because Python and VS Code are separate processes.
 - Better long-term layering: the protocol creates a stable boundary that can later support richer IDE surfaces, LSP features, or a webview without moving core agent authority out of Python.
@@ -156,7 +160,7 @@ Safety boundaries:
 Out of scope for v0.6:
 
 - LSP diagnostics and code actions.
-- A custom webview chat UI.
+- A custom webview chat or settings UI; future webview work should still use the Python engine through the JSONL protocol.
 - A background daemon or HTTP server.
 - New MCP transports beyond the existing stdio and SSE support.
 - Marketplace publishing automation beyond local VSIX packaging notes.

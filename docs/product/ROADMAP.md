@@ -13,6 +13,7 @@ This roadmap separates completed release slices from planned work. Dates are int
 | v0.5 - Repository Documentation And Static Security Skill Packs | Done locally | Implemented and locally verified; CI/release review still required. |
 | v0.6 - VS Code Extension Layer | TODO | Planned; implementation has not started. |
 | v0.7 - Advanced Coding Workflows | TODO | Planned future slice. |
+| v0.8 - Richer IDE UI And Webview Work | TODO | Future slice for custom VS Code panels that still rely on the Python engine. |
 
 ## v0.1 - Headless Agent Loop
 
@@ -119,6 +120,7 @@ TODO:
 - Approval buttons in VS Code that route decisions back to the Python agent.
 - Extension settings for CLI path, model/provider overrides, approval mode, and protocol tracing.
 - Subprocess lifecycle management, cancellation, restart, and clear user-facing errors.
+- Configured LLM endpoint viewing and MCP server management through VS Code-native controls, not a custom webview.
 
 ## v0.7 - Advanced Coding Workflows
 
@@ -134,3 +136,16 @@ TODO:
 - Optional Docker-based sandboxing.
 - More complete web fetch/search tooling.
 - Documentation, examples, and release automation for PyPI.
+
+## v0.8 - Richer IDE UI And Webview Work
+
+Status: TODO.
+
+Goal: add richer VS Code UI surfaces after the first chat-based extension is stable, while continuing to keep the Python engine authoritative.
+
+TODO:
+
+- Custom VS Code webview panels for richer chat, MCP server management, endpoint inspection, logs, and visual state where native chat and command-palette flows are too limited.
+- Webview-to-extension message bridge that forwards actions to `cgopher --events` instead of reimplementing agent logic in TypeScript.
+- Frontend state, accessibility, keyboard navigation, theming, and VS Code webview security hardening.
+- Tests for webview message passing, state synchronization, redaction, and subprocess error recovery.
