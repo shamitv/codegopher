@@ -369,6 +369,29 @@ def test_events_cli_long_lived_supports_shutdown(tmp_path: Path) -> None:
     assert [type(message) for message in messages] == [SessionStartedEvent]
 
 
+def test_events_cli_routes_diagnostics_to_stderr_and_stdout_jsonl(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider([[{"type": "error", "message": "provider failed"}]])
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init", "-p", "fail"],
+        )
+
+    messages = decode_output(result.stdout)
+    error = next(message for message in messages if isinstance(message, ErrorEvent))
+
+    assert result.exit_code == 1
+    assert error.message == "provider failed"
+    assert "provider failed" in result.stderr
+    assert "Error:" not in result.stdout
+
+
 class WaitingProvider:
     capabilities = ProviderCapabilities(streaming=True, tool_calls=True)
 

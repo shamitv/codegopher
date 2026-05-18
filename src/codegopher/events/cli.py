@@ -74,7 +74,9 @@ async def run_events_cli(
                     stdout=stdout,
                     cwd=cwd,
                 )
-    except (ConfigurationError, ProviderError, AgentLoopError):
+    except (ConfigurationError, ProviderError, AgentLoopError) as exc:
+        stderr.write(f"{exc}\n")
+        stderr.flush()
         return 1
 
     return 0

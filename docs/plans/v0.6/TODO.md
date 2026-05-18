@@ -96,7 +96,7 @@ Commit rules:
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_config_management.py`
 - [x] T034: Support `cancel_turn` and `shutdown` commands in long-lived events mode.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T035: Route human diagnostics to stderr while reserving stdout for protocol JSONL.
+- [x] T035: Route human diagnostics to stderr while reserving stdout for protocol JSONL.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
 - [ ] T036: Preserve existing non-interactive no-prompt error when `--events` is not present.
   Verify: `python -m pytest tests/unit/test_cli.py`
