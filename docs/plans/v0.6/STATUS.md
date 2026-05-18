@@ -34,7 +34,7 @@ Practical readiness estimate:
 ## Verified Facts
 
 - `docs/product/ROADMAP.md` keeps v0.3 for Context, Memory, And Skills.
-- `docs/product/ROADMAP.md` keeps v0.4 for Providers And MCP.
+- `docs/product/ROADMAP.md` keeps v0.4 for OpenAI Responses API And MCP.
 - `docs/product/ROADMAP.md` keeps v0.5 for Repository Documentation And Static Security Skill Packs.
 - `docs/product/ROADMAP.md` moves Advanced Coding Workflows to v0.7.
 - Existing CLI options include `-p/--prompt`, `--model`, `--provider`, `--base-url`, `--approval-mode`, `--debug`, and `--json`.

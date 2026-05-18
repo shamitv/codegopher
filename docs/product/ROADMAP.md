@@ -9,7 +9,7 @@ This roadmap separates completed release slices from planned work. Dates are int
 | v0.1 - Headless Agent Loop | Done | Implemented and verified. |
 | v0.2 - Interactive Terminal Experience | Done | Implemented and verified. |
 | v0.3 - Context, Memory, And Skills | Done | Implemented; TODO checklist is complete. |
-| v0.4 - Providers And MCP | TODO | Placeholder planning slot; implementation has not started. |
+| v0.4 - OpenAI Responses API And MCP | Done locally | Implemented and locally verified with full tests, lint, typecheck, build, Playwright MCP stdio, and controlled MCP SSE checks. |
 | v0.5 - Repository Documentation And Static Security Skill Packs | Done locally | Implemented and locally verified; CI/release review still required. |
 | v0.6 - VS Code Extension Layer | TODO | Planned; implementation has not started. |
 | v0.7 - Advanced Coding Workflows | TODO | Planned future slice. |
@@ -63,20 +63,26 @@ Done:
 - Session TODO state for multi-step work, including `/todo` commands and model-facing `update_todo`.
 - Default project skill initialization through `cgopher init [PATH]`.
 
-## v0.4 - Providers And MCP
+## v0.4 - OpenAI Responses API And MCP
 
-Status: TODO.
+Status: Done locally.
 
-Goal: expand beyond the first provider while keeping provider behavior explicit.
+Goal: add first-class OpenAI Responses API support and MCP integration while preserving the existing OpenAI-compatible Chat Completions path.
 
-TODO:
+Done:
 
-- Anthropic provider.
-- Gemini provider using the maintained `google-genai` SDK.
-- Provider capability flags for streaming, tool calls, token counting, thinking controls, and JSON/schema support.
-- MCP client integration with managed server lifecycle.
-- MCP implementation based on the official Python SDK: `StdioServerParameters`, `stdio_client`, `ClientSession(read, write)`, `initialize()`, `list_tools()`, and managed shutdown.
-- MCP-derived tools registered dynamically after successful server initialization.
+- OpenAI Responses API provider path with streaming and tool-call normalization.
+- Configuration that can select Responses API versus the existing OpenAI-compatible Chat Completions behavior.
+- Provider capability flags for streaming, tool calls, token counting, reasoning controls, and JSON/schema support.
+- MCP client integration with managed stdio/SSE server lifecycle.
+- MCP implementation based on the official Python SDK: `StdioServerParameters`, `stdio_client`, `sse_client`, `ClientSession(read, write)`, `initialize()`, `list_tools()`, and managed shutdown.
+- MCP-derived tools registered dynamically after successful server initialization and marked approval-required.
+
+Verified locally:
+
+- Full tests, lint, typecheck, and package build passed.
+- Playwright MCP stdio listed browser tools and executed an approval-gated browser action.
+- Controlled MCP SSE verification listed and executed a tool with `headers_env`.
 
 ## v0.5 - Repository Documentation And Static Security Skill Packs
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 
-from codegopher.config.schema import Settings
+from codegopher.config.schema import ProviderApiFamily, Settings
 from codegopher.providers.base import Provider
 from codegopher.providers.mock import MockProvider
 from codegopher.providers.registry import create_provider_registry
@@ -27,8 +27,10 @@ def build_provider(
         selected = entries[0]
     base_url = selected.base_url if selected else None
     api_key_env = selected.api_key_env if selected and selected.api_key_env else "OPENAI_API_KEY"
+    api_family = selected.api_family if selected else ProviderApiFamily.chat_completions
     return create_provider_registry(
         environ=env,
         base_url=base_url,
         api_key_env=api_key_env,
+        api_family=api_family,
     ).create(settings.model.provider)

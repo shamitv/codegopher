@@ -227,6 +227,13 @@ class TuiSessionStore:
                 if not isinstance(tool_calls, list):
                     raise ValueError("provider message tool_calls must be a list")
                 message["tool_calls"] = tool_calls
+            if "response_items" in raw_message:
+                response_items = raw_message["response_items"]
+                if not isinstance(response_items, list) or not all(
+                    isinstance(item, dict) for item in response_items
+                ):
+                    raise ValueError("provider message response_items must be a list of objects")
+                message["response_items"] = response_items
             messages.append(message)
         return messages
 

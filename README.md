@@ -2,7 +2,7 @@
 
 > A Python-native, provider-agnostic AI coding agent for your terminal.
 
-CodeGopher v0.3 includes both the original headless command and an interactive Textual TUI for iterative project work. It can stream through an OpenAI-compatible model provider, execute approved tools, expand file mentions, manage context, compact long sessions, save memory, load Markdown skills, track session TODOs, and resume local terminal sessions.
+CodeGopher includes both the original headless command and an interactive Textual TUI for iterative project work. It can stream through OpenAI Chat Completions or Responses API, connect configured MCP stdio/SSE servers as approval-gated tools, expand file mentions, manage context, compact long sessions, save memory, load Markdown skills, track session TODOs, and resume local terminal sessions.
 
 ## Usage
 
@@ -24,6 +24,7 @@ Use `cgopher init [PATH] --skill-pack repo-docs|security|all` to materialize bui
 Useful flags:
 
 - `--model`, `--provider`, and `--base-url` override model/provider settings.
+- `--api-family chat_completions|responses` selects the OpenAI-compatible Chat Completions path or OpenAI Responses API path for the run.
 - `--approval-mode review|auto|yolo` controls tool approval behavior.
 - `--no-project-init` disables first-use project guidance creation for the current run.
 - `--json` emits machine-readable headless results.
@@ -63,12 +64,22 @@ Context, memory, skills, and TODOs:
 - Built-in v0.5 skill packs include `repo-domain-docs`, `repo-tech-docs`, and `crud-owasp-static-audit`; the security skill is static-only and does not perform live probing, fuzzing, credential attacks, dynamic scanners, exploit payloads, or network tests.
 - Active TODOs are included in provider context and can also be updated by the model through the `update_todo` tool.
 
+MCP tools:
+
+- Configure MCP servers in settings under `[mcp.servers.NAME]`.
+- `transport = "stdio"` starts a local MCP server process with `command`, `args`, optional `env`, `cwd`, and `startup_timeout_seconds`.
+- `transport = "sse"` connects to an SSE MCP endpoint with `url`, optional `headers`, `headers_env`, `timeout_seconds`, and `sse_read_timeout_seconds`.
+- MCP tools are exposed as `mcp__SERVER__TOOL`, always require approval, and are cleaned up after headless runs or TUI exit.
+- SSE header values and values resolved from `headers_env` are not printed or persisted.
+
 ## Implemented Features
 
 - Headless Click CLI via `codegopher`, `cgopher`, and `python -m codegopher`.
 - Interactive Textual TUI for repeated terminal sessions.
 - Pydantic settings with CLI, environment, project, user, and default precedence.
-- OpenAI-compatible streaming provider with streamed tool-call and reasoning parsing.
+- OpenAI-compatible Chat Completions streaming provider with streamed tool-call and reasoning parsing.
+- OpenAI Responses API streaming provider with stateless local replay of required response output items.
+- MCP stdio/SSE tool discovery and approval-gated execution through the official Python MCP SDK.
 - Approval-aware file and shell tools with prior-read and parent-inspection gates.
 - Context-window accounting, manual/automatic compaction, memory, Markdown skills, session TODOs, slash commands, file mentions, shell passthrough, and local session save/resume.
 - JSON output for automation and focused unit/integration test coverage.
@@ -91,8 +102,8 @@ hatch run typecheck
 
 ## Planned Direction
 
-- MCP, additional providers, sub-agents, advanced coding workflows, and sandboxing remain future roadmap items.
-- Provider capability checks will expand as more model APIs are added.
+- Sub-agents, advanced coding workflows, and sandboxing remain future roadmap items.
+- Provider capability checks will expand as more provider families are added.
 - Git/worktree helpers and richer initialization workflows may expand after the v0.3 release.
 
 ## Docs
@@ -115,9 +126,28 @@ name = "gpt-4o"
 id = "gpt-4o"
 name = "GPT-4o"
 api_key_env = "OPENAI_API_KEY"
+api_family = "chat_completions"
 ```
 
+For OpenAI Responses API, set `api_family = "responses"` or pass `--api-family responses`. Responses calls use `store = false`; CodeGopher keeps the required replay metadata locally.
+
 For OpenAI-compatible local endpoints, set `base_url` on the provider entry and export a key through the configured `api_key_env`.
+
+```toml
+[mcp.servers.playwright]
+enabled = true
+transport = "stdio"
+command = "npx"
+args = ["@playwright/mcp@latest", "--headless", "--isolated"]
+
+[mcp.servers.remote_docs]
+enabled = true
+transport = "sse"
+url = "https://example.test/sse"
+headers_env = { Authorization = "MCP_REMOTE_DOCS_AUTHORIZATION" }
+timeout_seconds = 5
+sse_read_timeout_seconds = 300
+```
 
 ## License
 

@@ -78,6 +78,33 @@ async def test_openai_compat_provider_builds_request() -> None:
 
 
 @pytest.mark.asyncio
+async def test_openai_compat_provider_strips_responses_metadata_from_messages() -> None:
+    client = FakeClient()
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    _ = [
+        event
+        async for event in provider.stream(
+            [
+                {
+                    "role": "assistant",
+                    "content": "answer",
+                    "response_items": [{"type": "reasoning", "encrypted_content": "secret"}],
+                }
+            ],
+            [],
+            model="gpt-test",
+            temperature=0.2,
+            max_output_tokens=128,
+        )
+    ]
+
+    assert client.chat.completions.kwargs["messages"] == [
+        {"role": "assistant", "content": "answer"}
+    ]
+
+
+@pytest.mark.asyncio
 async def test_openai_compat_provider_parses_text_deltas() -> None:
     client = FakeClient(
         AsyncStream(

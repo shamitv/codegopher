@@ -215,6 +215,31 @@ def test_tui_session_rejects_invalid_provider_messages(tmp_path: Path) -> None:
     assert "provider message role is invalid" in result.error
 
 
+def test_tui_session_loads_provider_response_items(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    state.provider_messages.append(
+        {
+            "role": "assistant",
+            "content": "answer",
+            "response_items": [{"type": "reasoning", "encrypted_content": "encrypted"}],
+        }
+    )
+    store.save(state, settings=make_settings())
+
+    result = store.load_latest(cwd=tmp_path)
+
+    assert result.error is None
+    assert result.state is not None
+    assert result.state.provider_messages == [
+        {
+            "role": "assistant",
+            "content": "answer",
+            "response_items": [{"type": "reasoning", "encrypted_content": "encrypted"}],
+        }
+    ]
+
+
 def test_tui_session_rejects_invalid_todo_items(tmp_path: Path) -> None:
     store = make_store(tmp_path)
     state = store.create(cwd=tmp_path, settings=make_settings())

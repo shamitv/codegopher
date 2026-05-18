@@ -24,7 +24,9 @@ classifiers = [
 
 dependencies = [
     # OpenAI-compatible provider
-    "openai>=1.35",
+    "openai>=2.37.0",
+    # Model Context Protocol client support
+    "mcp>=1.27.1",
     # CLI
     "click>=8.1",
     # Config validation

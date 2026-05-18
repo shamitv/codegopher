@@ -7,10 +7,12 @@ from click.testing import CliRunner
 
 import codegopher.cli.main as cli_main
 from codegopher.cli.main import app
-from codegopher.config.schema import ModelConfig, ProviderEntry, Settings
+from codegopher.config.schema import ModelConfig, ProviderApiFamily, ProviderEntry, Settings
 from codegopher.core.agent import AgentResult
+from codegopher.core.errors import ConfigurationError
 from codegopher.providers.mock import MockProvider
 from codegopher.providers.openai_compat import OpenAICompatProvider
+from codegopher.providers.openai_responses import OpenAIResponsesProvider
 from codegopher.skills import discover_project_skills
 
 
@@ -101,6 +103,25 @@ def test_cli_applies_settings_overrides() -> None:
 
     assert result.exit_code == 0
     assert result.output == "mocked\n"
+
+
+def test_cli_applies_api_family_override(monkeypatch) -> None:
+    captured: dict[str, Settings] = {}
+
+    async def fake_run_agent(**kwargs):
+        captured["settings"] = kwargs["settings"]
+        return AgentResult(final_text="ok", iterations=1)
+
+    monkeypatch.setattr(cli_main, "run_agent", fake_run_agent)
+
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello", "--api-family", "responses"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+    )
+
+    assert result.exit_code == 0
+    assert captured["settings"].providers["openai"][0].api_family.value == "responses"
 
 
 def test_cli_appends_piped_stdin_to_prompt(monkeypatch) -> None:
@@ -235,6 +256,78 @@ def test_cli_json_debug_output_excludes_reasoning(monkeypatch) -> None:
     assert "thinking" not in result.output
 
 
+def test_cli_headless_starts_and_closes_mcp_registry(monkeypatch) -> None:
+    events: list[str] = []
+    captured: dict[str, object] = {}
+
+    class FakeTool:
+        name = "mcp__local__echo"
+        description = "Echo"
+        parameters = {"type": "object", "properties": {}}
+        requires_approval = True
+
+        async def execute(self, arguments, context):
+            raise AssertionError("not used")
+
+    class FakeMcpManager:
+        def __init__(self, *, settings, cwd, environ) -> None:
+            captured["cwd"] = cwd
+            captured["settings"] = settings
+            captured["has_environ"] = bool(environ)
+
+        async def __aenter__(self):
+            events.append("enter")
+            return self
+
+        async def __aexit__(self, *_exc_info):
+            events.append("exit")
+
+        def register_tools(self, registry) -> None:
+            registry.register(FakeTool())
+
+    async def fake_run_agent(**kwargs):
+        captured["tool_names"] = [tool.name for tool in kwargs["registry"].list()]
+        return AgentResult(final_text="ok", iterations=1)
+
+    monkeypatch.setattr(cli_main, "McpManager", FakeMcpManager)
+    monkeypatch.setattr(cli_main, "run_agent", fake_run_agent)
+
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+    )
+
+    assert result.exit_code == 0
+    assert events == ["enter", "exit"]
+    assert captured["has_environ"] is True
+    assert "mcp__local__echo" in captured["tool_names"]
+
+
+def test_cli_headless_reports_mcp_startup_failure(monkeypatch) -> None:
+    class FakeMcpManager:
+        def __init__(self, *, settings, cwd, environ) -> None:
+            pass
+
+        async def __aenter__(self):
+            raise ConfigurationError("MCP server local failed to initialize")
+
+        async def __aexit__(self, *_exc_info):
+            pass
+
+    monkeypatch.setattr(cli_main, "McpManager", FakeMcpManager)
+
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello", "--json"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
+    )
+
+    assert result.exit_code != 0
+    assert "MCP server local failed to initialize" in result.output
+    assert not result.output.strip().startswith("{")
+
+
 def test_cli_reports_configuration_errors() -> None:
     result = CliRunner().invoke(
         app,
@@ -282,6 +375,30 @@ def test_cli_builds_real_openai_compatible_provider(monkeypatch) -> None:
 
     assert isinstance(provider, OpenAICompatProvider)
     assert provider.base_url == "http://127.0.0.1:8000/v1"
+    assert provider.api_key == "sk-local"
+
+
+def test_cli_builds_real_openai_responses_provider(monkeypatch) -> None:
+    monkeypatch.delenv("CODEGOPHER_TEST_MOCK_RESPONSE", raising=False)
+    monkeypatch.setenv("LOCAL_API_KEY", "sk-local")
+
+    provider = cli_main._build_provider(
+        Settings(
+            model=ModelConfig(provider="openai", name="responses-model"),
+            providers={
+                "openai": [
+                    ProviderEntry(
+                        id="responses-model",
+                        name="Responses",
+                        api_key_env="LOCAL_API_KEY",
+                        api_family=ProviderApiFamily.responses,
+                    )
+                ]
+            },
+        )
+    )
+
+    assert isinstance(provider, OpenAIResponsesProvider)
     assert provider.api_key == "sk-local"
 
 

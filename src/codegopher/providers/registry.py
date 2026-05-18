@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 
+from codegopher.config.schema import ProviderApiFamily
 from codegopher.core.errors import ProviderError
 from codegopher.providers.base import Provider
 from codegopher.providers.openai_compat import OpenAICompatProvider
+from codegopher.providers.openai_responses import OpenAIResponsesProvider
 
 ProviderFactory = Callable[[], Provider]
 
@@ -33,10 +35,16 @@ def create_provider_registry(
     environ: Mapping[str, str] | None = None,
     base_url: str | None = None,
     api_key_env: str | None = "OPENAI_API_KEY",
+    api_family: ProviderApiFamily = ProviderApiFamily.chat_completions,
 ) -> ProviderRegistry:
     registry = ProviderRegistry()
+    provider_class = (
+        OpenAIResponsesProvider
+        if api_family is ProviderApiFamily.responses
+        else OpenAICompatProvider
+    )
     registry.register(
         "openai",
-        lambda: OpenAICompatProvider(base_url=base_url, api_key_env=api_key_env, environ=environ),
+        lambda: provider_class(base_url=base_url, api_key_env=api_key_env, environ=environ),
     )
     return registry
