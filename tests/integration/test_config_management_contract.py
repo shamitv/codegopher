@@ -6,8 +6,10 @@ from codegopher.config.loader import load_settings
 from codegopher.config.management import (
     ensure_project_mcp_servers_table,
     load_project_settings_document,
+    save_mcp_server,
     write_project_settings_document,
 )
+from codegopher.config.schema import McpServerConfig
 
 
 def test_project_settings_writer_contract_is_visible_to_settings_loader(
@@ -30,3 +32,28 @@ def test_project_settings_writer_contract_is_visible_to_settings_loader(
 
     assert settings.mcp.servers["playwright"].command == "npx"
     assert settings.mcp.servers["playwright"].args == ["@playwright/mcp@latest"]
+
+
+def test_save_mcp_server_contract_round_trips_through_settings_loader(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    home.mkdir()
+
+    save_mcp_server(
+        project,
+        "remote_docs",
+        McpServerConfig(
+            transport="sse",
+            url="https://example.test/sse",
+            headers_env={"Authorization": "MCP_AUTH"},
+        ),
+    )
+
+    settings = load_settings(cwd=project, home=home, environ={})
+
+    assert settings.mcp.servers["remote_docs"].transport.value == "sse"
+    assert settings.mcp.servers["remote_docs"].url == "https://example.test/sse"
+    assert settings.mcp.servers["remote_docs"].headers_env == {"Authorization": "MCP_AUTH"}

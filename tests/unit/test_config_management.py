@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+from codegopher.config.loader import load_settings
 from codegopher.config.management import (
     ensure_project_mcp_servers_table,
     load_project_settings_document,
     project_settings_path,
+    save_mcp_server,
     write_project_settings_document,
 )
+from codegopher.config.schema import McpServerConfig
+from codegopher.core.errors import ConfigurationError
 
 
 def test_project_settings_writer_creates_missing_file(tmp_path: Path) -> None:
@@ -64,3 +70,67 @@ def test_project_settings_writer_does_not_write_user_global_settings(
 
     assert user_settings.read_text(encoding="utf-8") == 'approval_mode = "review"\n'
     assert project_settings_path(project).exists()
+
+
+def test_save_mcp_server_adds_stdio_server_and_loader_can_read_it(
+    tmp_path: Path,
+) -> None:
+    save_mcp_server(
+        tmp_path,
+        "playwright",
+        McpServerConfig(
+            transport="stdio",
+            command="npx",
+            args=["@playwright/mcp@latest"],
+        ),
+    )
+
+    settings = load_settings(cwd=tmp_path, home=tmp_path / "home", environ={})
+
+    assert settings.mcp.servers["playwright"].command == "npx"
+    assert settings.mcp.servers["playwright"].args == ["@playwright/mcp@latest"]
+
+
+def test_save_mcp_server_edits_existing_server(tmp_path: Path) -> None:
+    save_mcp_server(
+        tmp_path,
+        "playwright",
+        McpServerConfig(transport="stdio", command="npx"),
+    )
+    save_mcp_server(
+        tmp_path,
+        "playwright",
+        McpServerConfig(transport="stdio", command="node", args=["server.js"]),
+    )
+
+    settings = load_settings(cwd=tmp_path, home=tmp_path / "home", environ={})
+
+    assert settings.mcp.servers["playwright"].command == "node"
+    assert settings.mcp.servers["playwright"].args == ["server.js"]
+
+
+def test_save_mcp_server_adds_sse_server(tmp_path: Path) -> None:
+    save_mcp_server(
+        tmp_path,
+        "remote_docs",
+        McpServerConfig(
+            transport="sse",
+            url="https://example.test/sse",
+            headers_env={"Authorization": "MCP_AUTH"},
+        ),
+    )
+
+    settings = load_settings(cwd=tmp_path, home=tmp_path / "home", environ={})
+
+    assert settings.mcp.servers["remote_docs"].transport.value == "sse"
+    assert settings.mcp.servers["remote_docs"].url == "https://example.test/sse"
+    assert settings.mcp.servers["remote_docs"].headers_env == {"Authorization": "MCP_AUTH"}
+
+
+def test_save_mcp_server_rejects_invalid_server_name(tmp_path: Path) -> None:
+    with pytest.raises(ConfigurationError, match="MCP server names"):
+        save_mcp_server(
+            tmp_path,
+            "bad.name",
+            McpServerConfig(transport="stdio", command="npx"),
+        )

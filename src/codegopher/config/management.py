@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import tomllib
+import re
 from pathlib import Path
 from typing import Any
 
 import tomlkit
+from pydantic import ValidationError
 from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
+from codegopher.config.schema import McpServerConfig
 from codegopher.core.errors import ConfigurationError
+
+MCP_SERVER_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 def project_settings_path(cwd: Path) -> Path:
@@ -71,11 +76,32 @@ def table_to_plain_dict(table: Any) -> dict[str, Any]:
     return dict(value)
 
 
+def validate_mcp_server_name(server_name: str) -> None:
+    if not MCP_SERVER_NAME_PATTERN.fullmatch(server_name):
+        raise ConfigurationError(
+            "MCP server names may contain only letters, numbers, '_' and '-'"
+        )
+
+
+def save_mcp_server(cwd: Path, server_name: str, server: McpServerConfig) -> Path:
+    validate_mcp_server_name(server_name)
+    try:
+        normalized = McpServerConfig.model_validate(server.model_dump(mode="json"))
+    except ValidationError as exc:
+        raise ConfigurationError(f"Invalid MCP server {server_name}: {exc}") from exc
+    document = load_project_settings_document(cwd)
+    servers = ensure_project_mcp_servers_table(document)
+    servers[server_name] = normalized.model_dump(mode="json", exclude_none=True)
+    return write_project_settings_document(cwd, document)
+
+
 __all__ = [
     "ensure_project_mcp_servers_table",
     "load_project_settings_document",
     "project_mcp_servers_table",
     "project_settings_path",
+    "save_mcp_server",
     "table_to_plain_dict",
+    "validate_mcp_server_name",
     "write_project_settings_document",
 ]

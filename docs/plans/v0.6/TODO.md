@@ -54,7 +54,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
 - [x] T016: Add a project-local settings update helper for MCP server mutations that preserves unrelated settings.
   Verify: `python -m pytest tests/unit/test_config_management.py`
-- [ ] T017: Add MCP server add/edit support using the existing stdio/SSE settings schema and validation.
+- [x] T017: Add MCP server add/edit support using the existing stdio/SSE settings schema and validation.
   Verify: `python -m pytest tests/unit/test_config_management.py tests/unit/test_config_schema.py -k mcp`
 - [ ] T018: Add MCP server enable, disable, and remove support.
   Verify: `python -m pytest tests/unit/test_config_management.py`
