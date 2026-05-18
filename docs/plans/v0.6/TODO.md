@@ -80,7 +80,7 @@ Commit rules:
 
 ## Milestone 4 - `cgopher --events` CLI Mode
 
-- [ ] T027: Add CLI routing for `--events -p PROMPT` without changing existing `--json` output.
+- [x] T027: Add CLI routing for `--events -p PROMPT` without changing existing `--json` output.
   Verify: `python -m pytest tests/unit/test_cli.py tests/integration/test_headless_cli.py`
 - [ ] T028: Emit JSONL events for one-shot text responses.
   Verify: `python -m pytest tests/integration/test_events_cli.py`

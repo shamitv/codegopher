@@ -164,6 +164,33 @@ def test_cli_json_output_shape_and_implicit_init(tmp_path: Path) -> None:
     assert project_skill.exists()
 
 
+def test_cli_events_prompt_routes_to_events_runner(monkeypatch, tmp_path: Path) -> None:
+    captured: dict[str, object] = {}
+
+    async def fake_run_events_cli(**kwargs) -> int:
+        captured.update(kwargs)
+        kwargs["stdout"].write("events-ok\n")
+        return 0
+
+    monkeypatch.setattr(cli_main, "run_events_cli", fake_run_events_cli)
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["--events", "-p", "hello", "--json"],
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+        )
+        project_skill = Path.cwd() / ".codegopher/skills/project/SKILL.md"
+
+    assert result.exit_code == 0
+    assert result.output == "events-ok\n"
+    assert captured["prompt"] == "hello"
+    assert isinstance(captured["settings"], Settings)
+    assert captured["cwd"] is not None
+    assert project_skill.exists()
+
+
 def test_cli_headless_no_project_init_skips_implicit_init(tmp_path: Path) -> None:
     runner = CliRunner()
 
