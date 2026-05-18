@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import TextIO
 
 from codegopher.config.schema import Settings
+from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
+from codegopher.events.protocol import ProtocolEvent, encode_jsonl_message
+from codegopher.events.session import EventsSession
 
 
 async def run_events_cli(
@@ -17,13 +20,27 @@ async def run_events_cli(
     stdout: TextIO,
     stderr: TextIO,
 ) -> int:
-    """Run the events-mode CLI.
+    """Run the events-mode CLI."""
 
-    The full JSONL protocol loop is implemented across the milestone 4 task
-    series; this function is intentionally introduced first as the routing seam.
-    """
+    _ = (stdin, stderr)
 
-    _ = (prompt, settings, cwd, stdin, stdout, stderr)
+    async def emit_event(event: ProtocolEvent) -> None:
+        stdout.write(encode_jsonl_message(event))
+        stdout.flush()
+
+    session = EventsSession(
+        settings=settings,
+        cwd=cwd,
+        event_sink=emit_event,
+    )
+    if prompt:
+        try:
+            async with session:
+                await session.run_turn(prompt)
+        except (ConfigurationError, ProviderError, AgentLoopError):
+            return 1
+        return 0
+
     return 0
 
 

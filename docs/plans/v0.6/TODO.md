@@ -82,7 +82,7 @@ Commit rules:
 
 - [x] T027: Add CLI routing for `--events -p PROMPT` without changing existing `--json` output.
   Verify: `python -m pytest tests/unit/test_cli.py tests/integration/test_headless_cli.py`
-- [ ] T028: Emit JSONL events for one-shot text responses.
+- [x] T028: Emit JSONL events for one-shot text responses.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
 - [ ] T029: Emit JSONL events for reasoning deltas without including reasoning in final text.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_agent_loop.py`
