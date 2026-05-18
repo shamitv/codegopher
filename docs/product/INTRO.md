@@ -23,7 +23,7 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 - File mention expansion: include `@path`, glob-style mentions, or `@glob:pattern` in a TUI prompt to provide file content safely.
 - Approved edits: require prior reads and explicit approval before modifying existing files.
 - Shell-assisted debugging: run approved commands through tools or `/shell COMMAND` with timeouts and clear output capture.
-- Provider flexibility: start with OpenAI-compatible streaming chat completions and expand to Anthropic and Gemini later.
+- Provider flexibility: start with OpenAI-compatible streaming chat completions and expand to first-class OpenAI Responses API support plus MCP integration.
 
 ## Product Principles
 
@@ -37,8 +37,8 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 
 CodeGopher is in early alpha with a working headless loop, an interactive TUI, file and shell tools, session persistence, provider reasoning rendering, context-window tracking, compaction, memory, Markdown skills, built-in repository documentation and static security skill packs, and session TODO state. Larger product features remain roadmap items:
 
+- OpenAI Responses API support.
 - MCP client integration.
-- Anthropic and Gemini providers, with Gemini based on `google-genai`.
 - Sub-agents and git worktree helpers.
 - Optional sandboxing.
 

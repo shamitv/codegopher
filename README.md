@@ -91,8 +91,8 @@ hatch run typecheck
 
 ## Planned Direction
 
-- MCP, additional providers, sub-agents, advanced coding workflows, and sandboxing remain future roadmap items.
-- Provider capability checks will expand as more model APIs are added.
+- OpenAI Responses API support, MCP, sub-agents, advanced coding workflows, and sandboxing remain future roadmap items.
+- Provider capability checks will expand as more API families are added.
 - Git/worktree helpers and richer initialization workflows may expand after the v0.3 release.
 
 ## Docs
