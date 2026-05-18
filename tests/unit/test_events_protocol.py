@@ -8,11 +8,16 @@ from codegopher.events.protocol import (
     ApprovalResponseCommand,
     ApprovalRequestEvent,
     CancelTurnCommand,
+    ConfigSnapshotEvent,
     DeleteMcpServerCommand,
     ErrorEvent,
     GetEffectiveConfigCommand,
     ListMcpServersCommand,
     McpServerPayload,
+    McpServerDeletedEvent,
+    McpServerSavedEvent,
+    McpServerSnapshotPayload,
+    McpServersEvent,
     ProtocolModel,
     ReasoningDeltaEvent,
     SaveMcpServerCommand,
@@ -379,3 +384,88 @@ def test_turn_complete_event_supports_counts() -> None:
 def test_turn_complete_event_rejects_negative_counts() -> None:
     with pytest.raises(ValidationError):
         TurnCompleteEvent(turn_id="turn-1", tool_count=-1)
+
+
+def test_config_snapshot_event_supports_endpoint_metadata() -> None:
+    event = ConfigSnapshotEvent(
+        workspace_root="/repo",
+        provider="openai",
+        model="gpt-test",
+        api_family="responses",
+        base_url="https://api.example.test/v1",
+        config_sources=["defaults", "project"],
+    )
+
+    assert event.type == "config_snapshot"
+    assert event.provider == "openai"
+    assert event.model == "gpt-test"
+    assert event.api_family == "responses"
+    assert event.base_url == "https://api.example.test/v1"
+    assert event.config_sources == ["defaults", "project"]
+
+
+def test_config_snapshot_event_rejects_invalid_api_family() -> None:
+    with pytest.raises(ValidationError):
+        ConfigSnapshotEvent(
+            workspace_root="/repo",
+            provider="openai",
+            model="gpt-test",
+            api_family="assistants",
+        )
+
+
+def test_mcp_server_snapshot_payload_supports_source_metadata() -> None:
+    snapshot = McpServerSnapshotPayload(
+        name="playwright",
+        source="project",
+        server=McpServerPayload(command="npx"),
+    )
+
+    assert snapshot.name == "playwright"
+    assert snapshot.source == "project"
+    assert snapshot.server.command == "npx"
+
+
+def test_mcp_server_snapshot_payload_rejects_blank_name() -> None:
+    with pytest.raises(ValidationError):
+        McpServerSnapshotPayload(name="", server=McpServerPayload(command="npx"))
+
+
+def test_mcp_servers_event_supports_empty_and_populated_lists() -> None:
+    empty = McpServersEvent(workspace_root="/repo")
+    populated = McpServersEvent(
+        workspace_root="/repo",
+        servers=[
+            McpServerSnapshotPayload(
+                name="playwright",
+                source="project",
+                server=McpServerPayload(command="npx"),
+            )
+        ],
+    )
+
+    assert empty.type == "mcp_servers"
+    assert empty.servers == []
+    assert populated.servers[0].name == "playwright"
+
+
+def test_mcp_server_saved_event_supports_normalized_payload() -> None:
+    event = McpServerSavedEvent(
+        workspace_root="/repo",
+        server_name="playwright",
+        server=McpServerPayload(command="npx"),
+    )
+
+    assert event.type == "mcp_server_saved"
+    assert event.server_name == "playwright"
+    assert event.server.command == "npx"
+
+
+def test_mcp_server_deleted_event_requires_server_name() -> None:
+    event = McpServerDeletedEvent(workspace_root="/repo", server_name="playwright")
+
+    assert event.type == "mcp_server_deleted"
+    assert event.server_name == "playwright"
+
+    with pytest.raises(ValidationError):
+        McpServerDeletedEvent(workspace_root="/repo", server_name="")

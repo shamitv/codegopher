@@ -168,3 +168,42 @@ class TurnCompleteEvent(ProtocolEvent):
     tool_count: int = Field(default=0, ge=0)
     approval_count: int = Field(default=0, ge=0)
     iteration_count: int = Field(default=0, ge=0)
+
+
+class ConfigSnapshotEvent(ProtocolEvent):
+    type: Literal["config_snapshot"] = "config_snapshot"
+    workspace_root: str = Field(min_length=1)
+    provider: str = Field(min_length=1)
+    model: str = Field(min_length=1)
+    api_family: Literal["chat_completions", "responses"]
+    base_url: str | None = None
+    config_sources: list[str] = Field(default_factory=list)
+
+
+class McpServerSnapshotPayload(BaseModel):
+    """Redacted MCP server snapshot for VS Code display."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1)
+    source: str | None = None
+    server: McpServerPayload
+
+
+class McpServersEvent(ProtocolEvent):
+    type: Literal["mcp_servers"] = "mcp_servers"
+    workspace_root: str = Field(min_length=1)
+    servers: list[McpServerSnapshotPayload] = Field(default_factory=list)
+
+
+class McpServerSavedEvent(ProtocolEvent):
+    type: Literal["mcp_server_saved"] = "mcp_server_saved"
+    workspace_root: str = Field(min_length=1)
+    server_name: str = Field(min_length=1)
+    server: McpServerPayload
+
+
+class McpServerDeletedEvent(ProtocolEvent):
+    type: Literal["mcp_server_deleted"] = "mcp_server_deleted"
+    workspace_root: str = Field(min_length=1)
+    server_name: str = Field(min_length=1)
