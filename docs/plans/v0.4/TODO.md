@@ -90,17 +90,17 @@ This checklist tracks the v0.4 implementation slice for OpenAI Responses API And
 
 ## Milestone 7 - MCP Transport Verification
 
-- [ ] T035: Add optional integration verification for an MCP SSE fixture server or a locally controlled SSE endpoint.
+- [x] T035: Add optional integration verification for an MCP SSE fixture server or a locally controlled SSE endpoint.
   Verify: manual or optional test result recorded in `docs/plans/v0.4/STATUS.md`
-- [ ] T036: Verify CodeGopher can connect to an MCP SSE endpoint, list tools, execute an approval-gated tool call, and close the SSE session cleanly.
+- [x] T036: Verify CodeGopher can connect to an MCP SSE endpoint, list tools, execute an approval-gated tool call, and close the SSE session cleanly.
   Verify: manual or optional test result recorded in `docs/plans/v0.4/STATUS.md`
-- [ ] T037: Add a local/manual verification task for the official Playwright MCP server using `npx @playwright/mcp@latest --headless --isolated`.
+- [x] T037: Add a local/manual verification task for the official Playwright MCP server using `npx @playwright/mcp@latest --headless --isolated`.
   Verify: `rg -n "npx @playwright/mcp@latest --headless --isolated" docs/plans/v0.4`
-- [ ] T038: Verify CodeGopher can start Playwright MCP over stdio, list browser tools, expose them as `mcp__playwright__*` tools, and shut the server down cleanly.
+- [x] T038: Verify CodeGopher can start Playwright MCP over stdio, list browser tools, expose them as `mcp__playwright__*` tools, and shut the server down cleanly.
   Verify: manual check recorded in `docs/plans/v0.4/STATUS.md`
-- [ ] T039: Verify an approval-gated Playwright MCP browser action against a deterministic test page.
+- [x] T039: Verify an approval-gated Playwright MCP browser action against a deterministic test page.
   Verify: manual check recorded in `docs/plans/v0.4/STATUS.md`
-- [ ] T040: If Node.js, browser installation, network, display constraints, or SSE endpoint availability blocks MCP transport verification, record the blocker and skipped scope explicitly.
+- [x] T040: If Node.js, browser installation, network, display constraints, or SSE endpoint availability blocks MCP transport verification, record the blocker and skipped scope explicitly.
   Verify: `rg -n "Playwright MCP|SSE|blocked|skipped" docs/plans/v0.4/STATUS.md`
 
 ## Milestone 8 - Release Readiness

@@ -25,8 +25,8 @@ Last reviewed: 2026-05-18
 | Dynamic MCP tools | Done | Tools are named `mcp__SERVER__TOOL`, preserve input schemas, require approval, and serialize results deterministically. |
 | Headless integration | Done | Headless runtime starts/closes MCP sessions and supports Responses text/tool/debug/JSON flows in tests. |
 | TUI integration | Done | TUI starts MCP before agent turns, disables input on MCP init failure, and closes MCP on exit. |
-| Playwright MCP verification | Pending | Manual verification planned with `npx @playwright/mcp@latest --headless --isolated`. |
-| SSE endpoint verification | Pending | Requires a controlled SSE MCP endpoint or fixture. |
+| Playwright MCP verification | Done | Manual stdio check listed 23 Playwright tools and executed an approval-gated `browser_navigate` call against a deterministic `data:` page. |
+| SSE endpoint verification | Done | Manual controlled FastMCP SSE check listed and executed `mcp__verify_sse__echo` with a header resolved through `headers_env`. |
 
 ## Verification Recorded
 
@@ -44,6 +44,15 @@ Last reviewed: 2026-05-18
   - `tests/unit/test_cli.py`
   - `tests/unit/test_tui_agent.py`
 - Focused lint and mypy checks passed for the Responses and MCP implementation slices.
+- Manual Playwright MCP stdio verification passed with `npx @playwright/mcp@latest --headless --isolated`:
+  - Listed 23 `mcp__playwright__*` browser tools.
+  - Ran an approval-gated `mcp__playwright__browser_navigate` tool call through the agent loop against a deterministic `data:` page.
+  - Closed the MCP session cleanly.
+- Manual MCP SSE verification passed against a temporary controlled FastMCP server:
+  - Connected to a local SSE endpoint.
+  - Resolved an `Authorization` header through `headers_env`.
+  - Listed and executed `mcp__verify_sse__echo`.
+  - Closed the SSE session cleanly.
 
 ## Remaining Release Work
 
@@ -52,7 +61,4 @@ Last reviewed: 2026-05-18
   - `ruff check src/ tests/`
   - `mypy src/`
   - `python -m hatch build`
-- Run or explicitly record blockers for:
-  - Playwright MCP stdio verification.
-  - A controlled MCP SSE endpoint verification.
 - Update this status file with final verification results before release tagging.
