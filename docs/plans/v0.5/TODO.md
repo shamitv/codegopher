@@ -84,13 +84,13 @@ Commit rules:
 
 ## Milestone 6 - Final Verification
 
-- [ ] T028: Run the complete unit and integration suite.
+- [x] T028: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T029: Run lint checks.
+- [x] T029: Run lint checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
-- [ ] T030: Run static type checking.
+- [x] T030: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
-- [ ] T031: Build distribution artifacts.
+- [x] T031: Build distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
-- [ ] T032: Run the machine-specific path guard before final commit.
+- [x] T032: Run the machine-specific path guard before final commit.
   Verify: run the local machine-specific path guard and confirm no tracked-source matches.

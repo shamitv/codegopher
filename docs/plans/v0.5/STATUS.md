@@ -4,7 +4,7 @@ Last reviewed: 2026-05-18
 
 ## Readiness Summary
 
-- v0.5 runtime implementation is complete; final release-readiness checks are in progress.
+- v0.5 implementation has passed local release-readiness verification.
 - The release goal is Repository Documentation And Static Security Skill Packs.
 - v0.4 remains a placeholder roadmap slot for Providers And MCP.
 - Built-in skill content, init materialization, docs, and tests are complete.
@@ -14,7 +14,7 @@ Last reviewed: 2026-05-18
 Practical readiness estimate:
 
 - Skill-pack implementation and tests are complete.
-- Final release-readiness checks must be rerun and recorded after implicit project init.
+- Final release-readiness checks passed on 2026-05-18.
 
 ## Current Repository State
 
@@ -28,7 +28,7 @@ Practical readiness estimate:
 | Static security boundary | Implemented | OWASP review skill is static-only and avoids active probing or scanner instructions. |
 | Tests | Complete | Unit and integration coverage passed locally. |
 | Docs | Complete | README, architecture notes, release checklist, and roadmap were refreshed. |
-| Release readiness | In progress | Full pytest, ruff, mypy, and hatch build must be rerun after implicit init. |
+| Release readiness | Complete locally | Full pytest, ruff, mypy, hatch build, package content check, and path guard passed. |
 
 ## Verified Facts
 
@@ -36,16 +36,19 @@ Practical readiness estimate:
 - Existing skill loading supports `/skills load ID` and `@skill:ID`.
 - Built-in skills are read-only Markdown context and do not register executable tools.
 - OWASP Top 10:2025 is the current web application Top 10 reference for the v0.5 security skill.
-- Prior local verification passed with 410 tests passed and 1 skipped before implicit init entered scope.
+- Full local verification passed with 414 tests passed and 1 skipped.
+- `ruff check src/ tests/`, `mypy src/`, and `python -m hatch build` passed.
+- Built-in skill files are present in the built wheel.
+- Manual first-use and opt-out smoke checks passed against a local external test codebase.
+- The machine-specific path guard found no tracked-source matches.
 - `.codegopher/` is ignored local project state and should not be committed by default.
 - `--no-project-init` disables implicit project initialization for a run.
 - `python -m pytest tests/unit/test_cli.py` passed after implicit project init implementation.
 
 ## Immediate Blockers
 
-- Full local verification must pass after implicit project init.
 - CI must pass before release readiness is complete.
 
 ## Implementation Recommendation
 
-Rerun full verification and keep `cgopher init`, implicit project init, built-in skill discovery, skill context injection, and static-only security assertions in the regression loop.
+Open a PR and run CI. Keep `cgopher init`, implicit project init, built-in skill discovery, skill context injection, and static-only security assertions in the regression loop.
