@@ -4,13 +4,15 @@ This checklist is intentionally commit-oriented. Each checkbox should normally b
 
 Commit rules:
 
+- Complete, verify, and commit each task before starting the next task.
+- Include the task id in the commit message, for example `T006 Add events protocol base models`.
 - Preserve existing `cgopher`, `cgopher -p/--prompt`, `--json`, `--debug`, and TUI behavior.
 - Keep Python authoritative for config loading, MCP validation, tools, approvals, provider behavior, and filesystem safety.
 - Do not execute CodeGopher tools or MCP tools directly from TypeScript.
 - Do not parse, validate, or write CodeGopher settings TOML from TypeScript.
 - Redact API keys, raw environment values, MCP header values, and values resolved through `headers_env`.
 - Prefer protocol and Python config tests before VS Code UI work.
-- After every commit, run the smallest relevant verification command listed for that step.
+- Before each commit, run the smallest relevant verification command listed for that task.
 
 ## Milestone 0 - Planning And Roadmap Setup
 
