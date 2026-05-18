@@ -9,6 +9,7 @@ CodeGopher v0.3 includes both the original headless command and an interactive T
 ```bash
 cgopher
 cgopher -p "What does this project do?"
+cgopher --no-project-init -p "What does this project do?"
 cgopher -p "read this test log and summarize it" < test.log
 cgopher init
 cgopher init --skill-pack repo-docs
@@ -16,6 +17,7 @@ cgopher init --skill-pack security
 ```
 
 Run plain `cgopher` in an interactive terminal to open the TUI. Use `-p/--prompt` for the headless one-shot path.
+On first use in a project, CodeGopher creates default local project guidance under `.codegopher/skills/project/SKILL.md`; pass `--no-project-init` to disable that for a run.
 Run `cgopher init [PATH]` to create default project-local Markdown skill guidance under `.codegopher/skills`.
 Use `cgopher init [PATH] --skill-pack repo-docs|security|all` to materialize built-in repository documentation and static security review skills into a project.
 
@@ -23,6 +25,7 @@ Useful flags:
 
 - `--model`, `--provider`, and `--base-url` override model/provider settings.
 - `--approval-mode review|auto|yolo` controls tool approval behavior.
+- `--no-project-init` disables first-use project guidance creation for the current run.
 - `--json` emits machine-readable headless results.
 - `--debug` shows provider reasoning content in headless text output when available.
 

@@ -66,11 +66,31 @@ Commit rules:
   Verify: `rg -n "skill pack|static-only|OWASP" docs/arch`
 - [x] T021: Update release checklist with v0.5 skill-pack smoke tests.
   Verify: `rg -n "skill-pack|OWASP" docs/release/CHECKLIST.md`
-- [x] T022: Run the complete unit and integration suite.
+- [x] T022: Add implicit project init scope to v0.5 docs.
+  Verify: `rg -n "implicit|first use|--no-project-init|project init" docs/plans/v0.5 README.md docs/release/CHECKLIST.md`
+
+## Milestone 5 - Implicit Project Init
+
+- [ ] T023: Add a reusable project-init helper that can run silently for implicit init and visibly for `cgopher init`.
+  Verify: `python -m pytest tests/unit/test_cli.py`
+- [ ] T024: Add global `--no-project-init` CLI flag.
+  Verify: `python -m pytest tests/unit/test_cli.py`
+- [ ] T025: Trigger implicit init before headless prompt execution when `.codegopher/` is missing.
+  Verify: `python -m pytest tests/unit/test_cli.py`
+- [ ] T026: Trigger implicit init before TUI launch when `.codegopher/` is missing.
+  Verify: `python -m pytest tests/unit/test_cli.py`
+- [ ] T027: Preserve no-init behavior for existing `.codegopher/`, `--no-project-init`, non-interactive no-prompt errors, and manual `cgopher init`.
+  Verify: `python -m pytest tests/unit/test_cli.py`
+
+## Milestone 6 - Final Verification
+
+- [ ] T028: Run the complete unit and integration suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [x] T023: Run lint checks.
+- [ ] T029: Run lint checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/`
-- [x] T024: Run static type checking.
+- [ ] T030: Run static type checking.
   Verify: `source .venv/bin/activate && mypy src/`
-- [x] T025: Build distribution artifacts.
+- [ ] T031: Build distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
+- [ ] T032: Run the machine-specific path guard before final commit.
+  Verify: run the local machine-specific path guard and confirm no tracked-source matches.

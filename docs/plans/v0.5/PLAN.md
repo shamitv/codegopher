@@ -14,6 +14,7 @@ Target user experience:
 cgopher init --skill-pack repo-docs
 cgopher init --skill-pack security
 cgopher -p "use @skill:repo-domain-docs to summarize this repo"
+cgopher --no-project-init -p "explain this repo without creating project guidance"
 cgopher -p "use @skill:crud-owasp-static-audit to review this CRUD app"
 ```
 
@@ -27,8 +28,11 @@ The release ships built-in Markdown skills for:
 
 Existing interfaces stay compatible:
 
+- `cgopher`: implicitly initialize project-local guidance on first use, then launch the TUI.
+- `cgopher -p/--prompt TEXT`: implicitly initialize project-local guidance on first use, then run the headless prompt.
 - `cgopher init [PATH]`: keep creating the default `project` skill.
 - `cgopher init [PATH] --force`: keep overwriting the default `project` skill.
+- `--no-project-init`: disable implicit project initialization for the current `cgopher` or `cgopher -p` run.
 - `/skills`, `/skills load ID`, and `@skill:ID`: keep loading discovered skills.
 
 New init interface:
@@ -48,12 +52,21 @@ Add built-in Markdown skills under `src/codegopher/skills/builtins/`:
 
 Extend `cgopher init` with a skill-pack option that copies the packaged `SKILL.md` files into project `.codegopher/skills/<id>/SKILL.md`.
 
+Add implicit project init for normal first use:
+
+- If `(cwd / ".codegopher")` is missing, create `.codegopher/skills/project/SKILL.md` using the existing default project skill content before a headless agent run or TUI launch.
+- If `.codegopher/` already exists, do nothing, even when the default project skill file is absent.
+- Do not implicitly initialize for `cgopher init`, `--help`, or non-interactive no-prompt error paths.
+- Keep implicit init silent on stdout so headless text and `--json` output stay stable.
+- If implicit init fails, raise a clear CLI error that mentions `--no-project-init`.
+
 ## Safety And Scope
 
 - Skills remain read-only Markdown context.
 - No executable skill runtime, scripts, scanners, or new dependencies are added.
 - The security skill is static-only: it must not run live HTTP probing, fuzzing, credential attacks, dynamic scanners, exploit payloads, or network tests.
 - The security skill must separate confirmed findings from unknown or not-reviewed areas.
+- Implicit init writes only local `.codegopher/` project guidance and must not write settings or secrets.
 
 Out of scope for v0.5:
 
@@ -71,6 +84,7 @@ Expected test layers:
 - Integration tests proving `@skill:repo-domain-docs`, `@skill:repo-tech-docs`, and `@skill:crud-owasp-static-audit` reach provider context.
 - Static safety assertions proving the OWASP skill documents the static-only boundary and does not recommend active tools.
 - Documentation checks for roadmap, release checklist, and architecture notes.
+- CLI tests for implicit project init, `--no-project-init`, JSON output stability, existing `.codegopher/` handling, non-interactive no-prompt behavior, and mocked TUI launch.
 
 Final v0.5 verification:
 

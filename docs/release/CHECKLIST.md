@@ -10,6 +10,7 @@ Use this checklist before publishing a CodeGopher release.
 - Install the built wheel in a clean virtual environment.
 - Smoke test `codegopher --help`.
 - Smoke test `cgopher -p "hello" --json` with a configured provider or the local test mock.
+- Smoke test implicit project init in a disposable project: first `cgopher -p "hello"` creates `.codegopher/skills/project/SKILL.md`, while `cgopher --no-project-init -p "hello"` does not create `.codegopher/`.
 - Smoke test real OpenAI-compatible endpoint, when available: `OPENAI_API_KEY=dummy-key cgopher -p "Reply with exactly: codegopher-smoke-ok" --json`.
 - Smoke test project initialization: `cgopher init` creates `.codegopher/skills/project/SKILL.md` without writing settings or secrets.
 - Smoke test v0.5 skill-pack initialization: `cgopher init --skill-pack repo-docs`, `cgopher init --skill-pack security`, and `cgopher init --skill-pack all` create the expected `.codegopher/skills/*/SKILL.md` files without writing settings or secrets.
