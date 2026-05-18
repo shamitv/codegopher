@@ -23,6 +23,19 @@ The VS Code extension will register a native chat participant named `@codegopher
 
 The first IDE layer is intentionally not an LSP integration and not a webview app. It is a chat surface over the local CodeGopher agent plus small VS Code-native controls for inspecting the configured LLM endpoint and managing already-supported MCP server settings.
 
+## IDE Scope And Tradeoffs
+
+The v0.6 extension should be a thin IDE shell around the existing local agent. VS Code owns the user-facing chat participant, commands, progress rendering, approval buttons, and simple command-palette flows. Python owns the agent session, configuration semantics, provider selection, MCP lifecycle, tool execution, approvals, redaction, and workspace safety.
+
+Tradeoffs of this design:
+
+- Faster first useful IDE release: the extension can reuse the existing CLI, provider, MCP, approval, and tool code instead of rebuilding agent behavior in TypeScript.
+- Smaller correctness surface: terminal, TUI, headless, and VS Code paths share the same Python safety rules, reducing the chance that IDE behavior diverges from the CLI.
+- Less custom UI control: native VS Code Chat and command-palette controls are simpler and more familiar, but they are less flexible than a full custom webview for complex settings screens.
+- No editor-native intelligence yet: skipping LSP means v0.6 will not provide diagnostics, hovers, code actions, autocomplete, or inline fixes outside the chat flow.
+- More subprocess/protocol work: the extension needs a robust JSONL protocol, lifecycle handling, cancellation, and error mapping because Python and VS Code are separate processes.
+- Better long-term layering: the protocol creates a stable boundary that can later support richer IDE surfaces, LSP features, or a webview without moving core agent authority out of Python.
+
 ## User-Facing Interfaces
 
 Primary VS Code interface:
