@@ -14,6 +14,7 @@ from codegopher.events.protocol import (
     ErrorEvent,
     ReasoningDeltaEvent,
     SessionStartedEvent,
+    StartTurnCommand,
     TextDeltaEvent,
     ToolCallEvent,
     ToolResultEvent,
@@ -222,3 +223,33 @@ def test_events_cli_one_shot_malformed_approval_input_emits_protocol_error(
     assert "Malformed protocol JSON" in error.message
     assert tool_result.is_error is True
     assert tool_result.result_summary == "Invalid approval response"
+
+
+def test_events_cli_long_lived_accepts_start_turn_command(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        command = StartTurnCommand(
+            turn_id="turn-long",
+            prompt="hello",
+            workspace_root=str(Path.cwd()),
+        )
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init"],
+            input=command.model_dump_json() + "\n",
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "long answer"},
+        )
+
+    messages = decode_output(result.output)
+
+    assert result.exit_code == 0
+    assert [type(message) for message in messages] == [
+        SessionStartedEvent,
+        TurnStartedEvent,
+        TextDeltaEvent,
+        TurnCompleteEvent,
+    ]
+    assert messages[1].turn_id == "turn-long"
+    assert messages[2].content == "long answer"
+    assert messages[3].final_text == "long answer"

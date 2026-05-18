@@ -13,10 +13,11 @@ from codegopher.events.protocol import (
     ErrorEvent,
     ProtocolEvent,
     ProtocolPayloadError,
+    StartTurnCommand,
     decode_jsonl_message,
     encode_jsonl_message,
 )
-from codegopher.events.session import EventsSession, ProviderFactory
+from codegopher.events.session import EventsSession, ProviderFactory, configuration_error
 
 protocol_error = "protocol_error"
 
@@ -54,15 +55,68 @@ async def run_events_cli(
         event_sink=emit_event,
         provider_factory=provider_factory,
     )
-    if prompt:
-        try:
-            async with session:
+    try:
+        async with session:
+            if prompt:
                 await session.run_turn(prompt)
-        except (ConfigurationError, ProviderError, AgentLoopError):
-            return 1
-        return 0
+            else:
+                await _run_command_loop(
+                    session=session,
+                    stdin=stdin,
+                    stdout=stdout,
+                    cwd=cwd,
+                )
+    except (ConfigurationError, ProviderError, AgentLoopError):
+        return 1
 
     return 0
+
+
+async def _run_command_loop(
+    *,
+    session: EventsSession,
+    stdin: TextIO,
+    stdout: TextIO,
+    cwd: Path,
+) -> None:
+    for line in stdin:
+        if not line.strip():
+            continue
+        try:
+            command = decode_jsonl_message(line)
+        except ProtocolPayloadError as exc:
+            await _emit_protocol_error(
+                stdout,
+                session_id=session.session_id,
+                turn_id=None,
+                message=str(exc),
+            )
+            continue
+
+        if isinstance(command, StartTurnCommand):
+            if not _workspace_matches(command.workspace_root, cwd):
+                await _emit_error(
+                    stdout,
+                    ErrorEvent(
+                        session_id=session.session_id,
+                        turn_id=command.turn_id,
+                        code=configuration_error,
+                        message="start_turn workspace_root must match the process cwd",
+                    ),
+                )
+                continue
+            try:
+                await session.run_turn(command.prompt, turn_id=command.turn_id)
+            except (ConfigurationError, ProviderError, AgentLoopError):
+                continue
+            continue
+
+        await _emit_protocol_error(
+            stdout,
+            session_id=session.session_id,
+            turn_id=command.turn_id,
+            message=f"Unsupported command in events mode: {command.type}",
+        )
 
 
 async def _resolve_one_shot_approval(
@@ -145,17 +199,27 @@ async def _emit_protocol_error(
     turn_id: str | None,
     message: str,
 ) -> None:
-    stdout.write(
-        encode_jsonl_message(
-            ErrorEvent(
-                session_id=session_id,
-                turn_id=turn_id,
-                code=protocol_error,
-                message=message,
-            )
+    await _emit_error(
+        stdout,
+        ErrorEvent(
+            session_id=session_id,
+            turn_id=turn_id,
+            code=protocol_error,
+            message=message,
         )
     )
+
+
+async def _emit_error(stdout: TextIO, event: ErrorEvent) -> None:
+    stdout.write(encode_jsonl_message(event))
     stdout.flush()
+
+
+def _workspace_matches(workspace_root: str, cwd: Path) -> bool:
+    try:
+        return Path(workspace_root).resolve() == cwd.resolve()
+    except OSError:
+        return False
 
 
 __all__ = ["protocol_error", "run_events_cli"]
