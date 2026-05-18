@@ -6,16 +6,25 @@ from pydantic import ValidationError
 from codegopher.events.protocol import (
     PROTOCOL_VERSION,
     ApprovalResponseCommand,
+    ApprovalRequestEvent,
     CancelTurnCommand,
     DeleteMcpServerCommand,
+    ErrorEvent,
     GetEffectiveConfigCommand,
     ListMcpServersCommand,
     McpServerPayload,
     ProtocolModel,
+    ReasoningDeltaEvent,
     SaveMcpServerCommand,
+    SessionStartedEvent,
     SetMcpServerEnabledCommand,
     ShutdownCommand,
     StartTurnCommand,
+    TextDeltaEvent,
+    ToolCallEvent,
+    ToolResultEvent,
+    TurnCompleteEvent,
+    TurnStartedEvent,
 )
 
 
@@ -239,3 +248,134 @@ def test_delete_mcp_server_command_requires_server_name() -> None:
 
     with pytest.raises(ValidationError):
         DeleteMcpServerCommand(workspace_root="/repo", server_name="")
+
+
+def test_session_started_event_supports_expected_shape() -> None:
+    event = SessionStartedEvent(
+        session_id="session-1",
+        cwd="/repo",
+        provider="openai",
+        model="gpt-test",
+        approval_mode="review",
+    )
+
+    assert event.type == "session_started"
+    assert event.session_id == "session-1"
+    assert event.cwd == "/repo"
+    assert event.provider == "openai"
+    assert event.model == "gpt-test"
+    assert event.approval_mode == "review"
+
+
+def test_session_started_event_rejects_invalid_approval_mode() -> None:
+    with pytest.raises(ValidationError):
+        SessionStartedEvent(
+            session_id="session-1",
+            cwd="/repo",
+            provider="openai",
+            model="gpt-test",
+            approval_mode="sometimes",
+        )
+
+
+def test_turn_started_event_requires_turn_id_and_cwd() -> None:
+    event = TurnStartedEvent(session_id="session-1", turn_id="turn-1", cwd="/repo")
+
+    assert event.type == "turn_started"
+    assert event.turn_id == "turn-1"
+    assert event.cwd == "/repo"
+
+    with pytest.raises(ValidationError):
+        TurnStartedEvent(session_id="session-1", turn_id="", cwd="/repo")
+
+
+def test_text_and_reasoning_delta_events_require_content() -> None:
+    text = TextDeltaEvent(turn_id="turn-1", content="hello")
+    reasoning = ReasoningDeltaEvent(turn_id="turn-1", content="thinking")
+
+    assert text.type == "text_delta"
+    assert text.content == "hello"
+    assert reasoning.type == "reasoning_delta"
+    assert reasoning.content == "thinking"
+
+    with pytest.raises(ValidationError):
+        TextDeltaEvent(turn_id="turn-1", content="")
+
+    with pytest.raises(ValidationError):
+        ReasoningDeltaEvent(turn_id="turn-1", content="")
+
+
+def test_tool_call_event_supports_argument_summary() -> None:
+    event = ToolCallEvent(
+        turn_id="turn-1",
+        tool_id="tool-1",
+        tool_name="read_file",
+        arguments_summary='{"path":"README.md"}',
+    )
+
+    assert event.type == "tool_call"
+    assert event.tool_id == "tool-1"
+    assert event.tool_name == "read_file"
+    assert "README.md" in event.arguments_summary
+
+
+def test_approval_request_event_supports_optional_raw_arguments() -> None:
+    event = ApprovalRequestEvent(
+        turn_id="turn-1",
+        approval_id="approval-1",
+        tool_name="write_file",
+        arguments_summary='{"path":"README.md"}',
+        raw_arguments={"path": "README.md", "content": "new"},
+    )
+
+    assert event.type == "approval_request"
+    assert event.approval_id == "approval-1"
+    assert event.raw_arguments == {"path": "README.md", "content": "new"}
+
+
+def test_tool_result_event_supports_error_state() -> None:
+    event = ToolResultEvent(
+        turn_id="turn-1",
+        tool_id="tool-1",
+        is_error=True,
+        result_summary="Denied by user",
+    )
+
+    assert event.type == "tool_result"
+    assert event.is_error is True
+    assert event.result_summary == "Denied by user"
+
+
+def test_error_event_requires_code_and_message() -> None:
+    event = ErrorEvent(code="provider_error", message="provider failed")
+
+    assert event.type == "error"
+    assert event.code == "provider_error"
+    assert event.message == "provider failed"
+
+    with pytest.raises(ValidationError):
+        ErrorEvent(code="", message="provider failed")
+
+    with pytest.raises(ValidationError):
+        ErrorEvent(code="provider_error", message="")
+
+
+def test_turn_complete_event_supports_counts() -> None:
+    event = TurnCompleteEvent(
+        turn_id="turn-1",
+        final_text="done",
+        tool_count=2,
+        approval_count=1,
+        iteration_count=3,
+    )
+
+    assert event.type == "turn_complete"
+    assert event.final_text == "done"
+    assert event.tool_count == 2
+    assert event.approval_count == 1
+    assert event.iteration_count == 3
+
+
+def test_turn_complete_event_rejects_negative_counts() -> None:
+    with pytest.raises(ValidationError):
+        TurnCompleteEvent(turn_id="turn-1", tool_count=-1)

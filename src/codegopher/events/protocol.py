@@ -24,6 +24,10 @@ class ProtocolCommand(ProtocolModel):
     """Base class for commands sent to the CodeGopher event subprocess."""
 
 
+class ProtocolEvent(ProtocolModel):
+    """Base class for events emitted by the CodeGopher event subprocess."""
+
+
 class StartTurnCommand(ProtocolCommand):
     type: Literal["start_turn"] = "start_turn"
     prompt: str = Field(min_length=1)
@@ -96,3 +100,71 @@ class DeleteMcpServerCommand(ProtocolCommand):
     type: Literal["delete_mcp_server"] = "delete_mcp_server"
     workspace_root: str = Field(min_length=1)
     server_name: str = Field(min_length=1)
+
+
+class SessionStartedEvent(ProtocolEvent):
+    type: Literal["session_started"] = "session_started"
+    session_id: str = Field(min_length=1)
+    cwd: str = Field(min_length=1)
+    provider: str = Field(min_length=1)
+    model: str = Field(min_length=1)
+    approval_mode: Literal["review", "auto", "yolo"]
+
+
+class TurnStartedEvent(ProtocolEvent):
+    type: Literal["turn_started"] = "turn_started"
+    session_id: str = Field(min_length=1)
+    turn_id: str = Field(min_length=1)
+    cwd: str = Field(min_length=1)
+
+
+class TextDeltaEvent(ProtocolEvent):
+    type: Literal["text_delta"] = "text_delta"
+    turn_id: str = Field(min_length=1)
+    content: str = Field(min_length=1)
+
+
+class ReasoningDeltaEvent(ProtocolEvent):
+    type: Literal["reasoning_delta"] = "reasoning_delta"
+    turn_id: str = Field(min_length=1)
+    content: str = Field(min_length=1)
+
+
+class ToolCallEvent(ProtocolEvent):
+    type: Literal["tool_call"] = "tool_call"
+    turn_id: str = Field(min_length=1)
+    tool_id: str = Field(min_length=1)
+    tool_name: str = Field(min_length=1)
+    arguments_summary: str = ""
+
+
+class ApprovalRequestEvent(ProtocolEvent):
+    type: Literal["approval_request"] = "approval_request"
+    turn_id: str = Field(min_length=1)
+    approval_id: str = Field(min_length=1)
+    tool_name: str = Field(min_length=1)
+    arguments_summary: str = ""
+    raw_arguments: dict[str, Any] | None = None
+
+
+class ToolResultEvent(ProtocolEvent):
+    type: Literal["tool_result"] = "tool_result"
+    turn_id: str = Field(min_length=1)
+    tool_id: str = Field(min_length=1)
+    is_error: bool = False
+    result_summary: str = ""
+
+
+class ErrorEvent(ProtocolEvent):
+    type: Literal["error"] = "error"
+    code: str = Field(min_length=1)
+    message: str = Field(min_length=1)
+
+
+class TurnCompleteEvent(ProtocolEvent):
+    type: Literal["turn_complete"] = "turn_complete"
+    turn_id: str = Field(min_length=1)
+    final_text: str = ""
+    tool_count: int = Field(default=0, ge=0)
+    approval_count: int = Field(default=0, ge=0)
+    iteration_count: int = Field(default=0, ge=0)

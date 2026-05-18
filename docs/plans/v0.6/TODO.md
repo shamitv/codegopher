@@ -35,7 +35,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 - [x] T008: Add command models for `get_effective_config`, `list_mcp_servers`, `save_mcp_server`, `set_mcp_server_enabled`, and `delete_mcp_server`.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
-- [ ] T009: Add event models for session, turn, text, reasoning, tool, approval, error, and completion events.
+- [x] T009: Add event models for session, turn, text, reasoning, tool, approval, error, and completion events.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 - [ ] T010: Add event models for `config_snapshot`, `mcp_servers`, `mcp_server_saved`, and `mcp_server_deleted`.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
