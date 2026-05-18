@@ -107,6 +107,11 @@ def _streams_are_interactive() -> bool:
 @click.option("--provider", help="Override the provider group.")
 @click.option("--base-url", help="Override the provider base URL.")
 @click.option(
+    "--api-family",
+    type=click.Choice(["chat_completions", "responses"]),
+    help="Override the provider API family.",
+)
+@click.option(
     "--approval-mode",
     type=click.Choice(["review", "auto", "yolo"]),
     help="Choose tool approval behavior.",
@@ -125,6 +130,7 @@ def app(
     model: str | None,
     provider: str | None,
     base_url: str | None,
+    api_family: str | None,
     approval_mode: str | None,
     no_project_init: bool,
     debug: bool,
@@ -142,6 +148,7 @@ def app(
                 model=model,
                 provider=provider,
                 base_url=base_url,
+                api_family=api_family,
                 approval_mode=approval_mode,
                 debug=debug if debug else None,
             )

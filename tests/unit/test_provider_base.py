@@ -9,4 +9,6 @@ def test_provider_capabilities_defaults_token_counting_false() -> None:
     assert capabilities.streaming is True
     assert capabilities.tool_calls is True
     assert capabilities.token_counting is False
-
+    assert capabilities.api_family.value == "chat_completions"
+    assert capabilities.reasoning_controls is False
+    assert capabilities.json_schema is False

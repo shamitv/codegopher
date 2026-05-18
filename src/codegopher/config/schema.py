@@ -14,6 +14,16 @@ class ApprovalMode(str, Enum):
     yolo = "yolo"
 
 
+class ProviderApiFamily(str, Enum):
+    chat_completions = "chat_completions"
+    responses = "responses"
+
+
+class McpTransport(str, Enum):
+    stdio = "stdio"
+    sse = "sse"
+
+
 class ModelConfig(BaseModel):
     provider: str = "openai"
     name: str = Field(default="gpt-4o", min_length=1)
@@ -26,7 +36,38 @@ class ProviderEntry(BaseModel):
     name: str
     base_url: str | None = None
     api_key_env: str | None = None
+    api_family: ProviderApiFamily = ProviderApiFamily.chat_completions
     context_window: int | None = Field(default=None, gt=0)
+
+
+class McpServerConfig(BaseModel):
+    enabled: bool = True
+    transport: McpTransport = McpTransport.stdio
+    command: str | None = None
+    args: list[str] = Field(default_factory=list)
+    env: dict[str, str] = Field(default_factory=dict)
+    cwd: str | None = None
+    startup_timeout_seconds: float = Field(default=30.0, gt=0.0)
+    url: str | None = None
+    headers: dict[str, str] = Field(default_factory=dict)
+    headers_env: dict[str, str] = Field(default_factory=dict)
+    timeout_seconds: float = Field(default=5.0, gt=0.0)
+    sse_read_timeout_seconds: float = Field(default=300.0, gt=0.0)
+
+    @model_validator(mode="after")
+    def validate_transport_fields(self) -> Self:
+        if not self.enabled:
+            return self
+        if self.transport is McpTransport.stdio and not (self.command or "").strip():
+            raise ValueError("stdio MCP servers require command")
+        if self.transport is McpTransport.sse and not (self.url or "").strip():
+            raise ValueError("sse MCP servers require url")
+        return self
+
+
+class McpConfig(BaseModel):
+    enabled: bool = True
+    servers: dict[str, McpServerConfig] = Field(default_factory=dict)
 
 
 class ContextConfig(BaseModel):
@@ -72,3 +113,4 @@ class Settings(BaseModel):
     memory: MemoryConfig = Field(default_factory=MemoryConfig)
     skills: SkillConfig = Field(default_factory=SkillConfig)
     todo: TodoConfig = Field(default_factory=TodoConfig)
+    mcp: McpConfig = Field(default_factory=McpConfig)

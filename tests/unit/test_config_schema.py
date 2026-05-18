@@ -3,7 +3,12 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from codegopher.config.schema import ApprovalMode, Settings
+from codegopher.config.schema import (
+    ApprovalMode,
+    McpTransport,
+    ProviderApiFamily,
+    Settings,
+)
 
 
 def test_settings_defaults() -> None:
@@ -29,6 +34,8 @@ def test_settings_defaults() -> None:
     assert settings.skills.autoload is True
     assert settings.todo.enabled is True
     assert settings.todo.max_items == 100
+    assert settings.mcp.enabled is True
+    assert settings.mcp.servers == {}
 
 
 def test_settings_rejects_invalid_approval_mode() -> None:
@@ -44,6 +51,68 @@ def test_settings_rejects_invalid_token_limit() -> None:
 def test_settings_rejects_empty_model_name() -> None:
     with pytest.raises(ValidationError):
         Settings.model_validate({"model": {"name": ""}})
+
+
+def test_provider_entry_defaults_to_chat_completions() -> None:
+    settings = Settings.model_validate(
+        {"providers": {"openai": [{"id": "gpt-test", "name": "GPT Test"}]}}
+    )
+
+    assert settings.providers["openai"][0].api_family is ProviderApiFamily.chat_completions
+
+
+def test_provider_entry_rejects_invalid_api_family() -> None:
+    with pytest.raises(ValidationError):
+        Settings.model_validate(
+            {
+                "providers": {
+                    "openai": [
+                        {"id": "gpt-test", "name": "GPT Test", "api_family": "assistants"}
+                    ]
+                }
+            }
+        )
+
+
+def test_mcp_config_accepts_stdio_and_sse_servers() -> None:
+    settings = Settings.model_validate(
+        {
+            "mcp": {
+                "servers": {
+                    "local": {
+                        "transport": "stdio",
+                        "command": "npx",
+                        "args": ["@playwright/mcp@latest"],
+                    },
+                    "remote": {
+                        "transport": "sse",
+                        "url": "https://example.test/sse",
+                        "headers_env": {"Authorization": "MCP_AUTH"},
+                    },
+                }
+            }
+        }
+    )
+
+    assert settings.mcp.servers["local"].transport is McpTransport.stdio
+    assert settings.mcp.servers["remote"].transport is McpTransport.sse
+    assert settings.mcp.servers["remote"].headers_env == {"Authorization": "MCP_AUTH"}
+
+
+def test_mcp_config_requires_transport_specific_fields() -> None:
+    with pytest.raises(ValidationError, match="stdio MCP servers require command"):
+        Settings.model_validate({"mcp": {"servers": {"local": {"transport": "stdio"}}}})
+
+    with pytest.raises(ValidationError, match="sse MCP servers require url"):
+        Settings.model_validate({"mcp": {"servers": {"remote": {"transport": "sse"}}}})
+
+
+def test_disabled_mcp_server_can_omit_transport_fields() -> None:
+    settings = Settings.model_validate(
+        {"mcp": {"servers": {"future": {"enabled": False, "transport": "sse"}}}}
+    )
+
+    assert settings.mcp.servers["future"].enabled is False
 
 
 def test_settings_rejects_invalid_context_threshold_order() -> None:

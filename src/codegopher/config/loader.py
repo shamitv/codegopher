@@ -21,6 +21,7 @@ class CliOverrides:
     model: str | None = None
     provider: str | None = None
     base_url: str | None = None
+    api_family: str | None = None
     approval_mode: str | None = None
     debug: bool | None = None
 
@@ -78,6 +79,8 @@ def _env_overrides(environ: Mapping[str, str]) -> dict[str, Any]:
         _ensure_provider_entry(data)["base_url"] = base_url
     if api_key_env := environ.get("CODEGOPHER_API_KEY_ENV"):
         _ensure_provider_entry(data)["api_key_env"] = api_key_env
+    if api_family := environ.get("CODEGOPHER_API_FAMILY"):
+        _ensure_provider_entry(data)["api_family"] = api_family
     return data
 
 
@@ -95,6 +98,8 @@ def _cli_overrides(overrides: CliOverrides | None) -> dict[str, Any]:
         data["debug"] = overrides.debug
     if overrides.base_url:
         _ensure_provider_entry(data)["base_url"] = overrides.base_url
+    if overrides.api_family:
+        _ensure_provider_entry(data)["api_family"] = overrides.api_family
     return data
 
 

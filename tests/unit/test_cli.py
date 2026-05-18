@@ -103,6 +103,25 @@ def test_cli_applies_settings_overrides() -> None:
     assert result.output == "mocked\n"
 
 
+def test_cli_applies_api_family_override(monkeypatch) -> None:
+    captured: dict[str, Settings] = {}
+
+    async def fake_run_agent(**kwargs):
+        captured["settings"] = kwargs["settings"]
+        return AgentResult(final_text="ok", iterations=1)
+
+    monkeypatch.setattr(cli_main, "run_agent", fake_run_agent)
+
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello", "--api-family", "responses"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+    )
+
+    assert result.exit_code == 0
+    assert captured["settings"].providers["openai"][0].api_family.value == "responses"
+
+
 def test_cli_appends_piped_stdin_to_prompt(monkeypatch) -> None:
     captured: dict[str, str] = {}
 
