@@ -9,6 +9,7 @@ from typing import Any
 
 import tomlkit
 from pydantic import ValidationError
+from tomlkit.exceptions import TOMLKitError
 from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -28,7 +29,7 @@ def load_project_settings_document(cwd: Path) -> TOMLDocument:
         return tomlkit.document()
     try:
         return tomlkit.parse(path.read_text(encoding="utf-8"))
-    except tomllib.TOMLDecodeError as exc:
+    except (tomllib.TOMLDecodeError, TOMLKitError) as exc:
         raise ConfigurationError(f"Invalid TOML in {path}: {exc}") from exc
 
 

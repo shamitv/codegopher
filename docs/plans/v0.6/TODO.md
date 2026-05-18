@@ -58,7 +58,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_config_management.py tests/unit/test_config_schema.py -k mcp`
 - [x] T018: Add MCP server enable, disable, and remove support.
   Verify: `python -m pytest tests/unit/test_config_management.py`
-- [ ] T019: Return structured config errors for invalid server names, invalid transport-specific fields, and invalid TOML.
+- [x] T019: Return structured config errors for invalid server names, invalid transport-specific fields, and invalid TOML.
   Verify: `python -m pytest tests/unit/test_config_management.py`
 - [ ] T020: Prove config inspection and MCP management never expose secrets and never write user-global settings.
   Verify: `python -m pytest tests/unit/test_config_inspection.py tests/unit/test_config_management.py`

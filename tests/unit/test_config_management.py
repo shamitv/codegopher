@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from codegopher.config.loader import load_settings
 from codegopher.config.management import (
@@ -165,3 +166,61 @@ def test_delete_mcp_server_removes_existing_server(tmp_path: Path) -> None:
     settings = load_settings(cwd=tmp_path, home=tmp_path / "home", environ={})
 
     assert "playwright" not in settings.mcp.servers
+
+
+@pytest.mark.parametrize(
+    "server_name",
+    ["", "bad.name", "bad name", "bad[name]", "bad'quote"],
+)
+def test_mcp_mutations_reject_invalid_server_names(
+    tmp_path: Path,
+    server_name: str,
+) -> None:
+    with pytest.raises(ConfigurationError, match="MCP server names"):
+        save_mcp_server(
+            tmp_path,
+            server_name,
+            McpServerConfig(transport="stdio", command="npx"),
+        )
+
+
+def test_mcp_mutations_report_invalid_toml(tmp_path: Path) -> None:
+    path = project_settings_path(tmp_path)
+    path.parent.mkdir()
+    path.write_text("[mcp\n", encoding="utf-8")
+
+    with pytest.raises(ConfigurationError, match="Invalid TOML"):
+        save_mcp_server(
+            tmp_path,
+            "playwright",
+            McpServerConfig(transport="stdio", command="npx"),
+        )
+
+
+def test_mcp_mutations_report_missing_server(tmp_path: Path) -> None:
+    with pytest.raises(ConfigurationError, match="MCP server not found: missing"):
+        set_mcp_server_enabled(tmp_path, "missing", False)
+
+    with pytest.raises(ConfigurationError, match="MCP server not found: missing"):
+        delete_mcp_server(tmp_path, "missing")
+
+
+def test_mcp_mutations_report_invalid_mcp_table_shape(tmp_path: Path) -> None:
+    path = project_settings_path(tmp_path)
+    path.parent.mkdir()
+    path.write_text('mcp = "not a table"\n', encoding="utf-8")
+
+    with pytest.raises(ConfigurationError, match=r"\[mcp\] must be a TOML table"):
+        save_mcp_server(
+            tmp_path,
+            "playwright",
+            McpServerConfig(transport="stdio", command="npx"),
+        )
+
+
+def test_mcp_schema_reports_missing_transport_specific_fields() -> None:
+    with pytest.raises(ValidationError, match="stdio MCP servers require command"):
+        McpServerConfig(transport="stdio")
+
+    with pytest.raises(ValidationError, match="sse MCP servers require url"):
+        McpServerConfig(transport="sse")
