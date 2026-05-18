@@ -57,18 +57,17 @@ Planned capabilities:
 - MCP implementation shape based on the official Python SDK: `StdioServerParameters`, `stdio_client`, `ClientSession(read, write)`, `initialize()`, `list_tools()`, and managed shutdown.
 - MCP-derived tools registered dynamically after successful server initialization.
 
-## v0.5 - Advanced Coding Workflows
+## v0.5 - Repository Documentation And Static Security Skill Packs
 
-Goal: support larger changes and safer multi-step execution.
+Goal: ship built-in Markdown skill packs that help agents document existing repositories and run static-only CRUD application security reviews.
 
 Planned capabilities:
 
-- Planning mode with read-only analysis before execution.
-- Sub-agent dispatch for bounded parallel tasks.
-- Git diff and worktree helpers.
-- Optional Docker-based sandboxing.
-- More complete web fetch/search tooling.
-- Documentation, examples, and release automation for PyPI.
+- Built-in `repo-domain-docs` skill for extracting business/functional domain docs from source, tests, and product artifacts.
+- Built-in `repo-tech-docs` skill for extracting architecture, setup, API, data-flow, testing, and operations docs.
+- Built-in `crud-owasp-static-audit` skill for source-only review against OWASP Top 10:2025.
+- `cgopher init --skill-pack repo-docs|security|all` to materialize built-in skills into project `.codegopher/skills`.
+- Static-only security boundary: no live probing, fuzzing, credential attacks, dynamic scanners, exploit payloads, or network tests.
 
 ## v0.6 - VS Code Extension Layer
 
@@ -82,3 +81,16 @@ Planned capabilities:
 - Approval buttons in VS Code that route decisions back to the Python agent.
 - Extension settings for CLI path, model/provider overrides, approval mode, and protocol tracing.
 - Subprocess lifecycle management, cancellation, restart, and clear user-facing errors.
+
+## v0.7 - Advanced Coding Workflows
+
+Goal: support larger changes and safer multi-step execution.
+
+Planned capabilities:
+
+- Planning mode with read-only analysis before execution.
+- Sub-agent dispatch for bounded parallel tasks.
+- Git diff and worktree helpers.
+- Optional Docker-based sandboxing.
+- More complete web fetch/search tooling.
+- Documentation, examples, and release automation for PyPI.

@@ -6,7 +6,8 @@ Earlier roadmap items remain in place:
 
 - v0.3: Context, Memory, And Skills.
 - v0.4: Providers And MCP.
-- v0.5: Advanced Coding Workflows.
+- v0.5: Repository Documentation And Static Security Skill Packs.
+- v0.7: Advanced Coding Workflows.
 
 ## Summary
 
