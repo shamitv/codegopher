@@ -10,6 +10,8 @@ from codegopher.events.protocol import (
     ReasoningDeltaEvent,
     SessionStartedEvent,
     TextDeltaEvent,
+    ToolCallEvent,
+    ToolResultEvent,
     TurnCompleteEvent,
     TurnStartedEvent,
     decode_jsonl_message,
@@ -77,3 +79,47 @@ def test_events_cli_one_shot_emits_reasoning_without_final_text(
     complete = next(message for message in messages if isinstance(message, TurnCompleteEvent))
     assert complete.final_text == "public answer"
     assert "private reasoning" not in complete.final_text
+
+
+def test_events_cli_one_shot_emits_tool_call_and_result_events(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "read complete"}, {"type": "done"}],
+        ]
+    )
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        Path("README.md").write_text("project notes", encoding="utf-8")
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init", "-p", "read"],
+        )
+
+    messages = decode_output(result.output)
+    tool_call = next(message for message in messages if isinstance(message, ToolCallEvent))
+    tool_result = next(message for message in messages if isinstance(message, ToolResultEvent))
+    complete = next(message for message in messages if isinstance(message, TurnCompleteEvent))
+
+    assert result.exit_code == 0
+    assert tool_call.tool_name == "read_file"
+    assert "README.md" in tool_call.arguments_summary
+    assert tool_result.tool_id == "call-1"
+    assert tool_result.result_summary == "project notes"
+    assert complete.final_text == "read complete"
+    assert complete.tool_count == 1

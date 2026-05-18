@@ -86,7 +86,7 @@ Commit rules:
   Verify: `python -m pytest tests/integration/test_events_cli.py`
 - [x] T029: Emit JSONL events for reasoning deltas without including reasoning in final text.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_agent_loop.py`
-- [ ] T030: Emit tool-call and tool-result events for a multi-iteration response.
+- [x] T030: Emit tool-call and tool-result events for a multi-iteration response.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
 - [ ] T031: Support approval requests and stdin `approval_response` in one-shot events mode.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_approval.py`
