@@ -50,7 +50,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
 - [x] T014: Report redacted LLM endpoint details: provider, model, API family, base URL when present, and configuration source metadata.
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
-- [ ] T015: Add a redacted MCP server listing helper for configured `[mcp.servers.NAME]` entries.
+- [x] T015: Add a redacted MCP server listing helper for configured `[mcp.servers.NAME]` entries.
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
 - [ ] T016: Add a project-local settings update helper for MCP server mutations that preserves unrelated settings.
   Verify: `python -m pytest tests/unit/test_config_management.py`

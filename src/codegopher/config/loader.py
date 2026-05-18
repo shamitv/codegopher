@@ -33,6 +33,8 @@ class SettingsMetadata:
     source_labels: tuple[str, ...]
     home_config_path: Path
     project_config_path: Path
+    home_config: dict[str, Any]
+    project_config: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -182,5 +184,7 @@ def load_settings_with_metadata(
             source_labels=tuple(source_labels),
             home_config_path=home_config_path,
             project_config_path=project_config_path,
+            home_config=copy.deepcopy(home_config),
+            project_config=copy.deepcopy(project_config),
         ),
     )
