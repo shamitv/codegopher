@@ -105,7 +105,7 @@ Commit rules:
 
 - [x] T037: Add `extensions/vscode/package.json` with extension metadata, chat commands, endpoint/MCP commands, settings, and scripts.
   Verify: `cd extensions/vscode && npm install`
-- [ ] T038: Add TypeScript, ESLint, and test configuration for the extension package.
+- [x] T038: Add TypeScript, ESLint, and test configuration for the extension package.
   Verify: `cd extensions/vscode && npm run compile`
 - [ ] T039: Add a minimal extension activation entry point.
   Verify: `cd extensions/vscode && npm test`

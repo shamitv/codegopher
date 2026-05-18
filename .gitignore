@@ -35,6 +35,8 @@ coverage.xml
 
 # Node / VS Code extension
 node_modules/
+extensions/vscode/.vscode-test/
+extensions/vscode/out/
 
 # IDE
 .vscode/settings.json
