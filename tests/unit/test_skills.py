@@ -136,6 +136,44 @@ def test_discovers_builtin_package_skills() -> None:
     assert "CodeGopher's existing safety model" in skill.content
 
 
+def test_discovers_v0_5_builtin_skill_packs() -> None:
+    result = discover_builtin_skills(settings=Settings())
+
+    assert {
+        "repo-domain-docs",
+        "repo-tech-docs",
+        "crud-owasp-static-audit",
+    }.issubset({skill.id for skill in result.catalog.list()})
+
+    domain_skill = result.catalog.get("repo-domain-docs")
+    tech_skill = result.catalog.get("repo-tech-docs")
+    security_skill = result.catalog.get("crud-owasp-static-audit")
+    assert domain_skill is not None
+    assert tech_skill is not None
+    assert security_skill is not None
+    assert domain_skill.metadata.name == "Repository Domain Documentation"
+    assert "docs/domain/" in domain_skill.content
+    assert tech_skill.metadata.name == "Repository Technical Documentation"
+    assert "docs/technical/" in tech_skill.content
+    assert security_skill.metadata.name == "CRUD OWASP Static Audit"
+    assert "OWASP Top 10:2025" in security_skill.content
+    assert "docs/security/OWASP_TOP10_2025_REVIEW.md" in security_skill.content
+
+
+def test_crud_owasp_static_audit_skill_keeps_static_only_boundary() -> None:
+    result = discover_builtin_skills(settings=Settings())
+    skill = result.catalog.get("crud-owasp-static-audit")
+
+    assert skill is not None
+    content = skill.content.lower()
+    assert "static-only" in content
+    assert "do not run live http probing" in content
+    assert "dynamic scanners" in content
+    assert "exploit payloads" in content
+    for active_tool in ("sqlmap", "nmap", "nikto", "ffuf", "hydra", "zap", "burp"):
+        assert active_tool not in content
+
+
 def test_builtin_discovery_can_be_disabled() -> None:
     settings = Settings.model_validate({"skills": {"builtins_enabled": False}})
 
@@ -162,6 +200,9 @@ def test_discover_skills_includes_builtin_skills(tmp_path: Path) -> None:
     result = discover_skills(cwd=tmp_path, settings=Settings(), home=tmp_path / "home")
 
     assert result.catalog.get("codegopher") is not None
+    assert result.catalog.get("repo-domain-docs") is not None
+    assert result.catalog.get("repo-tech-docs") is not None
+    assert result.catalog.get("crud-owasp-static-audit") is not None
 
 
 def test_parse_skill_file_uses_parent_directory_as_id(tmp_path: Path) -> None:

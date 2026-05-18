@@ -29,4 +29,5 @@ CodeGopher builds provider context from a system prompt, selected runtime contex
 
 - Memory context comes from session and project memory selected by `MemoryStore`.
 - Skill context comes from Markdown skills loaded by explicit `@skill:ID`, keyword autoload, or `/skills load ID`.
+- Built-in skill packs can be materialized into project `.codegopher/skills` with `cgopher init --skill-pack repo-docs|security|all`; once materialized, they use the same context path as any project skill.
 - TODO context comes from active session TODO items created through `/todo add` or the `update_todo` tool.

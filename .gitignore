@@ -43,6 +43,10 @@ coverage.xml
 .codegopher/
 .codegropher/
 
+# Local environment files
+.env
+.env.*
+
 # OS
 .DS_Store
 Thumbs.db

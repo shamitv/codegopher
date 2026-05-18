@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from importlib import resources
 from pathlib import Path
 
 import click
@@ -26,9 +27,59 @@ Use this project skill for repository-specific guidance.
 - Run the smallest useful verification after changes.
 """
 
+BUILTIN_SKILL_PACKS = {
+    "repo-docs": ("repo-domain-docs", "repo-tech-docs"),
+    "security": ("crud-owasp-static-audit",),
+    "all": ("repo-domain-docs", "repo-tech-docs", "crud-owasp-static-audit"),
+}
+
 
 def _build_provider(settings: Settings) -> Provider:
     return build_provider(settings)
+
+
+def _read_builtin_skill(skill_id: str) -> str:
+    skill_file = resources.files("codegopher.skills.builtins").joinpath(
+        skill_id,
+        "SKILL.md",
+    )
+    return skill_file.read_text(encoding="utf-8")
+
+
+def _write_project_skill(
+    *,
+    target: Path,
+    skill_id: str,
+    content: str,
+    force: bool,
+) -> str:
+    skill_path = target / ".codegopher" / "skills" / skill_id / "SKILL.md"
+    if skill_path.exists() and not force:
+        return f"Skipped existing {skill_path}"
+
+    skill_path.parent.mkdir(parents=True, exist_ok=True)
+    existed = skill_path.exists()
+    skill_path.write_text(content, encoding="utf-8")
+    action = "Overwrote" if existed else "Created"
+    return f"{action} {skill_path}"
+
+
+def _ensure_implicit_project_init(*, cwd: Path, enabled: bool) -> None:
+    if not enabled or (cwd / ".codegopher").exists():
+        return
+
+    try:
+        _write_project_skill(
+            target=cwd,
+            skill_id="project",
+            content=DEFAULT_PROJECT_SKILL,
+            force=False,
+        )
+    except OSError as exc:
+        raise click.ClickException(
+            f"Could not initialize project guidance in {cwd}: {exc}. "
+            "Re-run with --no-project-init to skip project initialization."
+        ) from exc
 
 
 def _emit_result(
@@ -60,6 +111,11 @@ def _streams_are_interactive() -> bool:
     type=click.Choice(["review", "auto", "yolo"]),
     help="Choose tool approval behavior.",
 )
+@click.option(
+    "--no-project-init",
+    is_flag=True,
+    help="Do not create default project guidance on first use.",
+)
 @click.option("--debug", is_flag=True, help="Include debug diagnostics.")
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable output.")
 @click.pass_context
@@ -70,12 +126,15 @@ def app(
     provider: str | None,
     base_url: str | None,
     approval_mode: str | None,
+    no_project_init: bool,
     debug: bool,
     as_json: bool,
 ) -> None:
     """Run CodeGopher."""
     if ctx.invoked_subcommand is not None:
         return
+
+    cwd = Path.cwd()
 
     try:
         settings = load_settings(
@@ -94,6 +153,7 @@ def app(
         stdin = click.get_text_stream("stdin")
         full_prompt = prompt
         reasoning_parts: list[str] = []
+        _ensure_implicit_project_init(cwd=cwd, enabled=not no_project_init)
 
         async def on_reasoning_delta(content: str) -> None:
             reasoning_parts.append(content)
@@ -109,7 +169,7 @@ def app(
                     provider=_build_provider(settings),
                     registry=create_default_registry(),
                     settings=settings,
-                    cwd=Path.cwd(),
+                    cwd=cwd,
                     stdin_is_tty=stdin.isatty(),
                     callbacks=AgentCallbacks(on_reasoning_delta=on_reasoning_delta)
                     if debug
@@ -130,9 +190,11 @@ def app(
             "No prompt provided in non-interactive mode; pass -p/--prompt for headless usage."
         )
 
+    _ensure_implicit_project_init(cwd=cwd, enabled=not no_project_init)
+
     from codegopher.tui import launch_tui
 
-    launch_tui(settings, cwd=Path.cwd())
+    launch_tui(settings, cwd=cwd)
 
 
 @app.command("init")
@@ -141,17 +203,33 @@ def app(
     required=False,
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
 )
-@click.option("--force", is_flag=True, help="Overwrite the default project skill if it exists.")
-def init_project(path: Path | None, *, force: bool) -> None:
+@click.option("--force", is_flag=True, help="Overwrite existing project skill files.")
+@click.option(
+    "--skill-pack",
+    type=click.Choice(["repo-docs", "security", "all"]),
+    help="Materialize built-in skill pack guidance into the project.",
+)
+def init_project(path: Path | None, *, force: bool, skill_pack: str | None) -> None:
     """Create default project-local CodeGopher skill files."""
     target = (path or Path.cwd()).resolve()
-    skill_path = target / ".codegopher" / "skills" / "project" / "SKILL.md"
-    if skill_path.exists() and not force:
-        click.echo(f"Skipped existing {skill_path}")
+
+    if skill_pack is None:
+        click.echo(
+            _write_project_skill(
+                target=target,
+                skill_id="project",
+                content=DEFAULT_PROJECT_SKILL,
+                force=force,
+            )
+        )
         return
 
-    skill_path.parent.mkdir(parents=True, exist_ok=True)
-    existed = skill_path.exists()
-    skill_path.write_text(DEFAULT_PROJECT_SKILL, encoding="utf-8")
-    action = "Overwrote" if existed else "Created"
-    click.echo(f"{action} {skill_path}")
+    for skill_id in BUILTIN_SKILL_PACKS[skill_pack]:
+        click.echo(
+            _write_project_skill(
+                target=target,
+                skill_id=skill_id,
+                content=_read_builtin_skill(skill_id),
+                force=force,
+            )
+        )
