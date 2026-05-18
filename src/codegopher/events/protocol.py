@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
+from codegopher.core.errors import CodeGopherError
 
 PROTOCOL_VERSION = 1
+
+
+class ProtocolPayloadError(CodeGopherError):
+    """Raised when a JSONL protocol payload cannot be decoded or validated."""
 
 
 class ProtocolModel(BaseModel):
@@ -207,3 +214,69 @@ class McpServerDeletedEvent(ProtocolEvent):
     type: Literal["mcp_server_deleted"] = "mcp_server_deleted"
     workspace_root: str = Field(min_length=1)
     server_name: str = Field(min_length=1)
+
+
+_PROTOCOL_MODELS: dict[str, type[ProtocolModel]] = {
+    "start_turn": StartTurnCommand,
+    "approval_response": ApprovalResponseCommand,
+    "cancel_turn": CancelTurnCommand,
+    "shutdown": ShutdownCommand,
+    "get_effective_config": GetEffectiveConfigCommand,
+    "list_mcp_servers": ListMcpServersCommand,
+    "save_mcp_server": SaveMcpServerCommand,
+    "set_mcp_server_enabled": SetMcpServerEnabledCommand,
+    "delete_mcp_server": DeleteMcpServerCommand,
+    "session_started": SessionStartedEvent,
+    "turn_started": TurnStartedEvent,
+    "text_delta": TextDeltaEvent,
+    "reasoning_delta": ReasoningDeltaEvent,
+    "tool_call": ToolCallEvent,
+    "approval_request": ApprovalRequestEvent,
+    "tool_result": ToolResultEvent,
+    "error": ErrorEvent,
+    "turn_complete": TurnCompleteEvent,
+    "config_snapshot": ConfigSnapshotEvent,
+    "mcp_servers": McpServersEvent,
+    "mcp_server_saved": McpServerSavedEvent,
+    "mcp_server_deleted": McpServerDeletedEvent,
+}
+
+
+def encode_jsonl_message(message: ProtocolModel) -> str:
+    """Serialize one protocol model as a newline-terminated JSONL record."""
+
+    return f"{message.model_dump_json()}\n"
+
+
+def decode_jsonl_message(line: str) -> ProtocolModel:
+    """Decode one JSONL protocol record into its typed payload model."""
+
+    payload = line.strip()
+    if not payload:
+        raise ProtocolPayloadError("Empty protocol line")
+    try:
+        value = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        raise ProtocolPayloadError(f"Malformed protocol JSON: {exc.msg}") from exc
+    if not isinstance(value, dict):
+        raise ProtocolPayloadError("Protocol payload must be a JSON object")
+
+    version = value.get("version")
+    if version is None:
+        raise ProtocolPayloadError("Protocol payload missing version")
+    if version != PROTOCOL_VERSION:
+        raise ProtocolPayloadError(f"Unsupported protocol version: {version}")
+
+    message_type = value.get("type")
+    if message_type is None:
+        raise ProtocolPayloadError("Protocol payload missing type")
+    if not isinstance(message_type, str):
+        raise ProtocolPayloadError("Protocol payload type must be a string")
+    model_cls = _PROTOCOL_MODELS.get(message_type)
+    if model_cls is None:
+        raise ProtocolPayloadError(f"Unknown protocol type: {message_type}")
+
+    try:
+        return model_cls.model_validate(value)
+    except ValidationError as exc:
+        raise ProtocolPayloadError(f"Invalid {message_type} payload: {exc}") from exc

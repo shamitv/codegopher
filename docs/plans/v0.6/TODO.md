@@ -39,7 +39,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 - [x] T010: Add event models for `config_snapshot`, `mcp_servers`, `mcp_server_saved`, and `mcp_server_deleted`.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
-- [ ] T011: Add JSONL encode/decode helpers that reject malformed or unknown payloads clearly.
+- [x] T011: Add JSONL encode/decode helpers that reject malformed or unknown payloads clearly.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 - [ ] T012: Add protocol redaction tests for secrets, raw environment values, and MCP header values.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`

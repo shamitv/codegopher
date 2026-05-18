@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 from pydantic import ValidationError
 
@@ -18,6 +20,7 @@ from codegopher.events.protocol import (
     McpServerSavedEvent,
     McpServerSnapshotPayload,
     McpServersEvent,
+    ProtocolPayloadError,
     ProtocolModel,
     ReasoningDeltaEvent,
     SaveMcpServerCommand,
@@ -30,6 +33,8 @@ from codegopher.events.protocol import (
     ToolResultEvent,
     TurnCompleteEvent,
     TurnStartedEvent,
+    decode_jsonl_message,
+    encode_jsonl_message,
 )
 
 
@@ -469,3 +474,127 @@ def test_mcp_server_deleted_event_requires_server_name() -> None:
 
     with pytest.raises(ValidationError):
         McpServerDeletedEvent(workspace_root="/repo", server_name="")
+
+
+def all_protocol_messages() -> list[ProtocolModel]:
+    return [
+        StartTurnCommand(prompt="hello", workspace_root="/repo"),
+        ApprovalResponseCommand(approval_id="approval-1", approved=True),
+        CancelTurnCommand(turn_id="turn-1"),
+        ShutdownCommand(),
+        GetEffectiveConfigCommand(workspace_root="/repo"),
+        ListMcpServersCommand(workspace_root="/repo"),
+        SaveMcpServerCommand(
+            workspace_root="/repo",
+            server_name="playwright",
+            server=McpServerPayload(command="npx"),
+        ),
+        SetMcpServerEnabledCommand(
+            workspace_root="/repo",
+            server_name="playwright",
+            enabled=True,
+        ),
+        DeleteMcpServerCommand(workspace_root="/repo", server_name="playwright"),
+        SessionStartedEvent(
+            session_id="session-1",
+            cwd="/repo",
+            provider="openai",
+            model="gpt-test",
+            approval_mode="review",
+        ),
+        TurnStartedEvent(session_id="session-1", turn_id="turn-1", cwd="/repo"),
+        TextDeltaEvent(turn_id="turn-1", content="hello"),
+        ReasoningDeltaEvent(turn_id="turn-1", content="thinking"),
+        ToolCallEvent(turn_id="turn-1", tool_id="tool-1", tool_name="read_file"),
+        ApprovalRequestEvent(
+            turn_id="turn-1",
+            approval_id="approval-1",
+            tool_name="read_file",
+        ),
+        ToolResultEvent(turn_id="turn-1", tool_id="tool-1", result_summary="ok"),
+        ErrorEvent(code="provider_error", message="provider failed"),
+        TurnCompleteEvent(turn_id="turn-1", final_text="done"),
+        ConfigSnapshotEvent(
+            workspace_root="/repo",
+            provider="openai",
+            model="gpt-test",
+            api_family="chat_completions",
+        ),
+        McpServersEvent(workspace_root="/repo"),
+        McpServerSavedEvent(
+            workspace_root="/repo",
+            server_name="playwright",
+            server=McpServerPayload(command="npx"),
+        ),
+        McpServerDeletedEvent(workspace_root="/repo", server_name="playwright"),
+    ]
+
+
+@pytest.mark.parametrize("message", all_protocol_messages())
+def test_jsonl_round_trips_all_protocol_messages(message: ProtocolModel) -> None:
+    encoded = encode_jsonl_message(message)
+    decoded = decode_jsonl_message(encoded)
+
+    assert encoded.endswith("\n")
+    assert encoded.count("\n") == 1
+    assert type(decoded) is type(message)
+    assert decoded == message
+
+
+def test_encode_jsonl_message_returns_json_object_line() -> None:
+    encoded = encode_jsonl_message(ShutdownCommand(session_id="session-1"))
+    loaded = json.loads(encoded)
+
+    assert loaded["version"] == PROTOCOL_VERSION
+    assert loaded["type"] == "shutdown"
+    assert loaded["session_id"] == "session-1"
+
+
+def test_decode_jsonl_message_rejects_empty_line() -> None:
+    with pytest.raises(ProtocolPayloadError, match="Empty protocol line"):
+        decode_jsonl_message("\n")
+
+
+def test_decode_jsonl_message_rejects_malformed_json() -> None:
+    with pytest.raises(ProtocolPayloadError, match="Malformed protocol JSON"):
+        decode_jsonl_message("{")
+
+
+def test_decode_jsonl_message_rejects_non_object_json() -> None:
+    with pytest.raises(ProtocolPayloadError, match="must be a JSON object"):
+        decode_jsonl_message("[]")
+
+
+def test_decode_jsonl_message_requires_version() -> None:
+    with pytest.raises(ProtocolPayloadError, match="missing version"):
+        decode_jsonl_message('{"type":"shutdown"}')
+
+
+def test_decode_jsonl_message_rejects_unsupported_version() -> None:
+    with pytest.raises(ProtocolPayloadError, match="Unsupported protocol version"):
+        decode_jsonl_message('{"version":2,"type":"shutdown"}')
+
+
+def test_decode_jsonl_message_requires_type() -> None:
+    with pytest.raises(ProtocolPayloadError, match="missing type"):
+        decode_jsonl_message('{"version":1}')
+
+
+def test_decode_jsonl_message_rejects_non_string_type() -> None:
+    with pytest.raises(ProtocolPayloadError, match="type must be a string"):
+        decode_jsonl_message('{"version":1,"type":123}')
+
+
+def test_decode_jsonl_message_rejects_unknown_type() -> None:
+    with pytest.raises(ProtocolPayloadError, match="Unknown protocol type"):
+        decode_jsonl_message('{"version":1,"type":"mystery"}')
+
+
+def test_decode_jsonl_message_rejects_extra_fields() -> None:
+    with pytest.raises(ProtocolPayloadError, match="Invalid shutdown payload"):
+        decode_jsonl_message('{"version":1,"type":"shutdown","unexpected":true}')
+
+
+def test_decode_jsonl_message_rejects_validation_failures() -> None:
+    with pytest.raises(ProtocolPayloadError, match="Invalid start_turn payload"):
+        decode_jsonl_message('{"version":1,"type":"start_turn","prompt":"","workspace_root":"/repo"}')

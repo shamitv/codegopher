@@ -15,6 +15,7 @@ from codegopher.events.protocol import (
     McpServerSnapshotPayload,
     McpServerDeletedEvent,
     McpServersEvent,
+    ProtocolPayloadError,
     ProtocolCommand,
     ProtocolEvent,
     ProtocolModel,
@@ -29,6 +30,8 @@ from codegopher.events.protocol import (
     ToolResultEvent,
     TurnCompleteEvent,
     TurnStartedEvent,
+    decode_jsonl_message,
+    encode_jsonl_message,
 )
 
 __all__ = [
@@ -46,6 +49,7 @@ __all__ = [
     "McpServerSavedEvent",
     "McpServerSnapshotPayload",
     "McpServersEvent",
+    "ProtocolPayloadError",
     "ProtocolCommand",
     "ProtocolEvent",
     "ProtocolModel",
@@ -60,4 +64,6 @@ __all__ = [
     "ToolResultEvent",
     "TurnCompleteEvent",
     "TurnStartedEvent",
+    "decode_jsonl_message",
+    "encode_jsonl_message",
 ]
