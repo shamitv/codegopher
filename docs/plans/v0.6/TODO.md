@@ -109,7 +109,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm run compile`
 - [x] T039: Add a minimal extension activation entry point.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T040: Add activation tests using the VS Code extension test runner.
+- [x] T040: Add activation tests using the VS Code extension test runner.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T041: Add extension README notes for local development.
   Verify: `rg -n "CodeGopher|@codegopher|cgopher --events" extensions/vscode`

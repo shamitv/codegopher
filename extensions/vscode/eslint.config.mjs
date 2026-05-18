@@ -15,7 +15,8 @@ export default [
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        ...globals.node
+        ...globals.node,
+        ...globals.mocha
       },
       parserOptions: {
         project: "./tsconfig.json",
