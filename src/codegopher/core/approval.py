@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 from codegopher.config.schema import ApprovalMode
 
@@ -23,6 +23,8 @@ def should_prompt(mode: ApprovalMode, tool: ApprovableTool) -> bool:
 class ApprovalRequest:
     tool_name: str
     arguments_preview: str
+    tool_call_id: str | None = None
+    arguments: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

@@ -201,7 +201,12 @@ class AgentSession:
             )
             for tool_call in tool_calls:
                 tool = self.registry.get(tool_call["name"])
-                request = ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"]))
+                request = ApprovalRequest(
+                    tool_name=tool_call["name"],
+                    arguments_preview=dumps_json(tool_call["arguments"]),
+                    tool_call_id=tool_call["id"],
+                    arguments=dict(tool_call["arguments"]),
+                )
                 if (
                     should_prompt(self.settings.approval_mode, tool)
                     and self.callbacks
