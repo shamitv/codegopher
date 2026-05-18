@@ -12,6 +12,7 @@ Use this checklist before publishing a CodeGopher release.
 - Smoke test `cgopher -p "hello" --json` with a configured provider or the local test mock.
 - Smoke test real OpenAI-compatible endpoint, when available: `OPENAI_API_KEY=dummy-key cgopher -p "Reply with exactly: codegopher-smoke-ok" --json`.
 - Smoke test project initialization: `cgopher init` creates `.codegopher/skills/project/SKILL.md` without writing settings or secrets.
+- Smoke test v0.5 skill-pack initialization: `cgopher init --skill-pack repo-docs`, `cgopher init --skill-pack security`, and `cgopher init --skill-pack all` create the expected `.codegopher/skills/*/SKILL.md` files without writing settings or secrets.
 - Smoke test interactive TUI startup with `cgopher` in a real terminal.
 - Smoke test TUI slash commands: `/help`, `/model`, `/mode`, `/stats`, `/clear`, `/compact`, `/memory`, `/forget`, `/skills`, and `/todo`.
 - Smoke test TUI file mentions and `/shell COMMAND` approval/denial flows in a disposable project.
@@ -22,4 +23,8 @@ Use this checklist before publishing a CodeGopher release.
   - `save_memory` creates an approved memory and `/memory` lists it.
   - `/skills` lists project/user/built-in skills and `/skills load ID` loads one.
   - `/todo add TEXT` and `/todo done ID` update visible session TODO state.
+- Smoke test v0.5 built-in skills:
+  - `@skill:repo-domain-docs` reaches provider context and can produce a domain documentation outline.
+  - `@skill:repo-tech-docs` reaches provider context and can produce a technical documentation outline.
+  - `@skill:crud-owasp-static-audit` reaches provider context and keeps the OWASP Top 10:2025 review static-only.
 - Tag the release only after the branch is pushed and CI is green.

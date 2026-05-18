@@ -17,7 +17,7 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 - Interactive terminal mode: run `cgopher` to open a Textual TUI with chat history, status, inline approvals, slash commands, session resume, and collapsed reasoning display.
 - Context management: inspect context budget through `/stats` and summarize long provider history through `/compact [instructions]`.
 - Memory: save approved session or project memory, inspect it with `/memory`, and remove it with `/forget ID --yes`.
-- Skills: initialize project skill guidance with `cgopher init`, load Markdown skills from `.codegopher/skills`, and mention them with `@skill:ID`.
+- Skills: initialize project skill guidance with `cgopher init`, materialize built-in skill packs with `cgopher init --skill-pack repo-docs|security|all`, load Markdown skills from `.codegopher/skills`, and mention them with `@skill:ID`.
 - Session TODOs: track active work with `/todo`, `/todo add TEXT`, `/todo done ID`, or the model-facing `update_todo` tool.
 - Project inspection: list directories, read files, search text, and summarize findings.
 - File mention expansion: include `@path`, glob-style mentions, or `@glob:pattern` in a TUI prompt to provide file content safely.
@@ -35,7 +35,7 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 
 ## Feature Status
 
-CodeGopher is in early alpha with a working headless loop, an interactive TUI, file and shell tools, session persistence, provider reasoning rendering, context-window tracking, compaction, memory, Markdown skills, and session TODO state. Larger product features remain roadmap items:
+CodeGopher is in early alpha with a working headless loop, an interactive TUI, file and shell tools, session persistence, provider reasoning rendering, context-window tracking, compaction, memory, Markdown skills, built-in repository documentation and static security skill packs, and session TODO state. Larger product features remain roadmap items:
 
 - MCP client integration.
 - Anthropic and Gemini providers, with Gemini based on `google-genai`.

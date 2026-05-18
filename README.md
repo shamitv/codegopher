@@ -11,10 +11,13 @@ cgopher
 cgopher -p "What does this project do?"
 cgopher -p "read this test log and summarize it" < test.log
 cgopher init
+cgopher init --skill-pack repo-docs
+cgopher init --skill-pack security
 ```
 
 Run plain `cgopher` in an interactive terminal to open the TUI. Use `-p/--prompt` for the headless one-shot path.
 Run `cgopher init [PATH]` to create default project-local Markdown skill guidance under `.codegopher/skills`.
+Use `cgopher init [PATH] --skill-pack repo-docs|security|all` to materialize built-in repository documentation and static security review skills into a project.
 
 Useful flags:
 
@@ -54,6 +57,7 @@ Context, memory, skills, and TODOs:
 - Automatic compaction runs before a turn would exceed the configured threshold; manual `/compact` is always visible in chat.
 - `save_memory` stores approved session or project memories under CodeGopher's user data directory, with secret-like values redacted.
 - Project skills live in `.codegopher/skills/*/SKILL.md`, user skills live in `~/.codegopher/skills/*/SKILL.md`, and built-in skills ship with the package.
+- Built-in v0.5 skill packs include `repo-domain-docs`, `repo-tech-docs`, and `crud-owasp-static-audit`; the security skill is static-only and does not perform live probing, fuzzing, credential attacks, dynamic scanners, exploit payloads, or network tests.
 - Active TODOs are included in provider context and can also be updated by the model through the `update_todo` tool.
 
 ## Implemented Features
@@ -84,7 +88,7 @@ hatch run typecheck
 
 ## Planned Direction
 
-- MCP, additional providers, sub-agents, and sandboxing remain future roadmap items.
+- MCP, additional providers, sub-agents, advanced coding workflows, and sandboxing remain future roadmap items.
 - Provider capability checks will expand as more model APIs are added.
 - Git/worktree helpers and richer initialization workflows may expand after the v0.3 release.
 
