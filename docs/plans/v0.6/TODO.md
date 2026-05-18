@@ -29,7 +29,7 @@ Commit rules:
 
 ## Milestone 1 - JSONL Protocol Models
 
-- [ ] T006: Add typed protocol models for common event and command fields.
+- [x] T006: Add typed protocol models for common event and command fields.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 - [ ] T007: Add command models for `start_turn`, `approval_response`, `cancel_turn`, and `shutdown`.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
