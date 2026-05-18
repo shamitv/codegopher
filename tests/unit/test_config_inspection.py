@@ -232,6 +232,32 @@ enabled = false
     assert servers[1].server.headers_env == {"Authorization": "[redacted]"}
 
 
+def test_list_mcp_servers_redaction_output_contains_no_secret_values(
+    tmp_path: Path,
+) -> None:
+    config_dir = tmp_path / ".codegopher"
+    config_dir.mkdir()
+    (config_dir / "settings.toml").write_text(
+        """
+[mcp.servers.secret_server]
+transport = "sse"
+url = "https://example.test/sse"
+headers = { Authorization = "Bearer real-secret-token" }
+headers_env = { Authorization = "MCP_SECRET_ENV" }
+env = { API_TOKEN = "raw-env-secret" }
+""",
+        encoding="utf-8",
+    )
+
+    servers = list_mcp_servers(cwd=tmp_path, home=tmp_path / "home", environ={})
+    exposed = repr(servers)
+
+    assert "real-secret-token" not in exposed
+    assert "MCP_SECRET_ENV" not in exposed
+    assert "raw-env-secret" not in exposed
+    assert "[redacted]" in exposed
+
+
 def test_list_mcp_servers_reports_user_source(tmp_path: Path) -> None:
     home = tmp_path / "home"
     project = tmp_path / "project"

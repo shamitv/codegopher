@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
-import tomllib
 import re
+import tomllib
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import tomlkit
 from pydantic import ValidationError
 from tomlkit.exceptions import TOMLKitError
 from tomlkit.items import Table
-from tomlkit.toml_document import TOMLDocument
 
 from codegopher.config.schema import McpServerConfig
 from codegopher.core.errors import ConfigurationError
+
+if TYPE_CHECKING:
+    from tomlkit.toml_document import TOMLDocument
 
 MCP_SERVER_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 

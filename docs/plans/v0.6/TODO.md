@@ -60,7 +60,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_config_management.py`
 - [x] T019: Return structured config errors for invalid server names, invalid transport-specific fields, and invalid TOML.
   Verify: `python -m pytest tests/unit/test_config_management.py`
-- [ ] T020: Prove config inspection and MCP management never expose secrets and never write user-global settings.
+- [x] T020: Prove config inspection and MCP management never expose secrets and never write user-global settings.
   Verify: `python -m pytest tests/unit/test_config_inspection.py tests/unit/test_config_management.py`
 
 ## Milestone 3 - Events Session Runner

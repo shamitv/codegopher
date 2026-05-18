@@ -75,6 +75,30 @@ def test_project_settings_writer_does_not_write_user_global_settings(
     assert project_settings_path(project).exists()
 
 
+def test_project_settings_writer_does_not_write_secrets_to_user_global_settings(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    project = tmp_path / "project"
+    user_settings = home / ".codegopher/settings.toml"
+    user_settings.parent.mkdir(parents=True)
+    project.mkdir()
+    user_settings.write_text("# user config stays untouched\n", encoding="utf-8")
+
+    save_mcp_server(
+        project,
+        "remote_docs",
+        McpServerConfig(
+            transport="sse",
+            url="https://example.test/sse",
+            headers={"Authorization": "Bearer project-secret"},
+            headers_env={"Authorization": "MCP_AUTH"},
+        ),
+    )
+
+    assert user_settings.read_text(encoding="utf-8") == "# user config stays untouched\n"
+
+
 def test_save_mcp_server_adds_stdio_server_and_loader_can_read_it(
     tmp_path: Path,
 ) -> None:
