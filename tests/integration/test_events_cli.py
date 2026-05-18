@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -11,6 +12,7 @@ from codegopher.events.cli import protocol_error
 from codegopher.events.protocol import (
     ApprovalRequestEvent,
     ApprovalResponseCommand,
+    CancelTurnCommand,
     ConfigSnapshotEvent,
     DeleteMcpServerCommand,
     ErrorEvent,
@@ -24,6 +26,7 @@ from codegopher.events.protocol import (
     SaveMcpServerCommand,
     SessionStartedEvent,
     SetMcpServerEnabledCommand,
+    ShutdownCommand,
     StartTurnCommand,
     TextDeltaEvent,
     ToolCallEvent,
@@ -32,6 +35,8 @@ from codegopher.events.protocol import (
     TurnStartedEvent,
     decode_jsonl_message,
 )
+from codegopher.events.session import turn_cancelled
+from codegopher.providers.base import ProviderCapabilities
 from codegopher.providers.mock import MockProvider
 
 
@@ -313,3 +318,69 @@ def test_events_cli_long_lived_accepts_config_and_mcp_commands(tmp_path: Path) -
     assert listed.servers[0].name == "playwright"
     assert saved[1].server.enabled is False
     assert deleted.server_name == "playwright"
+
+
+def test_events_cli_long_lived_supports_cancel_turn(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    provider = WaitingProvider()
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        workspace_root = str(Path.cwd())
+        commands = [
+            StartTurnCommand(
+                turn_id="turn-cancel",
+                prompt="wait",
+                workspace_root=workspace_root,
+            ),
+            CancelTurnCommand(turn_id="turn-cancel"),
+        ]
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init"],
+            input="".join(command.model_dump_json() + "\n" for command in commands),
+        )
+
+    messages = decode_output(result.output)
+    error = next(message for message in messages if isinstance(message, ErrorEvent))
+
+    assert result.exit_code == 0
+    assert error.code == turn_cancelled
+    assert error.turn_id == "turn-cancel"
+
+
+def test_events_cli_long_lived_supports_shutdown(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init"],
+            input=ShutdownCommand().model_dump_json() + "\n",
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+        )
+
+    messages = decode_output(result.output)
+
+    assert result.exit_code == 0
+    assert [type(message) for message in messages] == [SessionStartedEvent]
+
+
+class WaitingProvider:
+    capabilities = ProviderCapabilities(streaming=True, tool_calls=True)
+
+    async def stream(
+        self,
+        messages,
+        tools,
+        *,
+        model: str,
+        temperature: float,
+        max_output_tokens: int,
+    ):
+        _ = (messages, tools, model, temperature, max_output_tokens)
+        await asyncio.Event().wait()
+        yield {"type": "done"}

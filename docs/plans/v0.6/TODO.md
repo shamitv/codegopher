@@ -94,7 +94,7 @@ Commit rules:
   Verify: `python -m pytest tests/integration/test_events_cli.py`
 - [x] T033: Accept effective-config and MCP server management commands in long-lived events mode.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_config_management.py`
-- [ ] T034: Support `cancel_turn` and `shutdown` commands in long-lived events mode.
+- [x] T034: Support `cancel_turn` and `shutdown` commands in long-lived events mode.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
 - [ ] T035: Route human diagnostics to stderr while reserving stdout for protocol JSONL.
   Verify: `python -m pytest tests/integration/test_events_cli.py`

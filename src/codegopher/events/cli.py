@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from typing import TextIO
 
@@ -10,6 +11,7 @@ from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderE
 from codegopher.events.protocol import (
     ApprovalRequestEvent,
     ApprovalResponseCommand,
+    CancelTurnCommand,
     DeleteMcpServerCommand,
     ErrorEvent,
     GetEffectiveConfigCommand,
@@ -18,6 +20,7 @@ from codegopher.events.protocol import (
     ProtocolPayloadError,
     SaveMcpServerCommand,
     SetMcpServerEnabledCommand,
+    ShutdownCommand,
     StartTurnCommand,
     decode_jsonl_message,
     encode_jsonl_message,
@@ -84,7 +87,13 @@ async def _run_command_loop(
     stdout: TextIO,
     cwd: Path,
 ) -> None:
+    active_turn_task: asyncio.Task[object] | None = None
+
     for line in stdin:
+        if active_turn_task is not None and active_turn_task.done():
+            await _await_turn_task(active_turn_task)
+            active_turn_task = None
+
         if not line.strip():
             continue
         try:
@@ -99,6 +108,9 @@ async def _run_command_loop(
             continue
 
         if isinstance(command, StartTurnCommand):
+            if active_turn_task is not None and not active_turn_task.done():
+                await _await_turn_task(active_turn_task)
+                active_turn_task = None
             if not _workspace_matches(command.workspace_root, cwd):
                 await _emit_error(
                     stdout,
@@ -110,11 +122,23 @@ async def _run_command_loop(
                     ),
                 )
                 continue
-            try:
-                await session.run_turn(command.prompt, turn_id=command.turn_id)
-            except (ConfigurationError, ProviderError, AgentLoopError):
-                continue
+            active_turn_task = asyncio.create_task(
+                session.run_turn(command.prompt, turn_id=command.turn_id)
+            )
+            await asyncio.sleep(0)
             continue
+
+        if isinstance(command, CancelTurnCommand):
+            await session.cancel_turn(command.turn_id)
+            if active_turn_task is not None:
+                await _await_turn_task(active_turn_task)
+                active_turn_task = None
+            continue
+
+        if isinstance(command, ShutdownCommand):
+            if active_turn_task is not None:
+                await _await_turn_task(active_turn_task)
+            break
 
         if isinstance(command, GetEffectiveConfigCommand):
             if not await _require_workspace_match(session, stdout, command.workspace_root):
@@ -178,6 +202,16 @@ async def _run_command_loop(
             turn_id=command.turn_id,
             message=f"Unsupported command in events mode: {command.type}",
         )
+
+    if active_turn_task is not None:
+        await _await_turn_task(active_turn_task)
+
+
+async def _await_turn_task(task: asyncio.Task[object]) -> None:
+    try:
+        await task
+    except (ConfigurationError, ProviderError, AgentLoopError):
+        return
 
 
 async def _resolve_one_shot_approval(
