@@ -103,7 +103,7 @@ Commit rules:
 
 ## Milestone 5 - VS Code Extension Scaffold
 
-- [ ] T037: Add `extensions/vscode/package.json` with extension metadata, chat commands, endpoint/MCP commands, settings, and scripts.
+- [x] T037: Add `extensions/vscode/package.json` with extension metadata, chat commands, endpoint/MCP commands, settings, and scripts.
   Verify: `cd extensions/vscode && npm install`
 - [ ] T038: Add TypeScript, ESLint, and test configuration for the extension package.
   Verify: `cd extensions/vscode && npm run compile`

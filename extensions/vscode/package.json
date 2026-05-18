@@ -1,0 +1,140 @@
+{
+  "name": "codegopher-vscode",
+  "displayName": "CodeGopher",
+  "description": "VS Code extension shell for CodeGopher.",
+  "version": "0.0.1",
+  "publisher": "codegopher",
+  "license": "MIT",
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "codegopher",
+    "agent",
+    "ai"
+  ],
+  "engines": {
+    "vscode": "^1.120.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onCommand:codegopher.openChat",
+    "onCommand:codegopher.restartAgent",
+    "onCommand:codegopher.viewLlmEndpoint",
+    "onCommand:codegopher.manageMcpServers",
+    "onCommand:codegopher.showProtocolTrace"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codegopher.openChat",
+        "title": "CodeGopher: Open Chat",
+        "category": "CodeGopher"
+      },
+      {
+        "command": "codegopher.restartAgent",
+        "title": "CodeGopher: Restart Agent",
+        "category": "CodeGopher"
+      },
+      {
+        "command": "codegopher.viewLlmEndpoint",
+        "title": "CodeGopher: View LLM Endpoint",
+        "category": "CodeGopher"
+      },
+      {
+        "command": "codegopher.manageMcpServers",
+        "title": "CodeGopher: Manage MCP Servers",
+        "category": "CodeGopher"
+      },
+      {
+        "command": "codegopher.showProtocolTrace",
+        "title": "CodeGopher: Show Protocol Trace",
+        "category": "CodeGopher"
+      }
+    ],
+    "configuration": {
+      "title": "CodeGopher",
+      "properties": {
+        "codegopher.cliPath": {
+          "type": "string",
+          "default": "cgopher",
+          "description": "Path to the CodeGopher CLI executable."
+        },
+        "codegopher.provider": {
+          "type": "string",
+          "default": "",
+          "description": "Optional provider override passed to the CodeGopher CLI."
+        },
+        "codegopher.model": {
+          "type": "string",
+          "default": "",
+          "description": "Optional model override passed to the CodeGopher CLI."
+        },
+        "codegopher.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional provider base URL override passed to the CodeGopher CLI."
+        },
+        "codegopher.apiFamily": {
+          "type": "string",
+          "default": "",
+          "enum": [
+            "",
+            "chat_completions",
+            "responses"
+          ],
+          "enumDescriptions": [
+            "Use the configured provider default.",
+            "Use a chat completions compatible provider API.",
+            "Use the OpenAI Responses API."
+          ],
+          "description": "Optional provider API family override passed to the CodeGopher CLI."
+        },
+        "codegopher.approvalMode": {
+          "type": "string",
+          "default": "",
+          "enum": [
+            "",
+            "review",
+            "auto",
+            "yolo"
+          ],
+          "enumDescriptions": [
+            "Use the configured approval mode.",
+            "Ask before tools that require approval.",
+            "Automatically approve non-destructive operations.",
+            "Allow tools without interactive approval prompts."
+          ],
+          "description": "Optional approval-mode override passed to the CodeGopher CLI."
+        },
+        "codegopher.traceProtocol": {
+          "type": "boolean",
+          "default": false,
+          "description": "Write redacted CodeGopher JSONL protocol traffic to the extension output channel."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint .",
+    "pretest": "npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.9.0",
+    "@types/vscode": "^1.120.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
+    "@typescript-eslint/parser": "^8.59.3",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.1",
+    "eslint": "^10.4.0",
+    "globals": "^17.6.0",
+    "mocha": "^11.7.5",
+    "typescript": "^6.0.3"
+  }
+}

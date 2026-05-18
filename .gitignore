@@ -33,6 +33,9 @@ coverage.xml
 # Ruff
 .ruff_cache/
 
+# Node / VS Code extension
+node_modules/
+
 # IDE
 .vscode/settings.json
 .idea/
