@@ -208,7 +208,7 @@ async def test_mcp_manager_closes_started_contexts_on_failure(tmp_path: Path) ->
         session_factory=lambda _read, _write: FakeAsyncContext(session, events, "session"),
     )
 
-    with pytest.raises(ConfigurationError, match="local"):
+    with pytest.raises(ConfigurationError, match=r"local \(stdio\)"):
         await manager.start()
 
     assert events == ["enter:stdio", "enter:session", "exit:session", "exit:stdio"]

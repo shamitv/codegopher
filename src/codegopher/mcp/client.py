@@ -267,7 +267,9 @@ class McpManager:
         except ConfigurationError:
             raise
         except Exception as exc:
-            raise ConfigurationError(f"MCP server {server_name} failed to initialize: {exc}") from exc
+            raise ConfigurationError(
+                f"MCP server {server_name} ({config.transport.value}) failed to initialize: {exc}"
+            ) from exc
 
         for raw_tool in _get(tool_result, "tools", []) or []:
             self._tools.append(
