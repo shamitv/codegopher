@@ -14,14 +14,47 @@ from codegopher.providers.openai_compat import OpenAICompatProvider
 from codegopher.skills import discover_project_skills
 
 
-def test_cli_without_prompt_requires_interactive_tty() -> None:
-    result = CliRunner().invoke(app)
+def test_cli_without_prompt_requires_interactive_tty(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(app)
+        assert not (Path.cwd() / ".codegopher").exists()
 
     assert result.exit_code != 0
     assert "pass -p/--prompt for headless usage" in result.output
 
 
-def test_cli_without_prompt_launches_tui_when_interactive(monkeypatch) -> None:
+def test_cli_without_prompt_launches_tui_when_interactive(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_launch_tui(settings: Settings, *, cwd) -> None:
+        captured["settings"] = settings
+        captured["cwd"] = cwd
+        captured["project_skill_exists"] = (
+            Path.cwd() / ".codegopher/skills/project/SKILL.md"
+        ).exists()
+
+    monkeypatch.setattr(cli_main, "_streams_are_interactive", lambda: True)
+    monkeypatch.setattr("codegopher.tui.launch_tui", fake_launch_tui)
+
+    runner = CliRunner()
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(app)
+
+    assert result.exit_code == 0
+    assert isinstance(captured["settings"], Settings)
+    assert captured["cwd"] is not None
+    assert captured["project_skill_exists"] is True
+
+
+def test_cli_without_prompt_no_project_init_skips_tui_implicit_init(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
     captured: dict[str, object] = {}
 
     def fake_launch_tui(settings: Settings, *, cwd) -> None:
@@ -31,15 +64,21 @@ def test_cli_without_prompt_launches_tui_when_interactive(monkeypatch) -> None:
     monkeypatch.setattr(cli_main, "_streams_are_interactive", lambda: True)
     monkeypatch.setattr("codegopher.tui.launch_tui", fake_launch_tui)
 
-    result = CliRunner().invoke(app)
+    runner = CliRunner()
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(app, ["--no-project-init"])
+        assert not (Path.cwd() / ".codegopher").exists()
 
     assert result.exit_code == 0
     assert isinstance(captured["settings"], Settings)
-    assert captured["cwd"] is not None
 
 
 def test_cli_prompt_dry_run_echoes_prompt() -> None:
-    result = CliRunner().invoke(app, ["-p", "hello"], env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"})
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
+    )
 
     assert result.exit_code == 0
     assert result.output == "mocked\n"
@@ -48,7 +87,15 @@ def test_cli_prompt_dry_run_echoes_prompt() -> None:
 def test_cli_applies_settings_overrides() -> None:
     result = CliRunner().invoke(
         app,
-        ["-p", "hello", "--model", "local-model", "--provider", "local"],
+        [
+            "--no-project-init",
+            "-p",
+            "hello",
+            "--model",
+            "local-model",
+            "--provider",
+            "local",
+        ],
         env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
     )
 
@@ -67,7 +114,7 @@ def test_cli_appends_piped_stdin_to_prompt(monkeypatch) -> None:
 
     result = CliRunner().invoke(
         app,
-        ["-p", "summarize"],
+        ["--no-project-init", "-p", "summarize"],
         input="log line\n",
         env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
     )
@@ -76,12 +123,16 @@ def test_cli_appends_piped_stdin_to_prompt(monkeypatch) -> None:
     assert captured["prompt"] == "summarize\n\nInput context:\nlog line\n"
 
 
-def test_cli_json_output_shape() -> None:
-    result = CliRunner().invoke(
-        app,
-        ["-p", "hello", "--json"],
-        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
-    )
+def test_cli_json_output_shape_and_implicit_init(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["-p", "hello", "--json"],
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
+        )
+        project_skill = Path.cwd() / ".codegopher/skills/project/SKILL.md"
 
     assert result.exit_code == 0
     assert json.loads(result.output) == {
@@ -89,6 +140,59 @@ def test_cli_json_output_shape() -> None:
         "tool_results": [],
         "iterations": 1,
     }
+    assert project_skill.exists()
+
+
+def test_cli_headless_no_project_init_skips_implicit_init(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["--no-project-init", "-p", "hello"],
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
+        )
+        assert not (Path.cwd() / ".codegopher").exists()
+
+    assert result.exit_code == 0
+    assert result.output == "mocked\n"
+
+
+def test_cli_existing_codegopher_directory_skips_implicit_init(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        Path(".codegopher").mkdir()
+        result = runner.invoke(
+            app,
+            ["-p", "hello"],
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
+        )
+        assert not (Path.cwd() / ".codegopher/skills/project/SKILL.md").exists()
+
+    assert result.exit_code == 0
+    assert result.output == "mocked\n"
+
+
+def test_cli_implicit_init_failure_mentions_no_project_init(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    def fail_write(**kwargs) -> str:
+        raise OSError("read-only")
+
+    monkeypatch.setattr(cli_main, "_write_project_skill", fail_write)
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["-p", "hello"],
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "mocked"},
+        )
+
+    assert result.exit_code != 0
+    assert "--no-project-init" in result.output
 
 
 def test_cli_debug_output_includes_reasoning(monkeypatch) -> None:
@@ -103,7 +207,7 @@ def test_cli_debug_output_includes_reasoning(monkeypatch) -> None:
     )
     monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
 
-    result = CliRunner().invoke(app, ["-p", "hello", "--debug"])
+    result = CliRunner().invoke(app, ["--no-project-init", "-p", "hello", "--debug"])
 
     assert result.exit_code == 0
     assert result.output == "Reasoning:\nthinking\nanswer\n"
@@ -121,7 +225,10 @@ def test_cli_json_debug_output_excludes_reasoning(monkeypatch) -> None:
     )
     monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
 
-    result = CliRunner().invoke(app, ["-p", "hello", "--debug", "--json"])
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello", "--debug", "--json"],
+    )
 
     assert result.exit_code == 0
     assert json.loads(result.output)["final_text"] == "answer"
@@ -131,7 +238,7 @@ def test_cli_json_debug_output_excludes_reasoning(monkeypatch) -> None:
 def test_cli_reports_configuration_errors() -> None:
     result = CliRunner().invoke(
         app,
-        ["-p", "hello"],
+        ["--no-project-init", "-p", "hello"],
         env={
             "CODEGOPHER_TEST_MOCK_RESPONSE": "mocked",
             "CODEGOPHER_APPROVAL_MODE": "sometimes",
@@ -145,7 +252,7 @@ def test_cli_reports_configuration_errors() -> None:
 def test_cli_reports_provider_errors() -> None:
     result = CliRunner().invoke(
         app,
-        ["-p", "hello"],
+        ["--no-project-init", "-p", "hello"],
         env={"OPENAI_API_KEY": "", "CODEGOPHER_TEST_MOCK_RESPONSE": None},
     )
 

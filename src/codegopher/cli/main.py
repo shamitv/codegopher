@@ -64,6 +64,24 @@ def _write_project_skill(
     return f"{action} {skill_path}"
 
 
+def _ensure_implicit_project_init(*, cwd: Path, enabled: bool) -> None:
+    if not enabled or (cwd / ".codegopher").exists():
+        return
+
+    try:
+        _write_project_skill(
+            target=cwd,
+            skill_id="project",
+            content=DEFAULT_PROJECT_SKILL,
+            force=False,
+        )
+    except OSError as exc:
+        raise click.ClickException(
+            f"Could not initialize project guidance in {cwd}: {exc}. "
+            "Re-run with --no-project-init to skip project initialization."
+        ) from exc
+
+
 def _emit_result(
     result: AgentResult,
     *,
@@ -93,6 +111,11 @@ def _streams_are_interactive() -> bool:
     type=click.Choice(["review", "auto", "yolo"]),
     help="Choose tool approval behavior.",
 )
+@click.option(
+    "--no-project-init",
+    is_flag=True,
+    help="Do not create default project guidance on first use.",
+)
 @click.option("--debug", is_flag=True, help="Include debug diagnostics.")
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable output.")
 @click.pass_context
@@ -103,12 +126,15 @@ def app(
     provider: str | None,
     base_url: str | None,
     approval_mode: str | None,
+    no_project_init: bool,
     debug: bool,
     as_json: bool,
 ) -> None:
     """Run CodeGopher."""
     if ctx.invoked_subcommand is not None:
         return
+
+    cwd = Path.cwd()
 
     try:
         settings = load_settings(
@@ -127,6 +153,7 @@ def app(
         stdin = click.get_text_stream("stdin")
         full_prompt = prompt
         reasoning_parts: list[str] = []
+        _ensure_implicit_project_init(cwd=cwd, enabled=not no_project_init)
 
         async def on_reasoning_delta(content: str) -> None:
             reasoning_parts.append(content)
@@ -142,7 +169,7 @@ def app(
                     provider=_build_provider(settings),
                     registry=create_default_registry(),
                     settings=settings,
-                    cwd=Path.cwd(),
+                    cwd=cwd,
                     stdin_is_tty=stdin.isatty(),
                     callbacks=AgentCallbacks(on_reasoning_delta=on_reasoning_delta)
                     if debug
@@ -163,9 +190,11 @@ def app(
             "No prompt provided in non-interactive mode; pass -p/--prompt for headless usage."
         )
 
+    _ensure_implicit_project_init(cwd=cwd, enabled=not no_project_init)
+
     from codegopher.tui import launch_tui
 
-    launch_tui(settings, cwd=Path.cwd())
+    launch_tui(settings, cwd=cwd)
 
 
 @app.command("init")

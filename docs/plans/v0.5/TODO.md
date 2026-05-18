@@ -71,15 +71,15 @@ Commit rules:
 
 ## Milestone 5 - Implicit Project Init
 
-- [ ] T023: Add a reusable project-init helper that can run silently for implicit init and visibly for `cgopher init`.
+- [x] T023: Add a reusable project-init helper that can run silently for implicit init and visibly for `cgopher init`.
   Verify: `python -m pytest tests/unit/test_cli.py`
-- [ ] T024: Add global `--no-project-init` CLI flag.
+- [x] T024: Add global `--no-project-init` CLI flag.
   Verify: `python -m pytest tests/unit/test_cli.py`
-- [ ] T025: Trigger implicit init before headless prompt execution when `.codegopher/` is missing.
+- [x] T025: Trigger implicit init before headless prompt execution when `.codegopher/` is missing.
   Verify: `python -m pytest tests/unit/test_cli.py`
-- [ ] T026: Trigger implicit init before TUI launch when `.codegopher/` is missing.
+- [x] T026: Trigger implicit init before TUI launch when `.codegopher/` is missing.
   Verify: `python -m pytest tests/unit/test_cli.py`
-- [ ] T027: Preserve no-init behavior for existing `.codegopher/`, `--no-project-init`, non-interactive no-prompt errors, and manual `cgopher init`.
+- [x] T027: Preserve no-init behavior for existing `.codegopher/`, `--no-project-init`, non-interactive no-prompt errors, and manual `cgopher init`.
   Verify: `python -m pytest tests/unit/test_cli.py`
 
 ## Milestone 6 - Final Verification
