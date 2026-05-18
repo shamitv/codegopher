@@ -112,6 +112,7 @@ hatch run typecheck
 - [Product Roadmap](docs/product/ROADMAP.md)
 - [Initial v0.1 Plan](docs/plans/initial/PLAN.md)
 - [llama.cpp OpenAI-Compatible Test Endpoint](docs/devguide/llm/LLAMA_CPP_OPENAI_ENDPOINT.md)
+- [VS Code Extension Testing](docs/devguide/vscode/TESTING.md)
 
 ## Configuration
 
