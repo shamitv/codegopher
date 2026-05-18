@@ -244,3 +244,95 @@ def test_cli_init_generated_skill_is_discoverable(tmp_path: Path) -> None:
     assert discovery.warnings == ()
     assert skill is not None
     assert skill.metadata.name == "Project"
+
+
+def test_cli_init_repo_docs_skill_pack_materializes_documentation_skills(
+    tmp_path: Path,
+) -> None:
+    result = CliRunner().invoke(
+        app,
+        ["init", str(tmp_path), "--skill-pack", "repo-docs"],
+    )
+
+    assert result.exit_code == 0
+    assert "repo-domain-docs" in result.output
+    assert "repo-tech-docs" in result.output
+    assert (tmp_path / ".codegopher/skills/repo-domain-docs/SKILL.md").exists()
+    assert (tmp_path / ".codegopher/skills/repo-tech-docs/SKILL.md").exists()
+    assert not (tmp_path / ".codegopher/skills/crud-owasp-static-audit/SKILL.md").exists()
+    assert not (tmp_path / ".codegopher/skills/project/SKILL.md").exists()
+
+
+def test_cli_init_security_skill_pack_materializes_static_audit_skill(
+    tmp_path: Path,
+) -> None:
+    result = CliRunner().invoke(
+        app,
+        ["init", str(tmp_path), "--skill-pack", "security"],
+    )
+
+    skill_path = tmp_path / ".codegopher/skills/crud-owasp-static-audit/SKILL.md"
+    assert result.exit_code == 0
+    assert skill_path.exists()
+    raw = skill_path.read_text(encoding="utf-8")
+    assert "static-only" in raw.lower()
+    assert "OWASP Top 10:2025" in raw
+
+
+def test_cli_init_all_skill_pack_materializes_all_v0_5_skills(tmp_path: Path) -> None:
+    result = CliRunner().invoke(app, ["init", str(tmp_path), "--skill-pack", "all"])
+
+    assert result.exit_code == 0
+    for skill_id in (
+        "repo-domain-docs",
+        "repo-tech-docs",
+        "crud-owasp-static-audit",
+    ):
+        assert (tmp_path / ".codegopher" / "skills" / skill_id / "SKILL.md").exists()
+
+
+def test_cli_init_skill_pack_skips_existing_files_without_force(tmp_path: Path) -> None:
+    skill_path = tmp_path / ".codegopher/skills/repo-domain-docs/SKILL.md"
+    skill_path.parent.mkdir(parents=True)
+    skill_path.write_text("custom domain guidance", encoding="utf-8")
+
+    result = CliRunner().invoke(
+        app,
+        ["init", str(tmp_path), "--skill-pack", "repo-docs"],
+    )
+
+    assert result.exit_code == 0
+    assert "Skipped existing" in result.output
+    assert skill_path.read_text(encoding="utf-8") == "custom domain guidance"
+    assert (tmp_path / ".codegopher/skills/repo-tech-docs/SKILL.md").exists()
+
+
+def test_cli_init_skill_pack_overwrites_existing_files_with_force(
+    tmp_path: Path,
+) -> None:
+    skill_path = tmp_path / ".codegopher/skills/crud-owasp-static-audit/SKILL.md"
+    skill_path.parent.mkdir(parents=True)
+    skill_path.write_text("custom security guidance", encoding="utf-8")
+
+    result = CliRunner().invoke(
+        app,
+        ["init", str(tmp_path), "--skill-pack", "security", "--force"],
+    )
+
+    raw = skill_path.read_text(encoding="utf-8")
+    assert result.exit_code == 0
+    assert "Overwrote" in result.output
+    assert "CRUD OWASP Static Audit" in raw
+
+
+def test_cli_init_skill_pack_does_not_write_settings_or_secrets(tmp_path: Path) -> None:
+    result = CliRunner().invoke(app, ["init", str(tmp_path), "--skill-pack", "all"])
+    raw = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted((tmp_path / ".codegopher/skills").glob("*/SKILL.md"))
+    )
+
+    assert result.exit_code == 0
+    assert not (tmp_path / ".codegopher/settings.toml").exists()
+    assert "api_key" not in raw.lower()
+    assert "OPENAI_API_KEY" not in raw
