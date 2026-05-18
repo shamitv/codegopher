@@ -7,8 +7,18 @@ from typing import TextIO
 
 from codegopher.config.schema import Settings
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
-from codegopher.events.protocol import ProtocolEvent, encode_jsonl_message
+from codegopher.events.protocol import (
+    ApprovalRequestEvent,
+    ApprovalResponseCommand,
+    ErrorEvent,
+    ProtocolEvent,
+    ProtocolPayloadError,
+    decode_jsonl_message,
+    encode_jsonl_message,
+)
 from codegopher.events.session import EventsSession, ProviderFactory
+
+protocol_error = "protocol_error"
 
 
 async def run_events_cli(
@@ -25,9 +35,18 @@ async def run_events_cli(
 
     _ = (stdin, stderr)
 
+    session: EventsSession
+
     async def emit_event(event: ProtocolEvent) -> None:
         stdout.write(encode_jsonl_message(event))
         stdout.flush()
+        if prompt and isinstance(event, ApprovalRequestEvent):
+            await _resolve_one_shot_approval(
+                session=session,
+                request=event,
+                stdin=stdin,
+                stdout=stdout,
+            )
 
     session = EventsSession(
         settings=settings,
@@ -46,4 +65,97 @@ async def run_events_cli(
     return 0
 
 
-__all__ = ["run_events_cli"]
+async def _resolve_one_shot_approval(
+    *,
+    session: EventsSession,
+    request: ApprovalRequestEvent,
+    stdin: TextIO,
+    stdout: TextIO,
+) -> None:
+    line = stdin.readline()
+    if not line:
+        await _emit_protocol_error(
+            stdout,
+            session_id=request.session_id,
+            turn_id=request.turn_id,
+            message="Approval response required",
+        )
+        await session.submit_approval(
+            request.approval_id,
+            approved=False,
+            reason="Approval response required",
+        )
+        return
+
+    try:
+        command = decode_jsonl_message(line)
+    except ProtocolPayloadError as exc:
+        await _emit_protocol_error(
+            stdout,
+            session_id=request.session_id,
+            turn_id=request.turn_id,
+            message=str(exc),
+        )
+        await session.submit_approval(
+            request.approval_id,
+            approved=False,
+            reason="Invalid approval response",
+        )
+        return
+
+    if not isinstance(command, ApprovalResponseCommand):
+        await _emit_protocol_error(
+            stdout,
+            session_id=request.session_id,
+            turn_id=request.turn_id,
+            message=f"Expected approval_response, got {command.type}",
+        )
+        await session.submit_approval(
+            request.approval_id,
+            approved=False,
+            reason="Invalid approval response",
+        )
+        return
+
+    if command.approval_id != request.approval_id:
+        await _emit_protocol_error(
+            stdout,
+            session_id=request.session_id,
+            turn_id=request.turn_id,
+            message=f"Approval id mismatch: {command.approval_id}",
+        )
+        await session.submit_approval(
+            request.approval_id,
+            approved=False,
+            reason="Approval id mismatch",
+        )
+        return
+
+    await session.submit_approval(
+        command.approval_id,
+        approved=command.approved,
+        reason=command.reason,
+    )
+
+
+async def _emit_protocol_error(
+    stdout: TextIO,
+    *,
+    session_id: str | None,
+    turn_id: str | None,
+    message: str,
+) -> None:
+    stdout.write(
+        encode_jsonl_message(
+            ErrorEvent(
+                session_id=session_id,
+                turn_id=turn_id,
+                code=protocol_error,
+                message=message,
+            )
+        )
+    )
+    stdout.flush()
+
+
+__all__ = ["protocol_error", "run_events_cli"]

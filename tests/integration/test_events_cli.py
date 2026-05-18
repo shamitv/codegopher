@@ -5,8 +5,13 @@ from pathlib import Path
 from click.testing import CliRunner
 
 import codegopher.cli.main as cli_main
+import codegopher.events.session as events_session_module
 from codegopher.cli.main import app
+from codegopher.events.cli import protocol_error
 from codegopher.events.protocol import (
+    ApprovalRequestEvent,
+    ApprovalResponseCommand,
+    ErrorEvent,
     ReasoningDeltaEvent,
     SessionStartedEvent,
     TextDeltaEvent,
@@ -123,3 +128,97 @@ def test_events_cli_one_shot_emits_tool_call_and_result_events(
     assert tool_result.result_summary == "project notes"
     assert complete.final_text == "read complete"
     assert complete.tool_count == 1
+
+
+def test_events_cli_one_shot_accepts_approval_response_from_stdin(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "denied"}, {"type": "done"}],
+        ]
+    )
+    uuid_values = iter(["session0000", "turn0000000", "approval0000"])
+
+    class FakeUuid:
+        def __init__(self, value: str) -> None:
+            self.hex = value
+
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+    monkeypatch.setattr(events_session_module, "uuid4", lambda: FakeUuid(next(uuid_values)))
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init", "-p", "write"],
+            input=ApprovalResponseCommand(
+                approval_id="approval-approval0000",
+                approved=False,
+                reason="not now",
+            ).model_dump_json()
+            + "\n",
+        )
+
+    messages = decode_output(result.output)
+    approval = next(message for message in messages if isinstance(message, ApprovalRequestEvent))
+    tool_result = next(message for message in messages if isinstance(message, ToolResultEvent))
+
+    assert result.exit_code == 0
+    assert approval.approval_id == "approval-approval0000"
+    assert approval.tool_name == "write_file"
+    assert tool_result.is_error is True
+    assert tool_result.result_summary == "not now"
+
+
+def test_events_cli_one_shot_malformed_approval_input_emits_protocol_error(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "denied"}, {"type": "done"}],
+        ]
+    )
+    monkeypatch.setattr(cli_main, "_build_provider", lambda _settings: provider)
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init", "-p", "write"],
+            input="{not json}\n",
+        )
+
+    messages = decode_output(result.output)
+    error = next(message for message in messages if isinstance(message, ErrorEvent))
+    tool_result = next(message for message in messages if isinstance(message, ToolResultEvent))
+
+    assert result.exit_code == 0
+    assert error.code == protocol_error
+    assert "Malformed protocol JSON" in error.message
+    assert tool_result.is_error is True
+    assert tool_result.result_summary == "Invalid approval response"

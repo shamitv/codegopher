@@ -88,7 +88,7 @@ Commit rules:
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_agent_loop.py`
 - [x] T030: Emit tool-call and tool-result events for a multi-iteration response.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T031: Support approval requests and stdin `approval_response` in one-shot events mode.
+- [x] T031: Support approval requests and stdin `approval_response` in one-shot events mode.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_approval.py`
 - [ ] T032: Add long-lived `cgopher --events` mode that accepts `start_turn` commands over stdin.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
