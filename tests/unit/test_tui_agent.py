@@ -8,6 +8,7 @@ import pytest
 from textual.widgets import Input
 
 from codegopher.config.schema import ApprovalMode, ModelConfig, Settings
+from codegopher.core.errors import ConfigurationError
 from codegopher.core.types import Message, StreamEvent, ToolSchema
 from codegopher.providers.base import ProviderCapabilities
 from codegopher.providers.mock import MockProvider
@@ -136,6 +137,76 @@ async def test_tui_preserves_provider_context_across_submitted_turns(tmp_path: P
             {"role": "assistant", "content": "first answer"},
             {"role": "user", "content": "second question"},
         ]
+
+
+@pytest.mark.asyncio
+async def test_tui_starts_mcp_before_agent_turn_and_cleans_up(tmp_path: Path) -> None:
+    provider = MockProvider([[{"type": "text_delta", "content": "ok"}, {"type": "done"}]])
+    events: list[str] = []
+
+    class FakeTool:
+        name = "mcp__local__echo"
+        description = "Echo"
+        parameters = {"type": "object", "properties": {}}
+        requires_approval = True
+
+        async def execute(self, arguments, context):
+            raise AssertionError("not used")
+
+    class FakeMcpManager:
+        async def start(self):
+            events.append("start")
+            return self
+
+        def register_tools(self, registry) -> None:
+            events.append("register")
+            registry.register(FakeTool())
+
+        async def aclose(self) -> None:
+            events.append("close")
+
+    app = CodeGopherApp(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+        mcp_manager_factory=lambda _settings, _cwd: FakeMcpManager(),
+    )
+
+    async with app.run_test() as pilot:
+        assert events == ["start", "register"]
+        await submit(app, pilot, "question")
+        assert "mcp__local__echo" in provider.calls[0][0]["content"]
+
+    assert events == ["start", "register", "close"]
+
+
+@pytest.mark.asyncio
+async def test_tui_disables_input_on_mcp_startup_failure(tmp_path: Path) -> None:
+    provider = MockProvider([[{"type": "text_delta", "content": "ok"}, {"type": "done"}]])
+
+    class FakeMcpManager:
+        async def start(self):
+            raise ConfigurationError("MCP server local failed to initialize")
+
+        def register_tools(self, registry) -> None:
+            raise AssertionError("not reached")
+
+        async def aclose(self) -> None:
+            pass
+
+    app = CodeGopherApp(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+        mcp_manager_factory=lambda _settings, _cwd: FakeMcpManager(),
+    )
+
+    async with app.run_test():
+        input_widget = app.query_one("#prompt-input", Input)
+
+        assert input_widget.disabled is True
+        assert app.chat_messages == ["MCP initialization failed: MCP server local failed to initialize"]
+        assert app.status_message == "MCP initialization failed: MCP server local failed to initialize"
 
 
 @pytest.mark.asyncio

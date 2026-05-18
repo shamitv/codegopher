@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -18,7 +19,7 @@ from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_pro
 from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget
 from codegopher.core.conversation import Conversation
-from codegopher.core.errors import AgentLoopError, ProviderError
+from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
 from codegopher.core.types import (
     CompactionEntry,
     MemoryEntry,
@@ -28,6 +29,7 @@ from codegopher.core.types import (
     TodoItem,
     ToolCall,
 )
+from codegopher.mcp import McpManager
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
@@ -101,6 +103,7 @@ class CodeGopherApp(App[None]):
         cwd: Path,
         provider_factory: Callable[[Settings], Provider] = build_provider,
         registry_factory: Callable[[], ToolRegistry] = create_default_registry,
+        mcp_manager_factory: Callable[[Settings, Path], McpManager] | None = None,
         monotonic: Callable[[], float] = time.monotonic,
         session_store: TuiSessionStore | None = None,
         session_state: TuiSessionState | None = None,
@@ -111,6 +114,10 @@ class CodeGopherApp(App[None]):
         self.settings = settings
         self.cwd = cwd
         self.provider_factory = provider_factory
+        self.mcp_manager_factory = mcp_manager_factory or (
+            lambda settings, cwd: McpManager(settings=settings, cwd=cwd, environ=os.environ)
+        )
+        self.mcp_manager: McpManager | None = None
         self._agent_session: AgentSession | None = None
         self.session_store = session_store
         self.session_state = session_state or (
@@ -170,7 +177,7 @@ class CodeGopherApp(App[None]):
             yield Input(placeholder="Ask CodeGopher...", id="prompt-input")
         yield Footer()
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self.query_one("#approval-panel", Vertical).display = False
         self.query_one("#reasoning-stream", Static).display = False
         history = self.query_one("#chat-history", RichLog)
@@ -178,7 +185,25 @@ class CodeGopherApp(App[None]):
             history.write(message, scroll_end=True)
         if self.session_load_error:
             self.append_system_message(f"Session resume failed: {self.session_load_error}")
+        await self._initialize_mcp()
         self.query_one("#prompt-input", Input).focus()
+
+    async def on_unmount(self) -> None:
+        if self.mcp_manager is not None:
+            await self.mcp_manager.aclose()
+
+    async def _initialize_mcp(self) -> None:
+        if not self.settings.mcp.enabled:
+            return
+        self.mcp_manager = self.mcp_manager_factory(self.settings, self.cwd)
+        try:
+            await self.mcp_manager.start()
+            self.mcp_manager.register_tools(self.registry)
+        except ConfigurationError as exc:
+            message = f"MCP initialization failed: {exc}"
+            self.append_system_message(message)
+            self.set_status(message)
+            self.query_one("#prompt-input", Input).disabled = True
 
     def action_focus_input(self) -> None:
         self.query_one("#prompt-input", Input).focus()

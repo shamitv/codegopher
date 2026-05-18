@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from importlib import resources
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from codegopher.config.loader import CliOverrides, load_settings
 from codegopher.config.schema import Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
+from codegopher.mcp import McpManager
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
 from codegopher.tools.registry import create_default_registry
@@ -101,6 +103,28 @@ def _streams_are_interactive() -> bool:
     return click.get_text_stream("stdin").isatty() and click.get_text_stream("stdout").isatty()
 
 
+async def _run_headless_agent(
+    *,
+    prompt: str,
+    settings: Settings,
+    cwd: Path,
+    stdin_is_tty: bool,
+    callbacks: AgentCallbacks | None = None,
+) -> AgentResult:
+    registry = create_default_registry()
+    async with McpManager(settings=settings, cwd=cwd, environ=os.environ) as mcp_manager:
+        mcp_manager.register_tools(registry)
+        return await run_agent(
+            prompt=prompt,
+            provider=_build_provider(settings),
+            registry=registry,
+            settings=settings,
+            cwd=cwd,
+            stdin_is_tty=stdin_is_tty,
+            callbacks=callbacks,
+        )
+
+
 @click.group(invoke_without_command=True)
 @click.option("-p", "--prompt", help="Run one headless prompt and exit.")
 @click.option("--model", help="Override the model name.")
@@ -171,10 +195,8 @@ def app(
                 full_prompt = f"{prompt}\n\nInput context:\n{stdin_text}"
         try:
             result = asyncio.run(
-                run_agent(
+                _run_headless_agent(
                     prompt=full_prompt,
-                    provider=_build_provider(settings),
-                    registry=create_default_registry(),
                     settings=settings,
                     cwd=cwd,
                     stdin_is_tty=stdin.isatty(),
@@ -183,7 +205,7 @@ def app(
                     else None,
                 )
             )
-        except (ProviderError, AgentLoopError) as exc:
+        except (ConfigurationError, ProviderError, AgentLoopError) as exc:
             raise click.ClickException(str(exc)) from exc
         _emit_result(
             result,
