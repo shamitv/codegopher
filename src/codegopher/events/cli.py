@@ -10,9 +10,14 @@ from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderE
 from codegopher.events.protocol import (
     ApprovalRequestEvent,
     ApprovalResponseCommand,
+    DeleteMcpServerCommand,
     ErrorEvent,
+    GetEffectiveConfigCommand,
+    ListMcpServersCommand,
     ProtocolEvent,
     ProtocolPayloadError,
+    SaveMcpServerCommand,
+    SetMcpServerEnabledCommand,
     StartTurnCommand,
     decode_jsonl_message,
     encode_jsonl_message,
@@ -111,6 +116,62 @@ async def _run_command_loop(
                 continue
             continue
 
+        if isinstance(command, GetEffectiveConfigCommand):
+            if not await _require_workspace_match(session, stdout, command.workspace_root):
+                continue
+            try:
+                await session.emit_effective_config(workspace_root=command.workspace_root)
+            except ConfigurationError:
+                continue
+            continue
+
+        if isinstance(command, ListMcpServersCommand):
+            if not await _require_workspace_match(session, stdout, command.workspace_root):
+                continue
+            try:
+                await session.emit_mcp_servers(workspace_root=command.workspace_root)
+            except ConfigurationError:
+                continue
+            continue
+
+        if isinstance(command, SaveMcpServerCommand):
+            if not await _require_workspace_match(session, stdout, command.workspace_root):
+                continue
+            try:
+                await session.save_mcp_server(
+                    command.server_name,
+                    command.server,
+                    workspace_root=command.workspace_root,
+                )
+            except ConfigurationError:
+                continue
+            continue
+
+        if isinstance(command, SetMcpServerEnabledCommand):
+            if not await _require_workspace_match(session, stdout, command.workspace_root):
+                continue
+            try:
+                await session.set_mcp_server_enabled(
+                    command.server_name,
+                    command.enabled,
+                    workspace_root=command.workspace_root,
+                )
+            except ConfigurationError:
+                continue
+            continue
+
+        if isinstance(command, DeleteMcpServerCommand):
+            if not await _require_workspace_match(session, stdout, command.workspace_root):
+                continue
+            try:
+                await session.delete_mcp_server(
+                    command.server_name,
+                    workspace_root=command.workspace_root,
+                )
+            except ConfigurationError:
+                continue
+            continue
+
         await _emit_protocol_error(
             stdout,
             session_id=session.session_id,
@@ -190,6 +251,24 @@ async def _resolve_one_shot_approval(
         approved=command.approved,
         reason=command.reason,
     )
+
+
+async def _require_workspace_match(
+    session: EventsSession,
+    stdout: TextIO,
+    workspace_root: str,
+) -> bool:
+    if _workspace_matches(workspace_root, session.cwd):
+        return True
+    await _emit_error(
+        stdout,
+        ErrorEvent(
+            session_id=session.session_id,
+            code=configuration_error,
+            message="Command workspace_root must match the process cwd",
+        ),
+    )
+    return False
 
 
 async def _emit_protocol_error(

@@ -11,9 +11,19 @@ from codegopher.events.cli import protocol_error
 from codegopher.events.protocol import (
     ApprovalRequestEvent,
     ApprovalResponseCommand,
+    ConfigSnapshotEvent,
+    DeleteMcpServerCommand,
     ErrorEvent,
+    GetEffectiveConfigCommand,
+    ListMcpServersCommand,
+    McpServerDeletedEvent,
+    McpServerPayload,
+    McpServerSavedEvent,
+    McpServersEvent,
     ReasoningDeltaEvent,
+    SaveMcpServerCommand,
     SessionStartedEvent,
+    SetMcpServerEnabledCommand,
     StartTurnCommand,
     TextDeltaEvent,
     ToolCallEvent,
@@ -253,3 +263,53 @@ def test_events_cli_long_lived_accepts_start_turn_command(tmp_path: Path) -> Non
     assert messages[1].turn_id == "turn-long"
     assert messages[2].content == "long answer"
     assert messages[3].final_text == "long answer"
+
+
+def test_events_cli_long_lived_accepts_config_and_mcp_commands(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        workspace_root = str(Path.cwd())
+        commands = [
+            GetEffectiveConfigCommand(workspace_root=workspace_root),
+            SaveMcpServerCommand(
+                workspace_root=workspace_root,
+                server_name="playwright",
+                server=McpServerPayload(
+                    transport="stdio",
+                    command="npx",
+                    args=["@playwright/mcp@latest"],
+                ),
+            ),
+            ListMcpServersCommand(workspace_root=workspace_root),
+            SetMcpServerEnabledCommand(
+                workspace_root=workspace_root,
+                server_name="playwright",
+                enabled=False,
+            ),
+            DeleteMcpServerCommand(
+                workspace_root=workspace_root,
+                server_name="playwright",
+            ),
+        ]
+        result = runner.invoke(
+            app,
+            ["--events", "--no-project-init"],
+            input="".join(command.model_dump_json() + "\n" for command in commands),
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+        )
+
+    messages = decode_output(result.output)
+
+    assert result.exit_code == 0
+    assert any(isinstance(message, ConfigSnapshotEvent) for message in messages)
+    saved = [
+        message for message in messages if isinstance(message, McpServerSavedEvent)
+    ]
+    listed = next(message for message in messages if isinstance(message, McpServersEvent))
+    deleted = next(message for message in messages if isinstance(message, McpServerDeletedEvent))
+    assert saved[0].server_name == "playwright"
+    assert saved[0].server.command == "npx"
+    assert listed.servers[0].name == "playwright"
+    assert saved[1].server.enabled is False
+    assert deleted.server_name == "playwright"
