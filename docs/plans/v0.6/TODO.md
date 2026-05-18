@@ -207,15 +207,17 @@ Commit rules:
   Verify: `rg -n "VS Code|@codegopher|extension" docs/release/CHECKLIST.md`
 - [ ] T080: Add local VSIX packaging instructions.
   Verify: `rg -n "vsix|package" extensions/vscode README.md docs`
-- [ ] T081: Run the complete Python test suite.
+- [ ] T081: Write detailed VS Code extension testing guidelines under `docs/devguide`, covering macOS, Windows, and Linux, including Stable vs Insiders usage, Extension Development Host debugging, CLI test caveats, and headless Linux notes.
+  Verify: `rg -n "macOS|Windows|Linux|Insiders|Extension Development Host|headless" docs/devguide`
+- [ ] T082: Run the complete Python test suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T082: Run Python lint and type checks.
+- [ ] T083: Run Python lint and type checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/ && mypy src/`
-- [ ] T083: Run extension compile, lint, and tests.
+- [ ] T084: Run extension compile, lint, and tests.
   Verify: `cd extensions/vscode && npm run compile && npm run lint && npm test`
-- [ ] T084: Build Python distribution artifacts.
+- [ ] T085: Build Python distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
-- [ ] T085: Run a manual VS Code Chat smoke test with `@codegopher`.
+- [ ] T086: Run a manual VS Code Chat smoke test with `@codegopher`.
   Verify: manual run in VS Code Extension Development Host
-- [ ] T086: Run manual configured LLM endpoint and MCP server management smoke tests in VS Code.
+- [ ] T087: Run manual configured LLM endpoint and MCP server management smoke tests in VS Code.
   Verify: manual run in VS Code Extension Development Host
