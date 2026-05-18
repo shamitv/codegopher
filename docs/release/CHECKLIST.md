@@ -12,6 +12,10 @@ Use this checklist before publishing a CodeGopher release.
 - Smoke test `cgopher -p "hello" --json` with a configured provider or the local test mock.
 - Smoke test implicit project init in a disposable project: first `cgopher -p "hello"` creates `.codegopher/skills/project/SKILL.md`, while `cgopher --no-project-init -p "hello"` does not create `.codegopher/`.
 - Smoke test real OpenAI-compatible endpoint, when available: `OPENAI_API_KEY=dummy-key cgopher -p "Reply with exactly: codegopher-smoke-ok" --json`.
+- Smoke test Responses API, when available: `cgopher --api-family responses -p "Reply with exactly: codegopher-responses-ok" --json`.
+- Smoke test MCP stdio with a disposable server config; confirm discovered tools are named `mcp__SERVER__TOOL`, require approval, and sessions close after exit.
+- Smoke test MCP SSE with a controlled endpoint; use `headers_env` for sensitive headers and confirm resolved values are not printed or persisted.
+- Smoke test Playwright MCP, when Node.js and browser dependencies are available: `npx @playwright/mcp@latest --headless --isolated`.
 - Smoke test project initialization: `cgopher init` creates `.codegopher/skills/project/SKILL.md` without writing settings or secrets.
 - Smoke test v0.5 skill-pack initialization: `cgopher init --skill-pack repo-docs`, `cgopher init --skill-pack security`, and `cgopher init --skill-pack all` create the expected `.codegopher/skills/*/SKILL.md` files without writing settings or secrets.
 - Smoke test interactive TUI startup with `cgopher` in a real terminal.

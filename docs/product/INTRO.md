@@ -2,7 +2,7 @@
 
 CodeGopher is a Python-native AI coding agent for the terminal. It is designed for developers who want a local assistant that can inspect projects, run focused tools, explain code, and make approved changes without requiring a hosted workspace or background server.
 
-The product goal is simple: keep the agent close to the developer's shell, make every risky action visible, and support multiple model providers through a clean provider layer. CodeGopher now supports headless one-shot prompts, an interactive Textual TUI session, and v0.3 context features for repeated project work.
+The product goal is simple: keep the agent close to the developer's shell, make every risky action visible, and support multiple model providers through a clean provider layer. CodeGopher now supports headless one-shot prompts, an interactive Textual TUI session, Responses API selection, MCP tool integration, and context features for repeated project work.
 
 ## Who It Is For
 
@@ -23,7 +23,7 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 - File mention expansion: include `@path`, glob-style mentions, or `@glob:pattern` in a TUI prompt to provide file content safely.
 - Approved edits: require prior reads and explicit approval before modifying existing files.
 - Shell-assisted debugging: run approved commands through tools or `/shell COMMAND` with timeouts and clear output capture.
-- Provider flexibility: start with OpenAI-compatible streaming chat completions and expand to first-class OpenAI Responses API support plus MCP integration.
+- Provider flexibility: use OpenAI-compatible streaming chat completions by default, opt into OpenAI Responses API, and attach stdio/SSE MCP servers as approval-gated tools.
 
 ## Product Principles
 
@@ -35,10 +35,8 @@ The product goal is simple: keep the agent close to the developer's shell, make 
 
 ## Feature Status
 
-CodeGopher is in early alpha with a working headless loop, an interactive TUI, file and shell tools, session persistence, provider reasoning rendering, context-window tracking, compaction, memory, Markdown skills, built-in repository documentation and static security skill packs, and session TODO state. Larger product features remain roadmap items:
+CodeGopher is in early alpha with a working headless loop, an interactive TUI, file and shell tools, session persistence, provider reasoning rendering, Responses API support, MCP stdio/SSE integration, context-window tracking, compaction, memory, Markdown skills, built-in repository documentation and static security skill packs, and session TODO state. Larger product features remain roadmap items:
 
-- OpenAI Responses API support.
-- MCP client integration.
 - Sub-agents and git worktree helpers.
 - Optional sandboxing.
 

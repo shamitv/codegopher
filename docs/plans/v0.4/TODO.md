@@ -13,79 +13,79 @@ This checklist tracks the v0.4 implementation slice for OpenAI Responses API And
 
 ## Milestone 2 - Provider Configuration
 
-- [ ] T004: Add `ProviderEntry.api_family` with allowed values `chat_completions` and `responses`, defaulting to `chat_completions`.
+- [x] T004: Add `ProviderEntry.api_family` with allowed values `chat_completions` and `responses`, defaulting to `chat_completions`.
   Verify: `python -m pytest tests/unit/test_config_schema.py tests/unit/test_config_loader.py`
-- [ ] T005: Add `CODEGOPHER_API_FAMILY` environment override and `--api-family chat_completions|responses` CLI override.
+- [x] T005: Add `CODEGOPHER_API_FAMILY` environment override and `--api-family chat_completions|responses` CLI override.
   Verify: `python -m pytest tests/unit/test_config_loader.py tests/unit/test_cli.py`
-- [ ] T006: Extend `ProviderCapabilities` with `api_family`, `reasoning_controls`, and `json_schema` fields while preserving existing provider tests.
+- [x] T006: Extend `ProviderCapabilities` with `api_family`, `reasoning_controls`, and `json_schema` fields while preserving existing provider tests.
   Verify: `python -m pytest tests/unit/test_provider_base.py tests/unit/test_provider_registry.py`
-- [ ] T007: Update runtime provider selection so `api_family = "chat_completions"` selects the current provider and `api_family = "responses"` selects the new Responses provider.
+- [x] T007: Update runtime provider selection so `api_family = "chat_completions"` selects the current provider and `api_family = "responses"` selects the new Responses provider.
   Verify: `python -m pytest tests/unit/test_provider_registry.py tests/unit/test_cli.py`
 
 ## Milestone 3 - Responses API Provider
 
-- [ ] T008: Add an OpenAI Responses provider module using `AsyncOpenAI.responses.create(..., stream=True, store=False)`.
+- [x] T008: Add an OpenAI Responses provider module using `AsyncOpenAI.responses.create(..., stream=True, store=False)`.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py`
-- [ ] T009: Convert CodeGopher messages into stateless Responses `input` items, including previous function calls and function call outputs.
+- [x] T009: Convert CodeGopher messages into stateless Responses `input` items, including previous function calls and function call outputs.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py -k input`
-- [ ] T010: Convert CodeGopher tool schemas into Responses function tool schemas.
+- [x] T010: Convert CodeGopher tool schemas into Responses function tool schemas.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py -k tool_schema`
-- [ ] T011: Parse Responses streaming text events into CodeGopher `text_delta` events.
+- [x] T011: Parse Responses streaming text events into CodeGopher `text_delta` events.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py -k text_delta`
-- [ ] T012: Parse provider-supplied reasoning summary/text events into CodeGopher `reasoning_delta` events without exposing hidden chain-of-thought.
+- [x] T012: Parse provider-supplied reasoning summary/text events into CodeGopher `reasoning_delta` events without exposing hidden chain-of-thought.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py -k reasoning`
-- [ ] T013: Buffer Responses function call argument events and emit CodeGopher `tool_call` events after valid JSON arguments are complete.
+- [x] T013: Buffer Responses function call argument events and emit CodeGopher `tool_call` events after valid JSON arguments are complete.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py -k tool_call`
-- [ ] T014: Normalize Responses API request failures, stream failures, failed responses, and malformed function arguments into CodeGopher error events.
+- [x] T014: Normalize Responses API request failures, stream failures, failed responses, and malformed function arguments into CodeGopher error events.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py -k error`
-- [ ] T015: Add headless integration coverage proving the Responses provider works with text, tool calls, `--json`, and `--debug`.
+- [x] T015: Add headless integration coverage proving the Responses provider works with text, tool calls, `--json`, and `--debug`.
   Verify: `python -m pytest tests/integration/test_headless_cli.py tests/integration/test_responses_provider_context.py`
 
 ## Milestone 4 - MCP Configuration And Lifecycle
 
-- [ ] T016: Add typed `[mcp]` and `[mcp.servers.NAME]` config schema with `enabled`, `transport`, stdio fields, and SSE fields.
+- [x] T016: Add typed `[mcp]` and `[mcp.servers.NAME]` config schema with `enabled`, `transport`, stdio fields, and SSE fields.
   Verify: `python -m pytest tests/unit/test_config_schema.py tests/unit/test_config_loader.py -k mcp`
-- [ ] T017: Add MCP SSE config support for `url`, `headers`, `headers_env`, `timeout_seconds`, and `sse_read_timeout_seconds`.
+- [x] T017: Add MCP SSE config support for `url`, `headers`, `headers_env`, `timeout_seconds`, and `sse_read_timeout_seconds`.
   Verify: `python -m pytest tests/unit/test_config_schema.py tests/unit/test_config_loader.py -k "mcp and sse"`
-- [ ] T018: Ensure MCP SSE header values from `headers` and `headers_env` are not written to settings, sessions, debug output, or errors.
+- [x] T018: Ensure MCP SSE header values from `headers` and `headers_env` are not written to settings, sessions, debug output, or errors.
   Verify: `python -m pytest tests/unit/test_cli.py tests/unit/test_tui_session.py -k mcp`
-- [ ] T019: Add the official Python MCP SDK dependency and keep package build metadata valid.
+- [x] T019: Add the official Python MCP SDK dependency and keep package build metadata valid.
   Verify: `python -m hatch build`
-- [ ] T020: Add an MCP transport factory for stdio and SSE using `stdio_client` and `sse_client`.
+- [x] T020: Add an MCP transport factory for stdio and SSE using `stdio_client` and `sse_client`.
   Verify: `python -m pytest tests/unit/test_mcp_manager.py`
-- [ ] T021: Add an MCP manager that opens stdio/SSE transports, calls `initialize()`, lists tools, and shuts sessions down cleanly.
+- [x] T021: Add an MCP manager that opens stdio/SSE transports, calls `initialize()`, lists tools, and shuts sessions down cleanly.
   Verify: `python -m pytest tests/unit/test_mcp_manager.py`
-- [ ] T022: Add focused stdio lifecycle tests for command startup, tool listing, initialization failure, and cleanup.
+- [x] T022: Add focused stdio lifecycle tests for command startup, tool listing, initialization failure, and cleanup.
   Verify: `python -m pytest tests/unit/test_mcp_manager.py -k stdio`
-- [ ] T023: Add focused SSE lifecycle tests for URL connection, headers, header env lookup, HTTP timeout, SSE read timeout, initialization failure, and cleanup.
+- [x] T023: Add focused SSE lifecycle tests for URL connection, headers, header env lookup, HTTP timeout, SSE read timeout, initialization failure, and cleanup.
   Verify: `python -m pytest tests/unit/test_mcp_manager.py -k sse`
-- [ ] T024: Fail fast with a clear configuration error when an enabled MCP server cannot start, connect, or initialize.
+- [x] T024: Fail fast with a clear configuration error when an enabled MCP server cannot start, connect, or initialize.
   Verify: `python -m pytest tests/unit/test_mcp_manager.py -k failure`
-- [ ] T025: Ensure MCP sessions are cleaned up after headless runs and TUI session exits.
+- [x] T025: Ensure MCP sessions are cleaned up after headless runs and TUI session exits.
   Verify: `python -m pytest tests/unit/test_cli.py tests/unit/test_tui_session.py -k mcp`
 
 ## Milestone 5 - Dynamic Tools And Approval Flow
 
-- [ ] T026: Add an async runtime registry factory that combines built-in tools with MCP-derived tools when MCP is enabled.
+- [x] T026: Add an async runtime registry factory that combines built-in tools with MCP-derived tools when MCP is enabled.
   Verify: `python -m pytest tests/unit/test_tools_registry.py tests/unit/test_mcp_tools.py`
-- [ ] T027: Convert MCP tools into CodeGopher tools named `mcp__SERVER__TOOL` with MCP input schemas preserved as parameters.
+- [x] T027: Convert MCP tools into CodeGopher tools named `mcp__SERVER__TOOL` with MCP input schemas preserved as parameters.
   Verify: `python -m pytest tests/unit/test_mcp_tools.py`
-- [ ] T028: Mark all MCP-derived tools as approval-required and route execution through the existing approval policy.
+- [x] T028: Mark all MCP-derived tools as approval-required and route execution through the existing approval policy.
   Verify: `python -m pytest tests/unit/test_agent_session.py -k mcp`
-- [ ] T029: Return MCP tool results as CodeGopher `ToolResult.content`, serializing structured MCP content deterministically.
+- [x] T029: Return MCP tool results as CodeGopher `ToolResult.content`, serializing structured MCP content deterministically.
   Verify: `python -m pytest tests/unit/test_mcp_tools.py -k result`
-- [ ] T030: Add duplicate-name protection for MCP tools by relying on the `mcp__SERVER__TOOL` naming convention.
+- [x] T030: Add duplicate-name protection for MCP tools by relying on the `mcp__SERVER__TOOL` naming convention.
   Verify: `python -m pytest tests/unit/test_mcp_tools.py -k name`
 
 ## Milestone 6 - CLI, TUI, And Docs
 
-- [ ] T031: Wire Responses API and MCP startup into headless `cgopher -p` without changing existing output shape.
+- [x] T031: Wire Responses API and MCP startup into headless `cgopher -p` without changing existing output shape.
   Verify: `python -m pytest tests/unit/test_cli.py tests/integration/test_headless_cli.py`
-- [ ] T032: Wire MCP startup and cleanup into interactive `cgopher` before `launch_tui`.
+- [x] T032: Wire MCP startup and cleanup into interactive `cgopher` before `launch_tui`.
   Verify: `python -m pytest tests/unit/test_cli.py tests/unit/test_tui_session.py -k mcp`
-- [ ] T033: Update README and architecture docs with `api_family`, Responses API, MCP stdio config, MCP SSE config, and Playwright MCP examples.
+- [x] T033: Update README and architecture docs with `api_family`, Responses API, MCP stdio config, MCP SSE config, and Playwright MCP examples.
   Verify: `rg -n "api_family|Responses API|mcp.servers|transport = \"sse\"|Playwright MCP" README.md docs/arch docs/product`
-- [ ] T034: Update v0.4 status after each implementation milestone with completed work and remaining risk.
+- [x] T034: Update v0.4 status after each implementation milestone with completed work and remaining risk.
   Verify: `rg -n "Milestone|Responses API provider|MCP client" docs/plans/v0.4/STATUS.md`
 
 ## Milestone 7 - MCP Transport Verification
