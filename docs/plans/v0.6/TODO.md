@@ -48,7 +48,7 @@ Commit rules:
 
 - [x] T013: Add a Python effective-config inspector for `[model]` and the selected `[[providers.PROVIDER]]` entry.
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
-- [ ] T014: Report redacted LLM endpoint details: provider, model, API family, base URL when present, and configuration source metadata.
+- [x] T014: Report redacted LLM endpoint details: provider, model, API family, base URL when present, and configuration source metadata.
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
 - [ ] T015: Add a redacted MCP server listing helper for configured `[mcp.servers.NAME]` entries.
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
