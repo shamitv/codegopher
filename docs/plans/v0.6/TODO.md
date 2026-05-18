@@ -107,7 +107,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm install`
 - [x] T038: Add TypeScript, ESLint, and test configuration for the extension package.
   Verify: `cd extensions/vscode && npm run compile`
-- [ ] T039: Add a minimal extension activation entry point.
+- [x] T039: Add a minimal extension activation entry point.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T040: Add activation tests using the VS Code extension test runner.
   Verify: `cd extensions/vscode && npm test`
