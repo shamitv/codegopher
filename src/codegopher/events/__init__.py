@@ -2,23 +2,23 @@
 
 from codegopher.events.protocol import (
     PROTOCOL_VERSION,
-    ApprovalResponseCommand,
     ApprovalRequestEvent,
+    ApprovalResponseCommand,
     CancelTurnCommand,
     ConfigSnapshotEvent,
     DeleteMcpServerCommand,
     ErrorEvent,
     GetEffectiveConfigCommand,
     ListMcpServersCommand,
+    McpServerDeletedEvent,
     McpServerPayload,
     McpServerSavedEvent,
-    McpServerSnapshotPayload,
-    McpServerDeletedEvent,
     McpServersEvent,
-    ProtocolPayloadError,
+    McpServerSnapshotPayload,
     ProtocolCommand,
     ProtocolEvent,
     ProtocolModel,
+    ProtocolPayloadError,
     ReasoningDeltaEvent,
     SaveMcpServerCommand,
     SessionStartedEvent,
@@ -32,6 +32,7 @@ from codegopher.events.protocol import (
     TurnStartedEvent,
     decode_jsonl_message,
     encode_jsonl_message,
+    redact_protocol_value,
 )
 
 __all__ = [
@@ -66,4 +67,5 @@ __all__ = [
     "TurnStartedEvent",
     "decode_jsonl_message",
     "encode_jsonl_message",
+    "redact_protocol_value",
 ]

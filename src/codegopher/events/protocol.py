@@ -10,6 +10,19 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from codegopher.core.errors import CodeGopherError
 
 PROTOCOL_VERSION = 1
+REDACTED_VALUE = "[redacted]"
+SENSITIVE_CONTAINER_KEYS = {"env", "headers", "headers_env"}
+SENSITIVE_KEY_PARTS = (
+    "api_key",
+    "apikey",
+    "authorization",
+    "bearer",
+    "credential",
+    "password",
+    "passwd",
+    "secret",
+    "token",
+)
 
 
 class ProtocolPayloadError(CodeGopherError):
@@ -21,7 +34,7 @@ class ProtocolModel(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    version: Literal[1] = PROTOCOL_VERSION
+    version: Literal[1] = 1
     type: str = Field(min_length=1)
     session_id: str | None = None
     turn_id: str | None = None
@@ -280,3 +293,33 @@ def decode_jsonl_message(line: str) -> ProtocolModel:
         return model_cls.model_validate(value)
     except ValidationError as exc:
         raise ProtocolPayloadError(f"Invalid {message_type} payload: {exc}") from exc
+
+
+def redact_protocol_value(value: Any) -> Any:
+    """Return a recursively redacted copy of a protocol trace value."""
+
+    if isinstance(value, dict):
+        redacted: dict[Any, Any] = {}
+        for key, item in value.items():
+            if not isinstance(key, str):
+                redacted[key] = redact_protocol_value(item)
+                continue
+            normalized = key.lower().replace("-", "_")
+            if normalized in SENSITIVE_CONTAINER_KEYS:
+                redacted[key] = _redact_container_values(item)
+            elif any(part in normalized for part in SENSITIVE_KEY_PARTS):
+                redacted[key] = REDACTED_VALUE
+            else:
+                redacted[key] = redact_protocol_value(item)
+        return redacted
+    if isinstance(value, list):
+        return [redact_protocol_value(item) for item in value]
+    return value
+
+
+def _redact_container_values(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {key: _redact_container_values(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_redact_container_values(item) for item in value]
+    return REDACTED_VALUE

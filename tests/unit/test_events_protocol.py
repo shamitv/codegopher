@@ -7,21 +7,21 @@ from pydantic import ValidationError
 
 from codegopher.events.protocol import (
     PROTOCOL_VERSION,
-    ApprovalResponseCommand,
     ApprovalRequestEvent,
+    ApprovalResponseCommand,
     CancelTurnCommand,
     ConfigSnapshotEvent,
     DeleteMcpServerCommand,
     ErrorEvent,
     GetEffectiveConfigCommand,
     ListMcpServersCommand,
-    McpServerPayload,
     McpServerDeletedEvent,
+    McpServerPayload,
     McpServerSavedEvent,
-    McpServerSnapshotPayload,
     McpServersEvent,
-    ProtocolPayloadError,
+    McpServerSnapshotPayload,
     ProtocolModel,
+    ProtocolPayloadError,
     ReasoningDeltaEvent,
     SaveMcpServerCommand,
     SessionStartedEvent,
@@ -35,6 +35,7 @@ from codegopher.events.protocol import (
     TurnStartedEvent,
     decode_jsonl_message,
     encode_jsonl_message,
+    redact_protocol_value,
 )
 
 
@@ -598,3 +599,87 @@ def test_decode_jsonl_message_rejects_extra_fields() -> None:
 def test_decode_jsonl_message_rejects_validation_failures() -> None:
     with pytest.raises(ProtocolPayloadError, match="Invalid start_turn payload"):
         decode_jsonl_message('{"version":1,"type":"start_turn","prompt":"","workspace_root":"/repo"}')
+
+
+def test_redact_protocol_value_preserves_non_sensitive_values() -> None:
+    value = {
+        "type": "config_snapshot",
+        "provider": "openai",
+        "model": "gpt-test",
+        "base_url": "https://api.example.test/v1",
+        "items": [{"name": "playwright"}],
+    }
+
+    assert redact_protocol_value(value) == value
+
+
+def test_redact_protocol_value_redacts_sensitive_key_names() -> None:
+    value = {
+        "api_key": "sk-secret",
+        "apiKey": "sk-secret",
+        "Authorization": "Bearer secret",
+        "password": "p4ss",
+        "nested": {
+            "access-token": "tok",
+            "client_secret": "secret",
+        },
+    }
+
+    assert redact_protocol_value(value) == {
+        "api_key": "[redacted]",
+        "apiKey": "[redacted]",
+        "Authorization": "[redacted]",
+        "password": "[redacted]",
+        "nested": {
+            "access-token": "[redacted]",
+            "client_secret": "[redacted]",
+        },
+    }
+
+
+def test_redact_protocol_value_redacts_mcp_headers_and_env_values() -> None:
+    value = {
+        "server": {
+            "transport": "sse",
+            "headers": {"Authorization": "Bearer secret", "X-Trace": "trace"},
+            "headers_env": {"Authorization": "MCP_AUTH"},
+            "env": {"PLAYWRIGHT_TOKEN": "secret", "PUBLIC_FLAG": "1"},
+        }
+    }
+
+    assert redact_protocol_value(value) == {
+        "server": {
+            "transport": "sse",
+            "headers": {"Authorization": "[redacted]", "X-Trace": "[redacted]"},
+            "headers_env": {"Authorization": "[redacted]"},
+            "env": {"PLAYWRIGHT_TOKEN": "[redacted]", "PUBLIC_FLAG": "[redacted]"},
+        }
+    }
+
+
+def test_redact_protocol_value_redacts_nested_lists_inside_sensitive_containers() -> None:
+    value = {
+        "env": {
+            "NESTED": ["one", {"deep": "two"}],
+        },
+        "messages": [
+            {"content": "visible"},
+            {"refresh_token": "secret"},
+        ],
+    }
+
+    assert redact_protocol_value(value) == {
+        "env": {
+            "NESTED": ["[redacted]", {"deep": "[redacted]"}],
+        },
+        "messages": [
+            {"content": "visible"},
+            {"refresh_token": "[redacted]"},
+        ],
+    }
+
+
+def test_redact_protocol_value_handles_non_string_mapping_keys() -> None:
+    value = {1: {"api_key": "secret"}, "safe": "visible"}
+
+    assert redact_protocol_value(value) == {1: {"api_key": "[redacted]"}, "safe": "visible"}

@@ -41,7 +41,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 - [x] T011: Add JSONL encode/decode helpers that reject malformed or unknown payloads clearly.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
-- [ ] T012: Add protocol redaction tests for secrets, raw environment values, and MCP header values.
+- [x] T012: Add protocol redaction tests for secrets, raw environment values, and MCP header values.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 
 ## Milestone 2 - Config Inspection And MCP Management
