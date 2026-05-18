@@ -46,7 +46,7 @@ Commit rules:
 
 ## Milestone 2 - Config Inspection And MCP Management
 
-- [ ] T013: Add a Python effective-config inspector for `[model]` and the selected `[[providers.PROVIDER]]` entry.
+- [x] T013: Add a Python effective-config inspector for `[model]` and the selected `[[providers.PROVIDER]]` entry.
   Verify: `python -m pytest tests/unit/test_config_inspection.py`
 - [ ] T014: Report redacted LLM endpoint details: provider, model, API family, base URL when present, and configuration source metadata.
   Verify: `python -m pytest tests/unit/test_config_inspection.py`

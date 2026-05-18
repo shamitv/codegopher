@@ -26,6 +26,21 @@ class CliOverrides:
     debug: bool | None = None
 
 
+@dataclass(frozen=True)
+class SettingsMetadata:
+    cwd: Path
+    home: Path
+    source_labels: tuple[str, ...]
+    home_config_path: Path
+    project_config_path: Path
+
+
+@dataclass(frozen=True)
+class LoadedSettings:
+    settings: Settings
+    metadata: SettingsMetadata
+
+
 def _merge(base: dict[str, Any], update: dict[str, Any]) -> dict[str, Any]:
     merged = copy.deepcopy(base)
     for key, value in update.items():
@@ -110,11 +125,28 @@ def load_settings(
     environ: Mapping[str, str] | None = None,
     cli_overrides: CliOverrides | None = None,
 ) -> Settings:
+    return load_settings_with_metadata(
+        cwd=cwd,
+        home=home,
+        environ=environ,
+        cli_overrides=cli_overrides,
+    ).settings
+
+
+def load_settings_with_metadata(
+    *,
+    cwd: Path | None = None,
+    home: Path | None = None,
+    environ: Mapping[str, str] | None = None,
+    cli_overrides: CliOverrides | None = None,
+) -> LoadedSettings:
     project_root = cwd or Path.cwd()
     home_root = home or Path.home()
     env = environ or os.environ
-    home_config = _load_toml(home_root / ".codegopher" / "settings.toml")
-    project_config = _load_toml(project_root / ".codegopher" / "settings.toml")
+    home_config_path = home_root / ".codegopher" / "settings.toml"
+    project_config_path = project_root / ".codegopher" / "settings.toml"
+    home_config = _load_toml(home_config_path)
+    project_config = _load_toml(project_config_path)
     env_config = _env_overrides(env)
     cli_config = _cli_overrides(cli_overrides)
 
@@ -132,4 +164,23 @@ def load_settings(
     if cli_config:
         sources.append("CLI overrides")
 
-    return _validate(data, source=", ".join(sources) or "defaults")
+    source_labels = ["defaults"]
+    if home_config:
+        source_labels.append("user")
+    if project_config:
+        source_labels.append("project")
+    if env_config:
+        source_labels.append("environment")
+    if cli_config:
+        source_labels.append("cli")
+
+    return LoadedSettings(
+        settings=_validate(data, source=", ".join(sources) or "defaults"),
+        metadata=SettingsMetadata(
+            cwd=project_root,
+            home=home_root,
+            source_labels=tuple(source_labels),
+            home_config_path=home_config_path,
+            project_config_path=project_config_path,
+        ),
+    )
