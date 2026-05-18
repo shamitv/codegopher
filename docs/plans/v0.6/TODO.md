@@ -5,9 +5,11 @@ This checklist is intentionally commit-oriented. Each checkbox should normally b
 Commit rules:
 
 - Preserve existing `cgopher`, `cgopher -p/--prompt`, `--json`, `--debug`, and TUI behavior.
-- Keep Python authoritative for tools, approvals, provider behavior, and filesystem safety.
-- Do not execute CodeGopher tools directly from TypeScript.
-- Prefer protocol tests before VS Code UI work.
+- Keep Python authoritative for config loading, MCP validation, tools, approvals, provider behavior, and filesystem safety.
+- Do not execute CodeGopher tools or MCP tools directly from TypeScript.
+- Do not parse, validate, or write CodeGopher settings TOML from TypeScript.
+- Redact API keys, raw environment values, MCP header values, and values resolved through `headers_env`.
+- Prefer protocol and Python config tests before VS Code UI work.
 - After every commit, run the smallest relevant verification command listed for that step.
 
 ## Milestone 0 - Planning And Roadmap Setup
@@ -20,150 +22,200 @@ Commit rules:
   Verify: `test -f docs/plans/v0.6/TODO.md`
 - [x] T004: Add `docs/plans/v0.6/STATUS.md` with initial status and blockers.
   Verify: `test -f docs/plans/v0.6/STATUS.md`
+- [x] T005: Refresh v0.6 planning docs for configured LLM endpoint viewing and MCP server management.
+  Verify: `rg -n "View LLM Endpoint|Manage MCP Servers|configured LLM endpoint|MCP server" docs/plans/v0.6`
 
 ## Milestone 1 - JSONL Protocol Models
 
-- [ ] T005: Add typed protocol models for common event and command fields.
+- [ ] T006: Add typed protocol models for common event and command fields.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
-- [ ] T006: Add command models for `start_turn`, `approval_response`, `cancel_turn`, and `shutdown`.
+- [ ] T007: Add command models for `start_turn`, `approval_response`, `cancel_turn`, and `shutdown`.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
-- [ ] T007: Add event models for session, turn, text, reasoning, tool, approval, error, and completion events.
+- [ ] T008: Add command models for `get_effective_config`, `list_mcp_servers`, `save_mcp_server`, `set_mcp_server_enabled`, and `delete_mcp_server`.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
-- [ ] T008: Add JSONL encode/decode helpers that reject malformed or unknown payloads clearly.
+- [ ] T009: Add event models for session, turn, text, reasoning, tool, approval, error, and completion events.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
-- [ ] T009: Add protocol redaction tests for secrets and raw environment values.
+- [ ] T010: Add event models for `config_snapshot`, `mcp_servers`, `mcp_server_saved`, and `mcp_server_deleted`.
+  Verify: `python -m pytest tests/unit/test_events_protocol.py`
+- [ ] T011: Add JSONL encode/decode helpers that reject malformed or unknown payloads clearly.
+  Verify: `python -m pytest tests/unit/test_events_protocol.py`
+- [ ] T012: Add protocol redaction tests for secrets, raw environment values, and MCP header values.
   Verify: `python -m pytest tests/unit/test_events_protocol.py`
 
-## Milestone 2 - Reusable Agent Session Runner
+## Milestone 2 - Config Inspection And MCP Management
 
-- [ ] T010: Add an agent session object that owns settings, provider, registry, cwd, and `ToolContext`.
-  Verify: `python -m pytest tests/unit/test_agent_session.py`
-- [ ] T011: Keep existing `run_agent` behavior compatible by delegating through the session runner where appropriate.
+- [ ] T013: Add a Python effective-config inspector for `[model]` and the selected `[[providers.PROVIDER]]` entry.
+  Verify: `python -m pytest tests/unit/test_config_inspection.py`
+- [ ] T014: Report redacted LLM endpoint details: provider, model, API family, base URL when present, and configuration source metadata.
+  Verify: `python -m pytest tests/unit/test_config_inspection.py`
+- [ ] T015: Add a redacted MCP server listing helper for configured `[mcp.servers.NAME]` entries.
+  Verify: `python -m pytest tests/unit/test_config_inspection.py`
+- [ ] T016: Add a project-local settings update helper for MCP server mutations that preserves unrelated settings.
+  Verify: `python -m pytest tests/unit/test_config_management.py`
+- [ ] T017: Add MCP server add/edit support using the existing stdio/SSE settings schema and validation.
+  Verify: `python -m pytest tests/unit/test_config_management.py tests/unit/test_config_schema.py -k mcp`
+- [ ] T018: Add MCP server enable, disable, and remove support.
+  Verify: `python -m pytest tests/unit/test_config_management.py`
+- [ ] T019: Return structured config errors for invalid server names, invalid transport-specific fields, and invalid TOML.
+  Verify: `python -m pytest tests/unit/test_config_management.py`
+- [ ] T020: Prove config inspection and MCP management never expose secrets and never write user-global settings.
+  Verify: `python -m pytest tests/unit/test_config_inspection.py tests/unit/test_config_management.py`
+
+## Milestone 3 - Events Session Runner
+
+- [ ] T021: Add an events session wrapper around the existing agent session that owns settings, provider, registry, cwd, MCP manager, and `ToolContext`.
+  Verify: `python -m pytest tests/unit/test_events_session.py`
+- [ ] T022: Keep existing `run_agent` behavior compatible while sharing reusable session code where appropriate.
   Verify: `python -m pytest tests/unit/test_agent_loop.py tests/integration/test_headless_cli.py`
-- [ ] T012: Add multi-turn session tests proving prior-read and directory-inspection state persists within a session.
-  Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_tool_context.py`
-- [ ] T013: Add callback-to-protocol event translation for text, reasoning, tools, approvals, errors, and completion.
-  Verify: `python -m pytest tests/unit/test_agent_session.py tests/unit/test_events_protocol.py`
-- [ ] T014: Add cancellation hooks for an active session turn.
-  Verify: `python -m pytest tests/unit/test_agent_session.py`
-- [ ] T015: Add structured session-runner errors for provider failure, agent-loop failure, cancellation, and bad approval state.
-  Verify: `python -m pytest tests/unit/test_agent_session.py`
+- [ ] T023: Add multi-turn events-session tests proving prior-read and directory-inspection state persists within a session.
+  Verify: `python -m pytest tests/unit/test_events_session.py tests/unit/test_tool_context.py`
+- [ ] T024: Add callback-to-protocol event translation for text, reasoning, tools, approvals, errors, and completion.
+  Verify: `python -m pytest tests/unit/test_events_session.py tests/unit/test_events_protocol.py`
+- [ ] T025: Add cancellation hooks for an active events session turn.
+  Verify: `python -m pytest tests/unit/test_events_session.py`
+- [ ] T026: Add structured events-session errors for provider failure, agent-loop failure, cancellation, config failure, and bad approval state.
+  Verify: `python -m pytest tests/unit/test_events_session.py`
 
-## Milestone 3 - `cgopher --events` CLI Mode
+## Milestone 4 - `cgopher --events` CLI Mode
 
-- [ ] T016: Add CLI routing for `--events -p PROMPT` without changing existing `--json` output.
+- [ ] T027: Add CLI routing for `--events -p PROMPT` without changing existing `--json` output.
   Verify: `python -m pytest tests/unit/test_cli.py tests/integration/test_headless_cli.py`
-- [ ] T017: Emit JSONL events for one-shot text responses.
+- [ ] T028: Emit JSONL events for one-shot text responses.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T018: Emit JSONL events for reasoning deltas without including reasoning in final text.
+- [ ] T029: Emit JSONL events for reasoning deltas without including reasoning in final text.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_agent_loop.py`
-- [ ] T019: Emit tool-call and tool-result events for a multi-iteration response.
+- [ ] T030: Emit tool-call and tool-result events for a multi-iteration response.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T020: Support approval requests and stdin `approval_response` in one-shot events mode.
+- [ ] T031: Support approval requests and stdin `approval_response` in one-shot events mode.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_approval.py`
-- [ ] T021: Add long-lived `cgopher --events` mode that accepts `start_turn` commands over stdin.
+- [ ] T032: Add long-lived `cgopher --events` mode that accepts `start_turn` commands over stdin.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T022: Support `cancel_turn` and `shutdown` commands in long-lived events mode.
+- [ ] T033: Accept effective-config and MCP server management commands in long-lived events mode.
+  Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_config_management.py`
+- [ ] T034: Support `cancel_turn` and `shutdown` commands in long-lived events mode.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T023: Route human diagnostics to stderr while reserving stdout for protocol JSONL.
+- [ ] T035: Route human diagnostics to stderr while reserving stdout for protocol JSONL.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T024: Preserve existing non-interactive no-prompt error when `--events` is not present.
+- [ ] T036: Preserve existing non-interactive no-prompt error when `--events` is not present.
   Verify: `python -m pytest tests/unit/test_cli.py`
 
-## Milestone 4 - VS Code Extension Scaffold
+## Milestone 5 - VS Code Extension Scaffold
 
-- [ ] T025: Add `extensions/vscode/package.json` with extension metadata, commands, settings, and scripts.
+- [ ] T037: Add `extensions/vscode/package.json` with extension metadata, chat commands, endpoint/MCP commands, settings, and scripts.
   Verify: `cd extensions/vscode && npm install`
-- [ ] T026: Add TypeScript, ESLint, and test configuration for the extension package.
+- [ ] T038: Add TypeScript, ESLint, and test configuration for the extension package.
   Verify: `cd extensions/vscode && npm run compile`
-- [ ] T027: Add a minimal extension activation entry point.
+- [ ] T039: Add a minimal extension activation entry point.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T028: Add activation tests using the VS Code extension test runner.
+- [ ] T040: Add activation tests using the VS Code extension test runner.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T029: Add extension README notes for local development.
+- [ ] T041: Add extension README notes for local development.
   Verify: `rg -n "CodeGopher|@codegopher|cgopher --events" extensions/vscode`
 
-## Milestone 5 - Subprocess Protocol Client
+## Milestone 6 - Subprocess Protocol Client
 
-- [ ] T030: Add a TypeScript JSONL parser with partial-line buffering.
+- [ ] T042: Add a TypeScript JSONL parser with partial-line buffering.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T031: Add a CodeGopher subprocess client that launches `cgopher --events` in the workspace root.
+- [ ] T043: Add a CodeGopher subprocess client that launches `cgopher --events` in the workspace root.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T032: Add typed event routing for all protocol event types.
+- [ ] T044: Add typed event routing for all protocol event types.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T033: Add pending request tracking for turns and approvals.
+- [ ] T045: Add pending request tracking for turns and approvals.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T034: Add stderr capture and structured subprocess exit errors.
+- [ ] T046: Add subprocess client helpers for effective-config and MCP server management commands.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T035: Add restart and shutdown lifecycle behavior.
+- [ ] T047: Add stderr capture and structured subprocess exit errors.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T036: Add trace logging with redaction when `codegopher.traceProtocol` is enabled.
+- [ ] T048: Add restart and shutdown lifecycle behavior.
   Verify: `cd extensions/vscode && npm test`
-
-## Milestone 6 - Chat Participant
-
-- [ ] T037: Register the `@codegopher` chat participant in the extension manifest and activation code.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T038: Stream `text_delta` events into VS Code Chat markdown.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T039: Render `tool_call` and `tool_result` events as progress and compact chat summaries.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T040: Render provider and protocol errors as user-facing chat errors.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T041: Hide reasoning deltas by default while surfacing reasoning progress in trace/debug paths.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T042: Implement `/help` and `/status` chat commands.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T043: Implement `/restart` chat command.
+- [ ] T049: Add trace logging with redaction when `codegopher.traceProtocol` is enabled.
   Verify: `cd extensions/vscode && npm test`
 
-## Milestone 7 - Approval And Cancellation UX
+## Milestone 7 - Chat Participant
 
-- [ ] T044: Render approval requests with Approve and Deny chat buttons.
+- [ ] T050: Register the `@codegopher` chat participant in the extension manifest and activation code.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T045: Route Approve button clicks to `approval_response`.
+- [ ] T051: Stream `text_delta` events into VS Code Chat markdown.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T046: Route Deny button clicks to `approval_response` with a default denial reason.
+- [ ] T052: Render `tool_call` and `tool_result` events as progress and compact chat summaries.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T047: Prevent duplicate approval decisions for the same approval id.
+- [ ] T053: Render provider and protocol errors as user-facing chat errors.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T048: Respect VS Code cancellation tokens by sending `cancel_turn`.
+- [ ] T054: Hide reasoning deltas by default while surfacing reasoning progress in trace/debug paths.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T049: Confirm the subprocess can run another turn after cancellation or denial.
+- [ ] T055: Implement `/help` and `/status` chat commands.
   Verify: `cd extensions/vscode && npm test`
-
-## Milestone 8 - Settings, Errors, And Workspace Handling
-
-- [ ] T050: Implement `codegopher.cliPath` resolution with clear missing-executable errors.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T051: Pass configured provider, model, base URL, and approval mode overrides to the CLI.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T052: Select the workspace root deterministically and show it in `/status`.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T053: Handle multi-root workspaces with a clear default and user-facing status.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T054: Add user-facing recovery guidance for subprocess crashes and invalid protocol messages.
-  Verify: `cd extensions/vscode && npm test`
-- [ ] T055: Add output-channel logging for extension lifecycle events.
+- [ ] T056: Implement `/restart` chat command.
   Verify: `cd extensions/vscode && npm test`
 
-## Milestone 9 - Docs, Packaging, And Release Readiness
+## Milestone 8 - Endpoint And MCP Configuration UI
 
-- [ ] T056: Update README with VS Code extension usage and setup.
+- [ ] T057: Implement `CodeGopher: View LLM Endpoint` using the Python `get_effective_config` response.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T058: Display provider, model, API family, base URL, and config source for the configured LLM endpoint without secrets.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T059: Implement `CodeGopher: Manage MCP Servers` list view with server name, enabled state, transport, and source.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T060: Add MCP server creation flows for stdio and SSE servers.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T061: Add MCP server edit flows for supported non-secret fields.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T062: Add MCP server enable, disable, and remove flows with confirmation for destructive actions.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T063: Surface Python validation and config-write errors in VS Code without raw secret values.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T064: Add VS Code command tests for endpoint display and MCP server management flows.
+  Verify: `cd extensions/vscode && npm test`
+
+## Milestone 9 - Approval And Cancellation UX
+
+- [ ] T065: Render approval requests with Approve and Deny chat buttons.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T066: Route Approve button clicks to `approval_response`.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T067: Route Deny button clicks to `approval_response` with a default denial reason.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T068: Prevent duplicate approval decisions for the same approval id.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T069: Respect VS Code cancellation tokens by sending `cancel_turn`.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T070: Confirm the subprocess can run another turn after cancellation or denial.
+  Verify: `cd extensions/vscode && npm test`
+
+## Milestone 10 - Settings, Errors, And Workspace Handling
+
+- [ ] T071: Implement `codegopher.cliPath` resolution with clear missing-executable errors.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T072: Pass configured provider, model, base URL, API family, and approval mode overrides to the CLI.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T073: Select the workspace root deterministically and show it in `/status`.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T074: Handle multi-root workspaces with a clear default and user-facing status.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T075: Add user-facing recovery guidance for subprocess crashes and invalid protocol messages.
+  Verify: `cd extensions/vscode && npm test`
+- [ ] T076: Add output-channel logging for extension lifecycle events.
+  Verify: `cd extensions/vscode && npm test`
+
+## Milestone 11 - Docs, Packaging, And Release Readiness
+
+- [ ] T077: Update README with VS Code extension usage and setup.
   Verify: `rg -n "VS Code|@codegopher|--events" README.md`
-- [ ] T057: Update product intro to mention the v0.6 IDE workflow.
+- [ ] T078: Update product intro to mention the v0.6 IDE workflow.
   Verify: `rg -n "VS Code|IDE|@codegopher" docs/product/INTRO.md`
-- [ ] T058: Update release checklist with VS Code extension smoke tests.
+- [ ] T079: Update release checklist with VS Code extension smoke tests.
   Verify: `rg -n "VS Code|@codegopher|extension" docs/release/CHECKLIST.md`
-- [ ] T059: Add local VSIX packaging instructions.
+- [ ] T080: Add local VSIX packaging instructions.
   Verify: `rg -n "vsix|package" extensions/vscode README.md docs`
-- [ ] T060: Run the complete Python test suite.
+- [ ] T081: Run the complete Python test suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T061: Run Python lint and type checks.
+- [ ] T082: Run Python lint and type checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/ && mypy src/`
-- [ ] T062: Run extension compile, lint, and tests.
+- [ ] T083: Run extension compile, lint, and tests.
   Verify: `cd extensions/vscode && npm run compile && npm run lint && npm test`
-- [ ] T063: Build Python distribution artifacts.
+- [ ] T084: Build Python distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
-- [ ] T064: Run a manual VS Code Chat smoke test with `@codegopher`.
+- [ ] T085: Run a manual VS Code Chat smoke test with `@codegopher`.
+  Verify: manual run in VS Code Extension Development Host
+- [ ] T086: Run manual configured LLM endpoint and MCP server management smoke tests in VS Code.
   Verify: manual run in VS Code Extension Development Host
