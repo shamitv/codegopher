@@ -7,10 +7,11 @@ from click.testing import CliRunner
 
 import codegopher.cli.main as cli_main
 from codegopher.cli.main import app
-from codegopher.config.schema import ModelConfig, ProviderEntry, Settings
+from codegopher.config.schema import ModelConfig, ProviderApiFamily, ProviderEntry, Settings
 from codegopher.core.agent import AgentResult
 from codegopher.providers.mock import MockProvider
 from codegopher.providers.openai_compat import OpenAICompatProvider
+from codegopher.providers.openai_responses import OpenAIResponsesProvider
 from codegopher.skills import discover_project_skills
 
 
@@ -301,6 +302,30 @@ def test_cli_builds_real_openai_compatible_provider(monkeypatch) -> None:
 
     assert isinstance(provider, OpenAICompatProvider)
     assert provider.base_url == "http://127.0.0.1:8000/v1"
+    assert provider.api_key == "sk-local"
+
+
+def test_cli_builds_real_openai_responses_provider(monkeypatch) -> None:
+    monkeypatch.delenv("CODEGOPHER_TEST_MOCK_RESPONSE", raising=False)
+    monkeypatch.setenv("LOCAL_API_KEY", "sk-local")
+
+    provider = cli_main._build_provider(
+        Settings(
+            model=ModelConfig(provider="openai", name="responses-model"),
+            providers={
+                "openai": [
+                    ProviderEntry(
+                        id="responses-model",
+                        name="Responses",
+                        api_key_env="LOCAL_API_KEY",
+                        api_family=ProviderApiFamily.responses,
+                    )
+                ]
+            },
+        )
+    )
+
+    assert isinstance(provider, OpenAIResponsesProvider)
     assert provider.api_key == "sk-local"
 
 

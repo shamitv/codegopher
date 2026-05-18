@@ -65,6 +65,44 @@ async def test_agent_session_preserves_text_conversation_across_turns(tmp_path: 
 
 
 @pytest.mark.asyncio
+async def test_agent_session_preserves_response_metadata_across_turns(tmp_path: Path) -> None:
+    response_items = [
+        {"type": "reasoning", "id": "rs-1", "encrypted_content": "encrypted"},
+        {
+            "type": "function_call",
+            "id": "fc-1",
+            "call_id": "call-1",
+            "name": "read_file",
+            "arguments": '{"path":"README.md"}',
+        },
+    ]
+    provider = MockProvider(
+        [
+            [
+                {"type": "text_delta", "content": "first answer"},
+                {"type": "response_metadata", "response_items": response_items},
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "second answer"}, {"type": "done"}],
+        ]
+    )
+    session = make_session(tmp_path, provider)
+
+    await session.run_turn("first question")
+    await session.run_turn("second question")
+
+    assert provider.calls[1][1:] == [
+        {"role": "user", "content": "first question"},
+        {
+            "role": "assistant",
+            "content": "first answer",
+            "response_items": response_items,
+        },
+        {"role": "user", "content": "second question"},
+    ]
+
+
+@pytest.mark.asyncio
 async def test_agent_session_preserves_tool_history_across_turns(tmp_path: Path) -> None:
     (tmp_path / "README.md").write_text("project notes", encoding="utf-8")
     provider = MockProvider(

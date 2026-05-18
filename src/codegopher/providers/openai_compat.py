@@ -20,6 +20,14 @@ def _get(value: Any, key: str, default: Any = None) -> Any:
     return getattr(value, key, default)
 
 
+def _chat_messages(messages: list[Message]) -> list[dict[str, Any]]:
+    allowed_keys = {"role", "content", "name", "tool_call_id", "tool_calls"}
+    return [
+        {key: value for key, value in message.items() if key in allowed_keys}
+        for message in messages
+    ]
+
+
 class OpenAICompatProvider:
     capabilities = ProviderCapabilities(streaming=True, tool_calls=True, token_counting=True)
 
@@ -51,7 +59,7 @@ class OpenAICompatProvider:
         try:
             request_args: dict[str, Any] = {
                 "model": model,
-                "messages": messages,
+                "messages": _chat_messages(messages),
                 "temperature": temperature,
                 "max_tokens": max_output_tokens,
                 "stream": True,

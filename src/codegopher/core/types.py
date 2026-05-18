@@ -21,6 +21,7 @@ class Message(TypedDict, total=False):
     name: str
     tool_call_id: str
     tool_calls: list[dict[str, Any]]
+    response_items: list[dict[str, Any]]
 
 
 class ToolCall(TypedDict):
@@ -59,8 +60,18 @@ class ErrorEvent(TypedDict):
     message: str
 
 
+class ResponseMetadataEvent(TypedDict):
+    type: Literal["response_metadata"]
+    response_items: list[dict[str, Any]]
+
+
 StreamEvent: TypeAlias = (
-    TextDeltaEvent | ReasoningDeltaEvent | ToolCallEvent | DoneEvent | ErrorEvent
+    TextDeltaEvent
+    | ReasoningDeltaEvent
+    | ToolCallEvent
+    | DoneEvent
+    | ErrorEvent
+    | ResponseMetadataEvent
 )
 
 

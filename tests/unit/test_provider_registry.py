@@ -4,10 +4,12 @@ from collections.abc import AsyncIterator
 
 import pytest
 
+from codegopher.config.schema import ProviderApiFamily
 from codegopher.core.errors import ProviderError
 from codegopher.core.types import Message, StreamEvent, ToolSchema
 from codegopher.providers.base import ProviderCapabilities
 from codegopher.providers.openai_compat import OpenAICompatProvider
+from codegopher.providers.openai_responses import OpenAIResponsesProvider
 from codegopher.providers.registry import ProviderRegistry, create_provider_registry
 
 
@@ -49,3 +51,12 @@ def test_default_provider_registry_registers_openai() -> None:
     registry = create_provider_registry(environ={"OPENAI_API_KEY": "sk-test"})
 
     assert isinstance(registry.create("openai"), OpenAICompatProvider)
+
+
+def test_default_provider_registry_can_register_openai_responses() -> None:
+    registry = create_provider_registry(
+        environ={"OPENAI_API_KEY": "sk-test"},
+        api_family=ProviderApiFamily.responses,
+    )
+
+    assert isinstance(registry.create("openai"), OpenAIResponsesProvider)

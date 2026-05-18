@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from codegopher.core.types import Message, ToolCall
 from codegopher.tools.base import ToolResult
@@ -16,7 +17,13 @@ class Conversation:
     def append_user(self, content: str) -> None:
         self.messages.append({"role": "user", "content": content})
 
-    def append_assistant(self, content: str | None, tool_calls: list[ToolCall] | None = None) -> None:
+    def append_assistant(
+        self,
+        content: str | None,
+        tool_calls: list[ToolCall] | None = None,
+        *,
+        response_items: list[dict[str, Any]] | None = None,
+    ) -> None:
         message: Message = {"role": "assistant", "content": content}
         if tool_calls:
             message["tool_calls"] = [
@@ -30,6 +37,8 @@ class Conversation:
                 }
                 for tool_call in tool_calls
             ]
+        if response_items:
+            message["response_items"] = response_items
         self.messages.append(message)
 
     def append_tool_result(self, result: ToolResult) -> None:

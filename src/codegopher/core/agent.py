@@ -133,6 +133,7 @@ class AgentSession:
         for iteration in range(1, self.max_iterations + 1):
             text_parts: list[str] = []
             tool_calls: list[ToolCall] = []
+            response_items: list[dict[str, Any]] = []
             async for event in self.provider.stream(
                 build_messages(
                     self.conversation,
@@ -168,6 +169,8 @@ class AgentSession:
                         self.callbacks.on_tool_call if self.callbacks else None,
                         event["tool_call"],
                     )
+                elif event["type"] == "response_metadata":
+                    response_items.extend(event["response_items"])
                 elif event["type"] == "error":
                     await _emit_callback(
                         "on_error",
@@ -178,7 +181,7 @@ class AgentSession:
 
             final_text = "".join(text_parts)
             if not tool_calls:
-                self.conversation.append_assistant(final_text)
+                self.conversation.append_assistant(final_text, response_items=response_items)
                 agent_result = AgentResult(
                     final_text=final_text,
                     tool_results=all_tool_results,
@@ -191,7 +194,11 @@ class AgentSession:
                 )
                 return agent_result
 
-            self.conversation.append_assistant(final_text or None, tool_calls)
+            self.conversation.append_assistant(
+                final_text or None,
+                tool_calls,
+                response_items=response_items,
+            )
             for tool_call in tool_calls:
                 tool = self.registry.get(tool_call["name"])
                 request = ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"]))
