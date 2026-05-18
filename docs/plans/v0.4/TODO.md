@@ -105,15 +105,15 @@ This checklist tracks the v0.4 implementation slice for OpenAI Responses API And
 
 ## Milestone 8 - Release Readiness
 
-- [ ] T041: Run the focused v0.4 unit and integration suite.
+- [x] T041: Run the focused v0.4 unit and integration suite.
   Verify: `python -m pytest tests/unit/test_openai_responses_provider.py tests/unit/test_mcp_manager.py tests/unit/test_mcp_tools.py tests/integration/test_responses_provider_context.py`
-- [ ] T042: Run full tests.
+- [x] T042: Run full tests.
   Verify: `python -m pytest`
-- [ ] T043: Run lint.
+- [x] T043: Run lint.
   Verify: `ruff check src/ tests/`
-- [ ] T044: Run typecheck.
+- [x] T044: Run typecheck.
   Verify: `mypy src/`
-- [ ] T045: Build package artifacts.
+- [x] T045: Build package artifacts.
   Verify: `python -m hatch build`
-- [ ] T046: Update roadmap and release checklist for v0.4 completion state.
+- [x] T046: Update roadmap and release checklist for v0.4 completion state.
   Verify: `rg -n "v0.4|Responses API|MCP" docs/product/ROADMAP.md docs/release/CHECKLIST.md`

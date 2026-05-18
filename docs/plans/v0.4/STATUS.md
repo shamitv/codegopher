@@ -4,11 +4,11 @@ Last reviewed: 2026-05-18
 
 ## Readiness Summary
 
-- v0.4 runtime implementation is complete locally for OpenAI Responses API and MCP stdio/SSE integration.
+- v0.4 runtime implementation is complete and locally verified for OpenAI Responses API and MCP stdio/SSE integration.
 - Chat Completions remains the default API family and existing config behavior is preserved.
 - Responses API support uses `stream=True`, `store=False`, and local replay metadata for required response output items.
 - MCP support uses the official Python SDK for stdio and SSE transports, discovers tools as `mcp__SERVER__TOOL`, and marks all MCP tools approval-required.
-- Final full-suite checks and manual MCP transport verification still need to be recorded before release.
+- Full local release checks and manual MCP transport verification have been recorded.
 
 ## Current Repository State
 
@@ -27,6 +27,7 @@ Last reviewed: 2026-05-18
 | TUI integration | Done | TUI starts MCP before agent turns, disables input on MCP init failure, and closes MCP on exit. |
 | Playwright MCP verification | Done | Manual stdio check listed 23 Playwright tools and executed an approval-gated `browser_navigate` call against a deterministic `data:` page. |
 | SSE endpoint verification | Done | Manual controlled FastMCP SSE check listed and executed `mcp__verify_sse__echo` with a header resolved through `headers_env`. |
+| Full local checks | Done | `pytest`, `ruff`, `mypy`, and `hatch build` passed. |
 
 ## Verification Recorded
 
@@ -53,12 +54,12 @@ Last reviewed: 2026-05-18
   - Resolved an `Authorization` header through `headers_env`.
   - Listed and executed `mcp__verify_sse__echo`.
   - Closed the SSE session cleanly.
+- Final release-readiness checks passed:
+  - `.venv/bin/python -m pytest` (`451 passed, 1 skipped`)
+  - `.venv/bin/ruff check src/ tests/`
+  - `.venv/bin/mypy src/`
+  - `.venv/bin/python -m hatch build`
 
 ## Remaining Release Work
 
-- Run and record final checks:
-  - `python -m pytest`
-  - `ruff check src/ tests/`
-  - `mypy src/`
-  - `python -m hatch build`
-- Update this status file with final verification results before release tagging.
+- Push branch and run any required release review outside the local workspace.

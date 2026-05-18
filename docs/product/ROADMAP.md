@@ -9,7 +9,7 @@ This roadmap separates completed release slices from planned work. Dates are int
 | v0.1 - Headless Agent Loop | Done | Implemented and verified. |
 | v0.2 - Interactive Terminal Experience | Done | Implemented and verified. |
 | v0.3 - Context, Memory, And Skills | Done | Implemented; TODO checklist is complete. |
-| v0.4 - OpenAI Responses API And MCP | Done locally | Implemented and locally verified with focused tests; final release checks and manual MCP verification still required. |
+| v0.4 - OpenAI Responses API And MCP | Done locally | Implemented and locally verified with full tests, lint, typecheck, build, Playwright MCP stdio, and controlled MCP SSE checks. |
 | v0.5 - Repository Documentation And Static Security Skill Packs | Done locally | Implemented and locally verified; CI/release review still required. |
 | v0.6 - VS Code Extension Layer | TODO | Planned; implementation has not started. |
 | v0.7 - Advanced Coding Workflows | TODO | Planned future slice. |
@@ -78,10 +78,11 @@ Done:
 - MCP implementation based on the official Python SDK: `StdioServerParameters`, `stdio_client`, `sse_client`, `ClientSession(read, write)`, `initialize()`, `list_tools()`, and managed shutdown.
 - MCP-derived tools registered dynamically after successful server initialization and marked approval-required.
 
-TODO:
+Verified locally:
 
-- Complete full release checks.
-- Record manual Playwright MCP and SSE endpoint verification results or blockers.
+- Full tests, lint, typecheck, and package build passed.
+- Playwright MCP stdio listed browser tools and executed an approval-gated browser action.
+- Controlled MCP SSE verification listed and executed a tool with `headers_env`.
 
 ## v0.5 - Repository Documentation And Static Security Skill Packs
 
