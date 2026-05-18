@@ -98,7 +98,7 @@ Commit rules:
   Verify: `python -m pytest tests/integration/test_events_cli.py`
 - [x] T035: Route human diagnostics to stderr while reserving stdout for protocol JSONL.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T036: Preserve existing non-interactive no-prompt error when `--events` is not present.
+- [x] T036: Preserve existing non-interactive no-prompt error when `--events` is not present.
   Verify: `python -m pytest tests/unit/test_cli.py`
 
 ## Milestone 5 - VS Code Extension Scaffold
