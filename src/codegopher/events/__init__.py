@@ -34,6 +34,15 @@ from codegopher.events.protocol import (
     encode_jsonl_message,
     redact_protocol_value,
 )
+from codegopher.events.session import (
+    EventsSession,
+    EventsTurnResult,
+    agent_loop_error,
+    bad_approval_state,
+    configuration_error,
+    provider_error,
+    turn_cancelled,
+)
 
 __all__ = [
     "PROTOCOL_VERSION",
@@ -68,4 +77,11 @@ __all__ = [
     "decode_jsonl_message",
     "encode_jsonl_message",
     "redact_protocol_value",
+    "EventsSession",
+    "EventsTurnResult",
+    "agent_loop_error",
+    "bad_approval_state",
+    "configuration_error",
+    "provider_error",
+    "turn_cancelled",
 ]
