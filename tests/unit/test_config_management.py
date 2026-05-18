@@ -6,10 +6,12 @@ import pytest
 
 from codegopher.config.loader import load_settings
 from codegopher.config.management import (
+    delete_mcp_server,
     ensure_project_mcp_servers_table,
     load_project_settings_document,
     project_settings_path,
     save_mcp_server,
+    set_mcp_server_enabled,
     write_project_settings_document,
 )
 from codegopher.config.schema import McpServerConfig
@@ -134,3 +136,32 @@ def test_save_mcp_server_rejects_invalid_server_name(tmp_path: Path) -> None:
             "bad.name",
             McpServerConfig(transport="stdio", command="npx"),
         )
+
+
+def test_set_mcp_server_enabled_updates_existing_server(tmp_path: Path) -> None:
+    save_mcp_server(
+        tmp_path,
+        "playwright",
+        McpServerConfig(transport="stdio", command="npx"),
+    )
+
+    set_mcp_server_enabled(tmp_path, "playwright", False)
+    disabled = load_settings(cwd=tmp_path, home=tmp_path / "home", environ={})
+    set_mcp_server_enabled(tmp_path, "playwright", True)
+    enabled = load_settings(cwd=tmp_path, home=tmp_path / "home", environ={})
+
+    assert disabled.mcp.servers["playwright"].enabled is False
+    assert enabled.mcp.servers["playwright"].enabled is True
+
+
+def test_delete_mcp_server_removes_existing_server(tmp_path: Path) -> None:
+    save_mcp_server(
+        tmp_path,
+        "playwright",
+        McpServerConfig(transport="stdio", command="npx"),
+    )
+
+    delete_mcp_server(tmp_path, "playwright")
+    settings = load_settings(cwd=tmp_path, home=tmp_path / "home", environ={})
+
+    assert "playwright" not in settings.mcp.servers

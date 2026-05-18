@@ -95,12 +95,37 @@ def save_mcp_server(cwd: Path, server_name: str, server: McpServerConfig) -> Pat
     return write_project_settings_document(cwd, document)
 
 
+def set_mcp_server_enabled(cwd: Path, server_name: str, enabled: bool) -> Path:
+    validate_mcp_server_name(server_name)
+    document = load_project_settings_document(cwd)
+    servers = project_mcp_servers_table(document)
+    if servers is None or server_name not in servers:
+        raise ConfigurationError(f"MCP server not found: {server_name}")
+    server_table = servers[server_name]
+    if not isinstance(server_table, Table):
+        raise ConfigurationError(f"Project MCP server {server_name} must be a TOML table")
+    server_table["enabled"] = enabled
+    return write_project_settings_document(cwd, document)
+
+
+def delete_mcp_server(cwd: Path, server_name: str) -> Path:
+    validate_mcp_server_name(server_name)
+    document = load_project_settings_document(cwd)
+    servers = project_mcp_servers_table(document)
+    if servers is None or server_name not in servers:
+        raise ConfigurationError(f"MCP server not found: {server_name}")
+    del servers[server_name]
+    return write_project_settings_document(cwd, document)
+
+
 __all__ = [
     "ensure_project_mcp_servers_table",
+    "delete_mcp_server",
     "load_project_settings_document",
     "project_mcp_servers_table",
     "project_settings_path",
     "save_mcp_server",
+    "set_mcp_server_enabled",
     "table_to_plain_dict",
     "validate_mcp_server_name",
     "write_project_settings_document",

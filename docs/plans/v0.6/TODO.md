@@ -56,7 +56,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_config_management.py`
 - [x] T017: Add MCP server add/edit support using the existing stdio/SSE settings schema and validation.
   Verify: `python -m pytest tests/unit/test_config_management.py tests/unit/test_config_schema.py -k mcp`
-- [ ] T018: Add MCP server enable, disable, and remove support.
+- [x] T018: Add MCP server enable, disable, and remove support.
   Verify: `python -m pytest tests/unit/test_config_management.py`
 - [ ] T019: Return structured config errors for invalid server names, invalid transport-specific fields, and invalid TOML.
   Verify: `python -m pytest tests/unit/test_config_management.py`
