@@ -60,10 +60,10 @@ codegopher = "codegopher.cli.main:app"
 cgopher    = "codegopher.cli.main:app"
 
 [project.urls]
-Homepage      = "https://github.com/your-org/codegopher"
+Homepage      = "https://github.com/shamitv/codegopher"
 Documentation = "https://codegopher.readthedocs.io"
-Repository    = "https://github.com/your-org/codegopher"
-Issues        = "https://github.com/your-org/codegopher/issues"
+Repository    = "https://github.com/shamitv/codegopher"
+Issues        = "https://github.com/shamitv/codegopher/issues"
 
 # ---------------------------------------------------------------------------
 # Hatch
