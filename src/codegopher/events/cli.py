@@ -8,7 +8,7 @@ from typing import TextIO
 from codegopher.config.schema import Settings
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
 from codegopher.events.protocol import ProtocolEvent, encode_jsonl_message
-from codegopher.events.session import EventsSession
+from codegopher.events.session import EventsSession, ProviderFactory
 
 
 async def run_events_cli(
@@ -19,6 +19,7 @@ async def run_events_cli(
     stdin: TextIO,
     stdout: TextIO,
     stderr: TextIO,
+    provider_factory: ProviderFactory | None = None,
 ) -> int:
     """Run the events-mode CLI."""
 
@@ -32,6 +33,7 @@ async def run_events_cli(
         settings=settings,
         cwd=cwd,
         event_sink=emit_event,
+        provider_factory=provider_factory,
     )
     if prompt:
         try:

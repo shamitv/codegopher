@@ -84,7 +84,7 @@ Commit rules:
   Verify: `python -m pytest tests/unit/test_cli.py tests/integration/test_headless_cli.py`
 - [x] T028: Emit JSONL events for one-shot text responses.
   Verify: `python -m pytest tests/integration/test_events_cli.py`
-- [ ] T029: Emit JSONL events for reasoning deltas without including reasoning in final text.
+- [x] T029: Emit JSONL events for reasoning deltas without including reasoning in final text.
   Verify: `python -m pytest tests/integration/test_events_cli.py tests/unit/test_agent_loop.py`
 - [ ] T030: Emit tool-call and tool-result events for a multi-iteration response.
   Verify: `python -m pytest tests/integration/test_events_cli.py`

@@ -193,6 +193,7 @@ def app(
                 stdin=click.get_text_stream("stdin"),
                 stdout=click.get_text_stream("stdout"),
                 stderr=click.get_text_stream("stderr"),
+                provider_factory=_build_provider,
             )
         )
         if exit_code:
