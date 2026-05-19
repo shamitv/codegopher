@@ -7,6 +7,7 @@ import {
   SubprocessExitError,
   SubprocessStartError,
   redactLogText,
+  type CodeGopherApiKeyProvider,
   type CodeGopherConfigClient,
   type CodeGopherClientOptions,
   type Disposable,
@@ -39,6 +40,7 @@ export interface CodeGopherChatSettings {
   model: string;
   baseUrl: string;
   apiFamily: "" | "chat_completions" | "responses";
+  apiKeyEnv: string;
   approvalMode: "" | "review" | "auto" | "yolo";
   traceProtocol: boolean;
 }
@@ -46,6 +48,7 @@ export interface CodeGopherChatSettings {
 export interface CodeGopherChatControllerOptions {
   outputChannel: vscode.OutputChannel;
   clientFactory?: () => CodeGopherChatClient;
+  apiKeyProvider?: CodeGopherApiKeyProvider;
   settingsProvider?: () => CodeGopherChatSettings;
   workspaceRootProvider?: () => string | undefined;
   workspaceSelectionProvider?: () => WorkspaceSelection;
@@ -67,6 +70,7 @@ export interface WorkspaceSelection {
 export class CodeGopherChatController {
   private readonly outputChannel: vscode.OutputChannel;
   private readonly clientFactory: () => CodeGopherChatClient;
+  private readonly apiKeyProvider: CodeGopherApiKeyProvider | undefined;
   private readonly settingsProvider: () => CodeGopherChatSettings;
   private readonly workspaceSelectionProvider: () => WorkspaceSelection;
   private readonly turnIdFactory: () => string;
@@ -75,6 +79,7 @@ export class CodeGopherChatController {
 
   constructor(options: CodeGopherChatControllerOptions) {
     this.outputChannel = options.outputChannel;
+    this.apiKeyProvider = options.apiKeyProvider;
     this.clientFactory = options.clientFactory ?? (() => this.createClientFromSettings());
     this.settingsProvider = options.settingsProvider ?? readSettings;
     this.workspaceSelectionProvider =
@@ -336,6 +341,8 @@ export class CodeGopherChatController {
       model: settings.model,
       baseUrl: settings.baseUrl,
       apiFamily: settings.apiFamily,
+      apiKeyEnv: settings.apiKeyEnv,
+      apiKeyProvider: this.apiKeyProvider,
       approvalMode: settings.approvalMode,
       traceProtocol: settings.traceProtocol,
       traceSink: (entry) => {
@@ -367,6 +374,7 @@ export class CodeGopherChatController {
       `- Subprocess: ${this.client?.isRunning ? "running" : "not started"}`,
       `- Provider: ${provider}`,
       `- Model: ${model}`,
+      `- API key env: ${settings.apiKeyEnv || "configured default"}`,
       `- Approval mode: ${approvalMode}`,
       `- Protocol trace: ${settings.traceProtocol ? "enabled" : "disabled"}`
     ].join("\n");
@@ -393,7 +401,8 @@ function helpMarkdown(): string {
     "",
     "- Ask `@codegopher` questions about this workspace.",
     "- Use `/status` to inspect the CLI path, workspace root, model, and subprocess state.",
-    "- Use `/restart` after changing settings or environment variables."
+    "- Use `CodeGopher: Set API Key` to store a provider token in VS Code Secret Storage.",
+    "- Use `/restart` after changing settings or stored credentials."
   ].join("\n");
 }
 
@@ -405,6 +414,7 @@ function readSettings(): CodeGopherChatSettings {
     model: config.get("model", ""),
     baseUrl: config.get("baseUrl", ""),
     apiFamily: config.get("apiFamily", ""),
+    apiKeyEnv: config.get("apiKeyEnv", ""),
     approvalMode: config.get("approvalMode", ""),
     traceProtocol: config.get("traceProtocol", false)
   };

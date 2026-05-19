@@ -9,6 +9,8 @@ const extensionId = "codegopher.codegopher-vscode";
 const expectedCommands = [
   "codegopher.openChat",
   "codegopher.restartAgent",
+  "codegopher.setApiKey",
+  "codegopher.clearApiKey",
   "codegopher.viewLlmEndpoint",
   "codegopher.manageMcpServers",
   "codegopher.showProtocolTrace"
@@ -40,6 +42,7 @@ suite("CodeGopher extension", () => {
     assert.equal(config.get("model"), "");
     assert.equal(config.get("baseUrl"), "");
     assert.equal(config.get("apiFamily"), "");
+    assert.equal(config.get("apiKeyEnv"), "");
     assert.equal(config.get("approvalMode"), "");
     assert.equal(config.get("traceProtocol"), false);
   });

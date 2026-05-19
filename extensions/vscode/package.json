@@ -21,6 +21,8 @@
     "onChatParticipant:codegopher.codegopher",
     "onCommand:codegopher.openChat",
     "onCommand:codegopher.restartAgent",
+    "onCommand:codegopher.setApiKey",
+    "onCommand:codegopher.clearApiKey",
     "onCommand:codegopher.viewLlmEndpoint",
     "onCommand:codegopher.manageMcpServers",
     "onCommand:codegopher.showProtocolTrace"
@@ -35,6 +37,16 @@
       {
         "command": "codegopher.restartAgent",
         "title": "CodeGopher: Restart Agent",
+        "category": "CodeGopher"
+      },
+      {
+        "command": "codegopher.setApiKey",
+        "title": "CodeGopher: Set API Key",
+        "category": "CodeGopher"
+      },
+      {
+        "command": "codegopher.clearApiKey",
+        "title": "CodeGopher: Clear API Key",
         "category": "CodeGopher"
       },
       {
@@ -113,6 +125,11 @@
             "Use the OpenAI Responses API."
           ],
           "description": "Optional provider API family override passed to the CodeGopher CLI."
+        },
+        "codegopher.apiKeyEnv": {
+          "type": "string",
+          "default": "",
+          "description": "Optional provider API key environment variable name. When a key is stored with CodeGopher: Set API Key, the extension exposes it to the CLI under this name and sets CODEGOPHER_API_KEY_ENV accordingly. Leave blank to use OPENAI_API_KEY."
         },
         "codegopher.approvalMode": {
           "type": "string",

@@ -220,6 +220,88 @@ suite("CodeGopherClient startup", () => {
     assert.deepEqual(await started, sessionStartedEvent);
   });
 
+  test("spawns with a configured provider API key env name", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const calls: Array<{ command: string; args: string[]; options: SpawnOptions }> = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      apiKeyEnv: "HF_TOKEN",
+      spawnProcess: (command, args, options) => {
+        calls.push({ command, args, options });
+        return fakeProcess;
+      }
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0]?.options.env?.CODEGOPHER_API_KEY_ENV, "HF_TOKEN");
+    assert.deepEqual(await started, sessionStartedEvent);
+  });
+
+  test("injects a stored provider API key under the configured env name", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const calls: Array<{ command: string; args: string[]; options: SpawnOptions }> = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      apiKeyEnv: "HF_TOKEN",
+      apiKeyProvider: async () => "hf-secret",
+      spawnProcess: (command, args, options) => {
+        calls.push({ command, args, options });
+        return fakeProcess;
+      }
+    });
+
+    const started = client.start();
+    await waitForSpawn(calls);
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+
+    assert.equal(calls[0]?.options.env?.CODEGOPHER_API_KEY_ENV, "HF_TOKEN");
+    assert.equal(calls[0]?.options.env?.HF_TOKEN, "hf-secret");
+    assert.deepEqual(await started, sessionStartedEvent);
+  });
+
+  test("injects stored provider API keys as OPENAI_API_KEY by default", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const calls: Array<{ command: string; args: string[]; options: SpawnOptions }> = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      apiKeyProvider: () => "openai-secret",
+      spawnProcess: (command, args, options) => {
+        calls.push({ command, args, options });
+        return fakeProcess;
+      }
+    });
+
+    const started = client.start();
+    await waitForSpawn(calls);
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+
+    assert.equal(calls[0]?.options.env?.CODEGOPHER_API_KEY_ENV, "OPENAI_API_KEY");
+    assert.equal(calls[0]?.options.env?.OPENAI_API_KEY, "openai-secret");
+    assert.deepEqual(await started, sessionStartedEvent);
+  });
+
+  test("rejects invalid API key env names before spawning", async () => {
+    let spawnCount = 0;
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      apiKeyEnv: "bad-name",
+      spawnProcess: () => {
+        spawnCount += 1;
+        return new FakeCodeGopherProcess();
+      }
+    });
+
+    await assert.rejects(client.start(), /codegopher\.apiKeyEnv/);
+    assert.equal(spawnCount, 0);
+  });
+
   test("returns the existing startup promise when called twice", async () => {
     const fakeProcess = new FakeCodeGopherProcess();
     let spawnCount = 0;
@@ -1186,6 +1268,15 @@ function collectStdin(fakeProcess: FakeCodeGopherProcess): string[] {
     writes.push(chunk.toString());
   });
   return writes;
+}
+
+async function waitForSpawn(calls: readonly unknown[]): Promise<void> {
+  for (let attempt = 0; attempt < 10 && calls.length === 0; attempt += 1) {
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+  }
+  assert.ok(calls.length > 0, "Expected CodeGopher client to spawn a subprocess.");
 }
 
 function fakeCliPathFileSystem(

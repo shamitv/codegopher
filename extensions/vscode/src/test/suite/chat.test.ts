@@ -764,6 +764,7 @@ suite("CodeGopher chat controller", () => {
         model: "configured-model",
         baseUrl: "",
         apiFamily: "",
+        apiKeyEnv: "HF_TOKEN",
         approvalMode: "",
         traceProtocol: true
       }),
@@ -805,6 +806,7 @@ suite("CodeGopher chat controller", () => {
     assert.match(stream.markdownParts[0], /Subprocess: running/);
     assert.match(stream.markdownParts[0], /Provider: openai/);
     assert.match(stream.markdownParts[0], /Model: gpt-session/);
+    assert.match(stream.markdownParts[0], /API key env: HF_TOKEN/);
     assert.match(stream.markdownParts[0], /Approval mode: review/);
     assert.match(stream.markdownParts[0], /Protocol trace: enabled/);
   });
@@ -893,6 +895,7 @@ suite("CodeGopher chat controller", () => {
         model: "",
         baseUrl: "",
         apiFamily: "",
+        apiKeyEnv: "",
         approvalMode: "",
         traceProtocol: false
       }),

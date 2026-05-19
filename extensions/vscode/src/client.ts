@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, type SpawnOptions as NodeSpawnOptions } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -34,6 +34,8 @@ export interface CodeGopherClientOptions {
   model?: string;
   baseUrl?: string;
   apiFamily?: ApiFamily | "";
+  apiKeyEnv?: string;
+  apiKeyProvider?: CodeGopherApiKeyProvider;
   approvalMode?: ApprovalMode | "";
   traceProtocol?: boolean;
   traceSink?: ProtocolTraceSink;
@@ -60,9 +62,11 @@ export interface CodeGopherConfigClient {
 export interface SpawnOptions {
   cwd: string;
   stdio: ["pipe", "pipe", "pipe"];
+  env?: NodeSpawnOptions["env"];
 }
 
 export type SpawnProcess = (command: string, args: string[], options: SpawnOptions) => CodeGopherProcess;
+export type CodeGopherApiKeyProvider = () => string | undefined | PromiseLike<string | undefined>;
 
 export interface CodeGopherProcess {
   stdin: Writable;
@@ -233,24 +237,11 @@ export class CodeGopherClient implements CodeGopherConfigClient {
     });
     this.startPromise = startPromise;
 
-    try {
-      const args = buildCliArgs(this.options);
-      const cliPath = resolveCliPath(this.options.cliPath, this.options.workspaceRoot);
-      this.launchDetails = {
-        command: cliPath.command,
-        args,
-        cwd: this.options.workspaceRoot
-      };
-      this.logLifecycle(`Starting CodeGopher CLI "${this.launchDetails.command}" in "${this.launchDetails.cwd}".`);
-      this.process = this.spawnProcess(this.launchDetails.command, this.launchDetails.args, {
-        cwd: this.launchDetails.cwd,
-        stdio: ["pipe", "pipe", "pipe"]
-      });
-      this.attachProcessHandlers(this.process);
-    } catch (error) {
-      const startError = toSubprocessStartError(error, this.launchDetails);
-      this.logLifecycle(`CodeGopher CLI start failed: ${startError.message}`);
-      this.rejectStartup(startError);
+    const apiKeyProvider = this.options.apiKeyProvider;
+    if (apiKeyProvider) {
+      void this.startWithApiKeyProvider(apiKeyProvider);
+    } else {
+      this.startProcess(undefined);
     }
 
     return startPromise;
@@ -711,6 +702,39 @@ export class CodeGopherClient implements CodeGopherConfigClient {
     this.closingAfterClientError = true;
     this.process.kill();
   }
+
+  private async startWithApiKeyProvider(apiKeyProvider: CodeGopherApiKeyProvider): Promise<void> {
+    try {
+      this.startProcess(await apiKeyProvider());
+    } catch (error) {
+      const startError = toSubprocessStartError(error, this.launchDetails);
+      this.logLifecycle(`CodeGopher CLI start failed: ${startError.message}`);
+      this.rejectStartup(startError);
+    }
+  }
+
+  private startProcess(apiKey: string | undefined): void {
+    try {
+      const args = buildCliArgs(this.options);
+      const cliPath = resolveCliPath(this.options.cliPath, this.options.workspaceRoot);
+      this.launchDetails = {
+        command: cliPath.command,
+        args,
+        cwd: this.options.workspaceRoot
+      };
+      this.logLifecycle(`Starting CodeGopher CLI "${this.launchDetails.command}" in "${this.launchDetails.cwd}".`);
+      this.process = this.spawnProcess(this.launchDetails.command, this.launchDetails.args, {
+        cwd: this.launchDetails.cwd,
+        stdio: ["pipe", "pipe", "pipe"],
+        ...buildSpawnEnvironment(this.options, apiKey)
+      });
+      this.attachProcessHandlers(this.process);
+    } catch (error) {
+      const startError = toSubprocessStartError(error, this.launchDetails);
+      this.logLifecycle(`CodeGopher CLI start failed: ${startError.message}`);
+      this.rejectStartup(startError);
+    }
+  }
 }
 
 export function buildCliArgs(options: CodeGopherClientOptions): string[] {
@@ -721,6 +745,29 @@ export function buildCliArgs(options: CodeGopherClientOptions): string[] {
   pushOptionalArg(args, "--api-family", options.apiFamily);
   pushOptionalArg(args, "--approval-mode", options.approvalMode);
   return args;
+}
+
+export function buildSpawnEnvironment(
+  options: Pick<CodeGopherClientOptions, "apiKeyEnv">,
+  apiKey: string | undefined
+): Pick<SpawnOptions, "env"> | Record<string, never> {
+  const configuredApiKeyEnv = normalizeApiKeyEnv(options.apiKeyEnv);
+  const trimmedApiKey = apiKey?.trim();
+  const hasStoredApiKey = trimmedApiKey !== undefined && trimmedApiKey.length > 0;
+  if (!configuredApiKeyEnv && !hasStoredApiKey) {
+    return {};
+  }
+
+  const apiKeyEnv = configuredApiKeyEnv ?? "OPENAI_API_KEY";
+  validateApiKeyEnv(apiKeyEnv);
+  const env: NonNullable<NodeSpawnOptions["env"]> = {
+    ...process.env,
+    CODEGOPHER_API_KEY_ENV: apiKeyEnv
+  };
+  if (hasStoredApiKey) {
+    env[apiKeyEnv] = trimmedApiKey;
+  }
+  return { env };
 }
 
 export function resolveCliPath(
@@ -765,6 +812,17 @@ export function redactLogText(value: string): string {
 function pushOptionalArg(args: string[], flag: string, value: string | undefined): void {
   if (value && value.length > 0) {
     args.push(flag, value);
+  }
+}
+
+function normalizeApiKeyEnv(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : undefined;
+}
+
+function validateApiKeyEnv(value: string): void {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(value)) {
+    throw new SubprocessStartError("codegopher.apiKeyEnv must be a valid environment variable name.");
   }
 }
 

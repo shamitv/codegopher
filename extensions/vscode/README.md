@@ -43,7 +43,7 @@ For VS Code Insiders, use:
 code-insiders --install-extension codegopher-vscode-0.0.1.vsix
 ```
 
-After installation, open a disposable workspace and run `CodeGopher: Open Chat`, `@codegopher /status`, `CodeGopher: View LLM Endpoint`, and `CodeGopher: Manage MCP Servers`. If `cgopher` is not available on the VS Code process `PATH`, configure `codegopher.cliPath` to an absolute executable path before testing.
+After installation, open a disposable workspace and run `CodeGopher: Open Chat`, `@codegopher /status`, `CodeGopher: View LLM Endpoint`, and `CodeGopher: Manage MCP Servers`. If `cgopher` is not available on the VS Code process `PATH`, configure `codegopher.cliPath` to an absolute executable path before testing. Use `CodeGopher: Set API Key` to store the provider token in VS Code Secret Storage instead of relying on the Extension Development Host environment.
 
 ## Commands
 
@@ -51,6 +51,8 @@ The extension contributes these CodeGopher commands:
 
 - `CodeGopher: Open Chat`
 - `CodeGopher: Restart Agent`
+- `CodeGopher: Set API Key`
+- `CodeGopher: Clear API Key`
 - `CodeGopher: View LLM Endpoint`
 - `CodeGopher: Manage MCP Servers`
 - `CodeGopher: Show Protocol Trace`
@@ -66,8 +68,11 @@ The extension contributes these settings:
 - `codegopher.model`: optional model override.
 - `codegopher.baseUrl`: optional provider base URL override.
 - `codegopher.apiFamily`: optional `chat_completions` or `responses` override.
+- `codegopher.apiKeyEnv`: optional environment variable name for the stored provider API key. Leave blank to expose a stored key as `OPENAI_API_KEY`; set it to values such as `HF_TOKEN` for Hugging Face Router.
 - `codegopher.approvalMode`: optional `review`, `auto`, or `yolo` override.
 - `codegopher.traceProtocol`: enables redacted protocol trace logging when the events client exists.
+
+For Hugging Face Router, configure `codegopher.baseUrl` as `https://router.huggingface.co/v1`, `codegopher.apiFamily` as `chat_completions`, `codegopher.model` with the routed model id, and `codegopher.apiKeyEnv` as `HF_TOKEN`. Then run `CodeGopher: Set API Key`, paste the Hugging Face token, and restart the agent.
 
 ## Events Boundary
 

@@ -119,7 +119,21 @@ When testing `codegopher.cliPath`, include cases for:
 - Paths containing spaces.
 - Missing executable errors.
 
-For manual testing, launch the Extension Development Host from VS Code or VS Code Insiders, open a disposable workspace, and run the same smoke checks as macOS. Keep environment-specific secrets out of settings committed to the repo; use environment variables for API keys and MCP header values.
+For manual testing, launch the Extension Development Host from VS Code or VS Code Insiders, open a disposable workspace, and run the same smoke checks as macOS. Keep environment-specific secrets out of settings committed to the repo; use `CodeGopher: Set API Key` for provider tokens and configure `codegopher.apiKeyEnv` only when the provider expects a non-default variable such as `HF_TOKEN`.
+
+Example Hugging Face Router smoke settings:
+
+```json
+{
+  "codegopher.cliPath": "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+  "codegopher.baseUrl": "https://router.huggingface.co/v1",
+  "codegopher.model": "Qwen/Qwen3.6-35B-A3B:featherless-ai",
+  "codegopher.apiFamily": "chat_completions",
+  "codegopher.apiKeyEnv": "HF_TOKEN"
+}
+```
+
+After updating settings, run `CodeGopher: Set API Key`, paste the Hugging Face token, then run `CodeGopher: Restart Agent` or `@codegopher /restart`.
 
 ## Linux
 
