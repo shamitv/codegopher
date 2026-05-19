@@ -367,6 +367,110 @@ suite("CodeGopherClient startup", () => {
     await assert.rejects(turn, /turn_cancelled: Turn cancelled/);
   });
 
+  test("starts another turn after approval denial on the same subprocess", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const client = startedClient(fakeProcess);
+
+    const firstTurn = client.startTurn("write", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "approval_request",
+        turn_id: "turn-1",
+        approval_id: "approval-1",
+        tool_name: "write_file"
+      })
+    );
+
+    client.submitApproval("approval-1", false, "not now");
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "turn_complete",
+        turn_id: "turn-1",
+        approval_count: 1
+      })
+    );
+    await firstTurn;
+
+    const secondTurn = client.startTurn("again", { turnId: "turn-2" });
+    await Promise.resolve();
+
+    assert.deepEqual(decodeProtocolLine(writes[2]), {
+      version: 1,
+      type: "start_turn",
+      turn_id: "turn-2",
+      prompt: "again",
+      workspace_root: "/repo"
+    });
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "turn_complete",
+        turn_id: "turn-2",
+        final_text: "done"
+      })
+    );
+    assert.deepEqual(await secondTurn, {
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-2",
+      final_text: "done"
+    });
+  });
+
+  test("starts another turn after cancellation on the same subprocess", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const client = startedClient(fakeProcess);
+
+    const firstTurn = client.startTurn("wait", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    client.cancelTurn("turn-1");
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "error",
+        turn_id: "turn-1",
+        code: "turn_cancelled",
+        message: "Turn cancelled"
+      })
+    );
+    await assert.rejects(firstTurn, /turn_cancelled: Turn cancelled/);
+
+    const secondTurn = client.startTurn("recover", { turnId: "turn-2" });
+    await Promise.resolve();
+
+    assert.deepEqual(decodeProtocolLine(writes[2]), {
+      version: 1,
+      type: "start_turn",
+      turn_id: "turn-2",
+      prompt: "recover",
+      workspace_root: "/repo"
+    });
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "turn_complete",
+        turn_id: "turn-2",
+        final_text: "recovered"
+      })
+    );
+    assert.deepEqual(await secondTurn, {
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-2",
+      final_text: "recovered"
+    });
+  });
+
   test("sends effective-config command and resolves config_snapshot", async () => {
     const fakeProcess = new FakeCodeGopherProcess();
     const writes = collectStdin(fakeProcess);

@@ -360,6 +360,150 @@ suite("CodeGopher chat controller", () => {
     });
   });
 
+  test("runs another chat turn after an approval denial", async () => {
+    const fakeClient = new FakeChatClient();
+    const firstStream = new FakeChatResponseStream();
+    const secondStream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: sequenceTurnIds("turn-denied", "turn-after-denial")
+    });
+
+    const firstResult = controller.handleRequest(
+      fakeRequest("write"),
+      fakeContext(),
+      firstStream.asChatStream(),
+      fakeCancellationToken()
+    );
+    fakeClient.emit({
+      version: 1,
+      type: "approval_request",
+      turn_id: "turn-denied",
+      approval_id: "approval-denied",
+      tool_name: "write_file"
+    });
+    controller.denyApproval("approval-denied");
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-denied",
+      approval_count: 1
+    });
+
+    assert.deepEqual(await firstResult, {
+      metadata: {
+        command: null,
+        participant: "codegopher",
+        turnId: "turn-denied"
+      }
+    });
+
+    const secondResult = controller.handleRequest(
+      fakeRequest("continue"),
+      fakeContext(),
+      secondStream.asChatStream(),
+      fakeCancellationToken()
+    );
+    fakeClient.emit({
+      version: 1,
+      type: "text_delta",
+      turn_id: "turn-after-denial",
+      content: "still running"
+    });
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-after-denial",
+      final_text: "still running"
+    });
+
+    assert.deepEqual(await secondResult, {
+      metadata: {
+        command: null,
+        participant: "codegopher",
+        turnId: "turn-after-denial"
+      }
+    });
+    assert.deepEqual(
+      fakeClient.startCalls.map((call) => call.prompt),
+      ["write", "continue"]
+    );
+    assert.deepEqual(secondStream.markdownParts, ["still running"]);
+  });
+
+  test("runs another chat turn after cancellation", async () => {
+    const fakeClient = new FakeChatClient();
+    const firstStream = new FakeChatResponseStream();
+    const secondStream = new FakeChatResponseStream();
+    const cancelToken = fakeCancellationToken();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: sequenceTurnIds("turn-cancelled", "turn-after-cancel")
+    });
+
+    const firstResult = controller.handleRequest(
+      fakeRequest("stop"),
+      fakeContext(),
+      firstStream.asChatStream(),
+      cancelToken
+    );
+    cancelToken.cancel();
+    fakeClient.emit({
+      version: 1,
+      type: "error",
+      turn_id: "turn-cancelled",
+      code: "turn_cancelled",
+      message: "Turn cancelled"
+    });
+    fakeClient.failTurn(new Error("turn_cancelled: Turn cancelled"));
+
+    assert.deepEqual(await firstResult, {
+      errorDetails: {
+        message: "turn_cancelled: Turn cancelled"
+      },
+      metadata: {
+        command: null,
+        participant: "codegopher",
+        turnId: "turn-cancelled"
+      }
+    });
+
+    const secondResult = controller.handleRequest(
+      fakeRequest("recover"),
+      fakeContext(),
+      secondStream.asChatStream(),
+      fakeCancellationToken()
+    );
+    fakeClient.emit({
+      version: 1,
+      type: "text_delta",
+      turn_id: "turn-after-cancel",
+      content: "recovered"
+    });
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-after-cancel",
+      final_text: "recovered"
+    });
+
+    assert.deepEqual(await secondResult, {
+      metadata: {
+        command: null,
+        participant: "codegopher",
+        turnId: "turn-after-cancel"
+      }
+    });
+    assert.deepEqual(fakeClient.cancelCalls, ["turn-cancelled"]);
+    assert.deepEqual(
+      fakeClient.startCalls.map((call) => call.prompt),
+      ["stop", "recover"]
+    );
+    assert.deepEqual(secondStream.markdownParts, ["recovered"]);
+  });
+
   test("returns one user-facing error when an error event rejects the turn", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();
@@ -776,6 +920,11 @@ function fakeContext(): vscode.ChatContext {
   return {
     history: []
   };
+}
+
+function sequenceTurnIds(...turnIds: string[]): () => string {
+  let index = 0;
+  return () => turnIds[index++] ?? `turn-extra-${index}`;
 }
 
 function fakeCancellationToken(): FakeCancellationToken {

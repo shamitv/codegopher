@@ -181,7 +181,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T069: Respect VS Code cancellation tokens by sending `cancel_turn`.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T070: Confirm the subprocess can run another turn after cancellation or denial.
+- [x] T070: Confirm the subprocess can run another turn after cancellation or denial.
   Verify: `cd extensions/vscode && npm test`
 
 ## Milestone 10 - Settings, Errors, And Workspace Handling
