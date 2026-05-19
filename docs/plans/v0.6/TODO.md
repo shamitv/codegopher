@@ -139,7 +139,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T051: Stream `text_delta` events into VS Code Chat markdown.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T052: Render `tool_call` and `tool_result` events as progress and compact chat summaries.
+- [x] T052: Render `tool_call` and `tool_result` events as progress and compact chat summaries.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T053: Render provider and protocol errors as user-facing chat errors.
   Verify: `cd extensions/vscode && npm test`

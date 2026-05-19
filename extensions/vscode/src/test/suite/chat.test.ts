@@ -76,6 +76,60 @@ suite("CodeGopher chat controller", () => {
     });
     assert.deepEqual(stream.markdownParts, ["Hello ", "there"]);
   });
+
+  test("renders tool call and result events as compact progress", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-tools"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("read"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.emit({
+      version: 1,
+      type: "tool_call",
+      turn_id: "turn-tools",
+      tool_id: "tool-1",
+      tool_name: "read_file",
+      arguments_summary: "{\"path\":\"README.md\"}"
+    });
+    fakeClient.emit({
+      version: 1,
+      type: "tool_result",
+      turn_id: "turn-tools",
+      tool_id: "tool-1",
+      is_error: false,
+      result_summary: `${"line ".repeat(60)}done`
+    });
+    fakeClient.emit({
+      version: 1,
+      type: "tool_result",
+      turn_id: "other-turn",
+      tool_id: "tool-1",
+      result_summary: "ignored"
+    });
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-tools"
+    });
+
+    await resultPromise;
+
+    assert.deepEqual(stream.progressParts[0], "Calling read_file: {\"path\":\"README.md\"}");
+    assert.equal(stream.progressParts.length, 2);
+    assert.match(stream.progressParts[1], /^read_file completed: line line/);
+    assert.equal(stream.progressParts[1].length, "read_file completed: ".length + 160);
+    assert.match(stream.progressParts[1], /\.\.\.$/);
+  });
 });
 
 interface StartCall {
@@ -118,6 +172,7 @@ class FakeChatClient implements CodeGopherChatClient {
 
 class FakeChatResponseStream {
   readonly markdownParts: string[] = [];
+  readonly progressParts: string[] = [];
 
   asChatStream(): vscode.ChatResponseStream {
     return {
@@ -127,7 +182,9 @@ class FakeChatResponseStream {
       anchor: () => undefined,
       button: () => undefined,
       filetree: () => undefined,
-      progress: () => undefined,
+      progress: (value) => {
+        this.progressParts.push(value);
+      },
       reference: () => undefined,
       push: () => undefined
     };

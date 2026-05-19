@@ -12,6 +12,7 @@ import type { ProtocolEvent, TurnCompleteEvent } from "./protocol";
 export const chatParticipantId = "codegopher.codegopher";
 export const chatParticipantName = "codegopher";
 export const chatOpenQuery = "@codegopher ";
+const maxProgressSummaryLength = 160;
 
 export interface CodeGopherChatClient {
   readonly isRunning: boolean;
@@ -70,9 +71,24 @@ export class CodeGopherChatController {
 
     const turnId = this.turnIdFactory();
     const client = this.getClient();
+    const toolNames = new Map<string, string>();
     const subscription = client.onEvent((event) => {
-      if (event.type === "text_delta" && event.turn_id === turnId) {
+      if (!("turn_id" in event) || event.turn_id !== turnId) {
+        return;
+      }
+      if (event.type === "text_delta") {
         response.markdown(event.content);
+        return;
+      }
+      if (event.type === "tool_call") {
+        toolNames.set(event.tool_id, event.tool_name);
+        response.progress(`Calling ${event.tool_name}${formatSummary(event.arguments_summary)}`);
+        return;
+      }
+      if (event.type === "tool_result") {
+        const toolName = toolNames.get(event.tool_id) ?? "tool";
+        const state = event.is_error ? "failed" : "completed";
+        response.progress(`${toolName} ${state}${formatSummary(event.result_summary)}`);
       }
     });
 
@@ -122,6 +138,21 @@ export class CodeGopherChatController {
     };
     return new CodeGopherClient(options);
   }
+}
+
+function formatSummary(summary: string | undefined): string {
+  if (!summary) {
+    return "";
+  }
+  return `: ${truncateSummary(summary)}`;
+}
+
+export function truncateSummary(summary: string): string {
+  const compact = summary.replace(/\s+/g, " ").trim();
+  if (compact.length <= maxProgressSummaryLength) {
+    return compact;
+  }
+  return `${compact.slice(0, maxProgressSummaryLength - 3)}...`;
 }
 
 function activeEditorPath(): string | null {
