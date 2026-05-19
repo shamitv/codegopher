@@ -118,7 +118,7 @@ Commit rules:
 
 - [x] T042: Add a TypeScript JSONL parser with partial-line buffering.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T043: Add a CodeGopher subprocess client that launches `cgopher --events` in the workspace root.
+- [x] T043: Add a CodeGopher subprocess client that launches `cgopher --events` in the workspace root.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T044: Add typed event routing for all protocol event types.
   Verify: `cd extensions/vscode && npm test`
