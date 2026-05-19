@@ -10,8 +10,8 @@ import {
   selectWorkspaceRoot,
   type CodeGopherChatClient
 } from "../../chat";
-import type { Disposable } from "../../client";
-import type { ProtocolEvent, SessionStartedEvent, TurnCompleteEvent } from "../../protocol";
+import { SubprocessExitError, SubprocessStartError, type Disposable } from "../../client";
+import { ProtocolParseError, type ProtocolEvent, type SessionStartedEvent, type TurnCompleteEvent } from "../../protocol";
 
 suite("CodeGopher chat controller", () => {
   test("streams text_delta events into chat markdown", async () => {
@@ -574,6 +574,99 @@ suite("CodeGopher chat controller", () => {
     assert.deepEqual(stream.markdownParts, ["CodeGopher error: CodeGopher subprocess exited."]);
   });
 
+  test("renders subprocess crashes with recovery guidance and redaction", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-crash"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("crash"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.failTurn(
+      new SubprocessExitError({
+        command: "cgopher",
+        args: ["--events"],
+        cwd: "/repo",
+        code: 2,
+        signal: null,
+        stderrTail: "token=raw-token"
+      })
+    );
+
+    const result = await resultPromise;
+    const rendered = stream.markdownParts.join("\n");
+
+    assert.equal(result.errorDetails?.message, rendered.replace(/^CodeGopher error: /, ""));
+    assert.match(rendered, /CodeGopher subprocess stopped/);
+    assert.match(rendered, /CodeGopher output channel/);
+    assert.match(rendered, /\/restart/);
+    assert.doesNotMatch(rendered, /raw-token/);
+    assert.match(rendered, /\[redacted\]/);
+  });
+
+  test("renders invalid protocol failures with events-mode recovery guidance", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-protocol"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("protocol"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.failTurn(new ProtocolParseError("Malformed protocol JSON: secret=raw-secret"));
+
+    const result = await resultPromise;
+    const rendered = stream.markdownParts.join("\n");
+
+    assert.equal(result.errorDetails?.message, rendered.replace(/^CodeGopher error: /, ""));
+    assert.match(rendered, /cgopher --events/);
+    assert.match(rendered, /codegopher\.cliPath/);
+    assert.match(rendered, /\/restart/);
+    assert.doesNotMatch(rendered, /raw-secret/);
+  });
+
+  test("renders startup failures with CLI path recovery guidance", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-startup"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("startup"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.failTurn(new SubprocessStartError("Failed to start CodeGopher CLI: password=raw-password"));
+
+    await resultPromise;
+    const rendered = stream.markdownParts.join("\n");
+
+    assert.match(rendered, /codegopher\.cliPath/);
+    assert.match(rendered, /install CodeGopher/);
+    assert.match(rendered, /\/restart/);
+    assert.doesNotMatch(rendered, /raw-password/);
+  });
+
   test("hides reasoning deltas from chat while logging content-free progress", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();
@@ -837,6 +930,28 @@ suite("CodeGopher chat controller", () => {
       }
     });
     assert.deepEqual(stream.markdownParts, ["CodeGopher error: restart failed"]);
+  });
+
+  test("returns chat restart protocol failures with recovery guidance", async () => {
+    const fakeClient = new FakeChatClient();
+    fakeClient.restartError = new ProtocolParseError("Malformed protocol JSON");
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient
+    });
+
+    const result = await controller.handleRequest(
+      fakeRequest("", "restart"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    assert.equal(fakeClient.restartCalls, 1);
+    assert.equal(result.errorDetails?.message, stream.markdownParts[0]?.replace(/^CodeGopher error: /, ""));
+    assert.match(stream.markdownParts[0] ?? "", /cgopher --events/);
+    assert.match(stream.markdownParts[0] ?? "", /\/restart/);
   });
 
   test("restarts from command palette path", async () => {

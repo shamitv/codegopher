@@ -194,7 +194,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T074: Handle multi-root workspaces with a clear default and user-facing status.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T075: Add user-facing recovery guidance for subprocess crashes and invalid protocol messages.
+- [x] T075: Add user-facing recovery guidance for subprocess crashes and invalid protocol messages.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T076: Add output-channel logging for extension lifecycle events.
   Verify: `cd extensions/vscode && npm test`

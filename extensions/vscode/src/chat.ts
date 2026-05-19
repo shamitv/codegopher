@@ -3,12 +3,15 @@ import * as vscode from "vscode";
 import {
   CodeGopherClient,
   CodeGopherClientError,
+  CodeGopherProtocolError,
+  SubprocessExitError,
+  SubprocessStartError,
   type CodeGopherConfigClient,
   type CodeGopherClientOptions,
   type Disposable,
   type StartTurnOptions
 } from "./client";
-import type { ProtocolEvent, TurnCompleteEvent } from "./protocol";
+import { ProtocolParseError, type ProtocolEvent, type TurnCompleteEvent } from "./protocol";
 import type { SessionStartedEvent } from "./protocol";
 
 export const chatParticipantId = "codegopher.codegopher";
@@ -108,7 +111,7 @@ export class CodeGopherChatController {
       this.outputChannel.appendLine("CodeGopher restarted.");
       void vscode.window.showInformationMessage("CodeGopher restarted.");
     } catch (error) {
-      const message = errorMessage(error);
+      const message = formatChatError(error);
       this.outputChannel.appendLine(`CodeGopher restart failed: ${message}`);
       void vscode.window.showErrorMessage(`CodeGopher restart failed: ${message}`);
     }
@@ -155,7 +158,7 @@ export class CodeGopherChatController {
         return;
       }
       if (event.type === "error") {
-        reportedError = `${event.code}: ${event.message}`;
+        reportedError = formatChatErrorMessage(`${event.code}: ${event.message}`);
         writeChatError(response, reportedError);
         return;
       }
@@ -216,7 +219,7 @@ export class CodeGopherChatController {
       }
       await turn;
     } catch (error) {
-      const message = reportedError ?? errorMessage(error);
+      const message = reportedError ?? formatChatError(error);
       if (!reportedError) {
         writeChatError(response, message);
       }
@@ -257,7 +260,7 @@ export class CodeGopherChatController {
       response.markdown(`CodeGopher restarted with ${session.provider} / ${session.model}.`);
       return commandResult("restart");
     } catch (error) {
-      const message = errorMessage(error);
+      const message = formatChatError(error);
       writeChatError(response, message);
       return {
         errorDetails: {
@@ -442,11 +445,36 @@ function writeChatError(response: vscode.ChatResponseStream, message: string): v
   response.markdown(`CodeGopher error: ${message}`);
 }
 
+export function formatChatError(error: unknown): string {
+  const message = formatChatErrorMessage(errorMessage(error));
+
+  if (error instanceof SubprocessExitError) {
+    return `${message}\n\nThe CodeGopher subprocess stopped. Check the CodeGopher output channel, fix the CLI or environment, then run \`/restart\`.`;
+  }
+  if (error instanceof ProtocolParseError || error instanceof CodeGopherProtocolError) {
+    return `${message}\n\nThe configured CLI must support \`cgopher --events\`. Update \`codegopher.cliPath\` or reinstall CodeGopher, then run \`/restart\`.`;
+  }
+  if (error instanceof SubprocessStartError) {
+    return `${message}\n\nCheck \`codegopher.cliPath\`, install CodeGopher if needed, then run \`/restart\`.`;
+  }
+  return message;
+}
+
+function formatChatErrorMessage(message: string): string {
+  return redactDisplayText(message);
+}
+
 function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message;
   }
   return "CodeGopher request failed.";
+}
+
+function redactDisplayText(value: string): string {
+  return value
+    .replace(/(api[_-]?key|token|password|secret)\s*[:=]\s*[^\s,;]+/gi, "$1=[redacted]")
+    .replace(/(Authorization)\s*[:=]\s*(Bearer\s+)?[^\s,;]+/gi, "$1: [redacted]");
 }
 
 export function truncateSummary(summary: string): string {

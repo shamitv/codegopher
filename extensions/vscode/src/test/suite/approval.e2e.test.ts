@@ -49,6 +49,39 @@ suite("CodeGopher approval and cancellation e2e", () => {
       await fs.rm(workspaceRoot, { force: true, recursive: true });
     }
   });
+
+  test("surfaces malformed stdout from a spawned events process", async function () {
+    this.timeout(10000);
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codegopher-vscode-malformed-e2e-"));
+    const cliPath = await writeFakeCli(workspaceRoot, malformedStdoutScript());
+    const client = new CodeGopherClient({
+      cliPath,
+      workspaceRoot
+    });
+
+    try {
+      await assert.rejects(client.start(), /Malformed protocol JSON/);
+    } finally {
+      await fs.rm(workspaceRoot, { force: true, recursive: true });
+    }
+  });
+
+  test("surfaces subprocess crashes from a spawned events process", async function () {
+    this.timeout(10000);
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codegopher-vscode-crash-e2e-"));
+    const cliPath = await writeFakeCli(workspaceRoot, crashingEventsScript());
+    const client = new CodeGopherClient({
+      cliPath,
+      workspaceRoot
+    });
+
+    try {
+      const turn = client.startTurn("crash", { turnId: "turn-crash" });
+      await assert.rejects(turn, /CodeGopher subprocess exited with 7: crashed/);
+    } finally {
+      await fs.rm(workspaceRoot, { force: true, recursive: true });
+    }
+  });
 });
 
 function waitForEvent<T extends ProtocolEvent["type"]>(
@@ -72,9 +105,12 @@ function waitForEvent<T extends ProtocolEvent["type"]>(
 }
 
 async function writeFakeEventsCli(directory: string): Promise<string> {
-  const scriptPath = path.join(directory, "fake-cgopher-events.js");
-  await fs.writeFile(scriptPath, fakeEventsScript(), "utf8");
+  return writeFakeCli(directory, fakeEventsScript());
+}
 
+async function writeFakeCli(directory: string, script: string): Promise<string> {
+  const scriptPath = path.join(directory, "fake-cgopher-events.js");
+  await fs.writeFile(scriptPath, script, "utf8");
   if (process.platform === "win32") {
     const cmdPath = path.join(directory, "fake-cgopher.cmd");
     await fs.writeFile(cmdPath, `@"${process.execPath}" "${scriptPath}" %*\r\n`, "utf8");
@@ -172,6 +208,45 @@ rl.on("line", (line) => {
   }
   if (message.type === "shutdown") {
     process.exit(0);
+  }
+});
+
+process.on("SIGTERM", () => process.exit(0));
+`;
+}
+
+function malformedStdoutScript(): string {
+  return String.raw`
+process.stdout.write("{not json}\n");
+process.exit(0);
+`;
+}
+
+function crashingEventsScript(): string {
+  return String.raw`
+const readline = require("node:readline");
+
+const rl = readline.createInterface({ input: process.stdin });
+
+function send(message) {
+  process.stdout.write(JSON.stringify(message) + "\n");
+}
+
+send({
+  version: 1,
+  type: "session_started",
+  session_id: "session-crash",
+  cwd: process.cwd(),
+  provider: "test",
+  model: "test-model",
+  approval_mode: "review"
+});
+
+rl.on("line", (line) => {
+  const message = JSON.parse(line);
+  if (message.type === "start_turn") {
+    process.stderr.write("crashed\n");
+    process.exit(7);
   }
 });
 
