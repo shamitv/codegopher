@@ -132,6 +132,43 @@ base_url = "https://project.example.test/v1"
     )
 
 
+def test_inspect_effective_config_uses_final_provider_for_cli_endpoint_overrides(
+    tmp_path: Path,
+) -> None:
+    snapshot = inspect_effective_config(
+        cwd=tmp_path,
+        home=tmp_path / "home",
+        environ={"CODEGOPHER_PROVIDER": "local"},
+        cli_overrides=CliOverrides(
+            model="local-model",
+            base_url="http://localhost:8000/v1",
+            api_family="chat_completions",
+        ),
+    )
+
+    assert snapshot.provider == "local"
+    assert snapshot.model == "local-model"
+    assert snapshot.provider_entry_id == "local-model"
+    assert snapshot.api_family == "chat_completions"
+    assert snapshot.base_url == "http://localhost:8000/v1"
+    assert snapshot.config_sources == ("defaults", "environment", "cli")
+
+
+def test_inspect_effective_config_labels_env_only_api_key_env_source(
+    tmp_path: Path,
+) -> None:
+    snapshot = inspect_effective_config(
+        cwd=tmp_path,
+        home=tmp_path / "home",
+        environ={"CODEGOPHER_API_KEY_ENV": "LOCAL_API_KEY"},
+    )
+
+    assert snapshot.provider == "openai"
+    assert snapshot.provider_entry_id == "gpt-4o"
+    assert snapshot.config_sources == ("defaults", "environment")
+    assert "LOCAL_API_KEY" not in repr(snapshot)
+
+
 def test_inspect_effective_config_falls_back_to_first_provider_entry(
     tmp_path: Path,
 ) -> None:
