@@ -19,6 +19,7 @@ export interface CodeGopherChatClient {
   readonly isRunning: boolean;
   readonly sessionStarted?: SessionStartedEvent;
   startTurn(prompt: string, options?: StartTurnOptions): Promise<TurnCompleteEvent>;
+  restart(): Promise<SessionStartedEvent>;
   onEvent(listener: (event: ProtocolEvent) => void): Disposable;
 }
 
@@ -74,8 +75,15 @@ export class CodeGopherChatController {
   }
 
   async restart(): Promise<void> {
-    this.outputChannel.appendLine("CodeGopher restart will be available after the chat client is wired.");
-    await vscode.window.showInformationMessage("CodeGopher restart will be available after the chat client is wired.");
+    try {
+      await this.restartAgent();
+      this.outputChannel.appendLine("CodeGopher restarted.");
+      void vscode.window.showInformationMessage("CodeGopher restarted.");
+    } catch (error) {
+      const message = errorMessage(error);
+      this.outputChannel.appendLine(`CodeGopher restart failed: ${message}`);
+      void vscode.window.showErrorMessage(`CodeGopher restart failed: ${message}`);
+    }
   }
 
   async handleRequest(
@@ -94,6 +102,9 @@ export class CodeGopherChatController {
     if (request.command === "status") {
       response.markdown(this.statusMarkdown());
       return commandResult(request.command);
+    }
+    if (request.command === "restart") {
+      return this.handleRestartCommand(response);
     }
 
     const turnId = this.turnIdFactory();
@@ -166,6 +177,31 @@ export class CodeGopherChatController {
   private getClient(): CodeGopherChatClient {
     this.client ??= this.clientFactory();
     return this.client;
+  }
+
+  private async handleRestartCommand(response: vscode.ChatResponseStream): Promise<vscode.ChatResult> {
+    response.progress("Restarting CodeGopher...");
+    try {
+      const session = await this.restartAgent();
+      response.markdown(`CodeGopher restarted with ${session.provider} / ${session.model}.`);
+      return commandResult("restart");
+    } catch (error) {
+      const message = errorMessage(error);
+      writeChatError(response, message);
+      return {
+        errorDetails: {
+          message
+        },
+        metadata: {
+          command: "restart",
+          participant: chatParticipantName
+        }
+      };
+    }
+  }
+
+  private restartAgent(): Promise<SessionStartedEvent> {
+    return this.getClient().restart();
   }
 
   private createClientFromSettings(): CodeGopherClient {

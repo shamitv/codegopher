@@ -147,7 +147,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T055: Implement `/help` and `/status` chat commands.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T056: Implement `/restart` chat command.
+- [x] T056: Implement `/restart` chat command.
   Verify: `cd extensions/vscode && npm test`
 
 ## Milestone 8 - Endpoint And MCP Configuration UI

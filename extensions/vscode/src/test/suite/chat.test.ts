@@ -333,6 +333,73 @@ suite("CodeGopher chat controller", () => {
     assert.match(stream.markdownParts[0], /Approval mode: review/);
     assert.match(stream.markdownParts[0], /Protocol trace: enabled/);
   });
+
+  test("restarts from chat command", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient
+    });
+
+    const result = await controller.handleRequest(
+      fakeRequest("", "restart"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    assert.equal(fakeClient.restartCalls, 1);
+    assert.deepEqual(result, {
+      metadata: {
+        command: "restart",
+        participant: "codegopher"
+      }
+    });
+    assert.deepEqual(stream.progressParts, ["Restarting CodeGopher..."]);
+    assert.deepEqual(stream.markdownParts, ["CodeGopher restarted with openai / gpt-test."]);
+  });
+
+  test("returns chat restart failures as error results", async () => {
+    const fakeClient = new FakeChatClient();
+    fakeClient.restartError = new Error("restart failed");
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient
+    });
+
+    const result = await controller.handleRequest(
+      fakeRequest("", "restart"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    assert.equal(fakeClient.restartCalls, 1);
+    assert.deepEqual(result, {
+      errorDetails: {
+        message: "restart failed"
+      },
+      metadata: {
+        command: "restart",
+        participant: "codegopher"
+      }
+    });
+    assert.deepEqual(stream.markdownParts, ["CodeGopher error: restart failed"]);
+  });
+
+  test("restarts from command palette path", async () => {
+    const fakeClient = new FakeChatClient();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient
+    });
+
+    await controller.restart();
+
+    assert.equal(fakeClient.restartCalls, 1);
+  });
 });
 
 interface StartCall {
@@ -344,6 +411,8 @@ class FakeChatClient implements CodeGopherChatClient {
   readonly isRunning = true;
   sessionStarted: SessionStartedEvent | undefined = undefined;
   readonly startCalls: StartCall[] = [];
+  restartCalls = 0;
+  restartError: Error | undefined;
   private readonly listeners = new Set<(event: ProtocolEvent) => void>();
   private resolveTurn: ((event: TurnCompleteEvent) => void) | undefined;
   private rejectTurn: ((error: Error) => void) | undefined;
@@ -363,6 +432,23 @@ class FakeChatClient implements CodeGopherChatClient {
         this.listeners.delete(listener);
       }
     };
+  }
+
+  restart(): Promise<SessionStartedEvent> {
+    this.restartCalls += 1;
+    if (this.restartError) {
+      return Promise.reject(this.restartError);
+    }
+    this.sessionStarted = {
+      version: 1,
+      type: "session_started",
+      session_id: "session-restart",
+      cwd: "/repo",
+      provider: "openai",
+      model: "gpt-test",
+      approval_mode: "review"
+    };
+    return Promise.resolve(this.sessionStarted);
   }
 
   emit(event: ProtocolEvent): void {
