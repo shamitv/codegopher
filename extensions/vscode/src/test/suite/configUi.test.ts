@@ -430,6 +430,109 @@ suite("CodeGopher config UI", () => {
     assert.deepEqual(client.saveMcpServerCalls, []);
   });
 
+  test("disables and enables project-local MCP servers", async () => {
+    const client = new FakeConfigClient();
+    const disableDialogs = new FakeConfigDialogs();
+    disableDialogs.quickPickSelectionLabels.push("$(check) playwright", "$(debug-pause) Disable server");
+    const disableController = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs: disableDialogs
+    });
+
+    await disableController.manageMcpServers();
+
+    assert.deepEqual(client.setMcpServerEnabledCalls, [{ serverName: "playwright", enabled: false }]);
+    assert.deepEqual(disableDialogs.informationMessages, ["CodeGopher MCP server disabled: playwright"]);
+
+    client.mcpServers = [
+      {
+        name: "playwright",
+        source: "project",
+        server: {
+          enabled: false,
+          transport: "stdio",
+          command: "npx"
+        }
+      }
+    ];
+    const enableDialogs = new FakeConfigDialogs();
+    enableDialogs.quickPickSelectionLabels.push("$(circle-slash) playwright", "$(debug-start) Enable server");
+    const enableController = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs: enableDialogs
+    });
+
+    await enableController.manageMcpServers();
+
+    assert.deepEqual(client.setMcpServerEnabledCalls, [
+      { serverName: "playwright", enabled: false },
+      { serverName: "playwright", enabled: true }
+    ]);
+    assert.deepEqual(enableDialogs.informationMessages, ["CodeGopher MCP server enabled: playwright"]);
+  });
+
+  test("removes project-local MCP servers after confirmation", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(check) playwright", "$(trash) Remove server");
+    dialogs.warningSelections.push("Remove");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.deleteMcpServerCalls, ["playwright"]);
+    assert.deepEqual(dialogs.warningMessages[0], {
+      message: "Remove MCP server playwright?",
+      options: { modal: true },
+      items: ["Remove"]
+    });
+    assert.deepEqual(dialogs.informationMessages, ["CodeGopher MCP server removed: playwright"]);
+  });
+
+  test("cancels MCP server removal", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(check) playwright", "$(trash) Remove server");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.deleteMcpServerCalls, []);
+  });
+
+  test("blocks enable disable remove for non-project MCP servers", async () => {
+    const client = new FakeConfigClient();
+    client.mcpServers = [
+      {
+        name: "global_docs",
+        source: "user",
+        server: {
+          enabled: true,
+          transport: "sse",
+          url: "https://old.example.test/sse"
+        }
+      }
+    ];
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(check) global_docs", "$(debug-pause) Disable server");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.setMcpServerEnabledCalls, []);
+    assert.deepEqual(client.deleteMcpServerCalls, []);
+    assert.deepEqual(dialogs.errorMessages, ["Only project-local MCP servers can be enabled, disabled, or removed."]);
+  });
+
   test("parses creation helper values", () => {
     assert.equal(validateMcpServerName("ok-name_1"), undefined);
     assert.equal(validateMcpServerName("bad.name"), "MCP server names may contain only letters, numbers, '_' and '-'.");
@@ -449,6 +552,14 @@ suite("CodeGopher config UI", () => {
     });
 
     assert.equal(item?.label, "$(edit) Edit server");
+    assert.deepEqual(
+      formatMcpServerActionItems({
+        name: "docs",
+        source: "project",
+        server: { enabled: false, transport: "sse", url: "https://example.test/sse" }
+      }).map((action) => action.label),
+      ["$(edit) Edit server", "$(debug-start) Enable server", "$(trash) Remove server"]
+    );
     assert.equal(hasSecretContainers({ transport: "stdio", command: "npx" }), false);
     assert.equal(hasSecretContainers({ transport: "stdio", command: "npx", env: { TOKEN: "[redacted]" } }), true);
     assert.equal(
@@ -463,11 +574,18 @@ interface SaveMcpServerCall {
   server: McpServerPayload;
 }
 
+interface SetMcpServerEnabledCall {
+  serverName: string;
+  enabled: boolean;
+}
+
 class FakeConfigClient implements CodeGopherConfigClient {
   getEffectiveConfigCalls = 0;
   getEffectiveConfigError: Error | undefined;
   listMcpServersCalls = 0;
   readonly saveMcpServerCalls: SaveMcpServerCall[] = [];
+  readonly setMcpServerEnabledCalls: SetMcpServerEnabledCall[] = [];
+  readonly deleteMcpServerCalls: string[] = [];
   mcpServers: McpServersEvent["servers"] = [
     {
       name: "playwright",
@@ -519,12 +637,30 @@ class FakeConfigClient implements CodeGopherConfigClient {
     });
   }
 
-  setMcpServerEnabled(): Promise<McpServerSavedEvent> {
-    throw new Error("Not implemented.");
+  setMcpServerEnabled(serverName: string, enabled: boolean): Promise<McpServerSavedEvent> {
+    this.setMcpServerEnabledCalls.push({ serverName, enabled });
+    return Promise.resolve({
+      version: 1,
+      type: "mcp_server_saved",
+      workspace_root: "/repo",
+      server_name: serverName,
+      server: {
+        enabled,
+        transport: "stdio",
+        command: "npx",
+        args: ["@playwright/mcp@latest"]
+      }
+    });
   }
 
-  deleteMcpServer(): Promise<McpServerDeletedEvent> {
-    throw new Error("Not implemented.");
+  deleteMcpServer(serverName: string): Promise<McpServerDeletedEvent> {
+    this.deleteMcpServerCalls.push(serverName);
+    return Promise.resolve({
+      version: 1,
+      type: "mcp_server_deleted",
+      workspace_root: "/repo",
+      server_name: serverName
+    });
   }
 }
 

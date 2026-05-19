@@ -53,7 +53,7 @@ export interface McpServerListItem extends CodeGopherQuickPickItem {
 }
 
 export interface McpServerActionItem extends CodeGopherQuickPickItem {
-  itemType: "edit";
+  itemType: "edit" | "enable" | "disable" | "remove";
   server: McpServerSnapshotPayload;
 }
 
@@ -109,6 +109,15 @@ export class CodeGopherConfigUiController {
     }
     if (picked.itemType === "edit") {
       await this.editMcpServer(server);
+    }
+    if (picked.itemType === "enable") {
+      await this.setMcpServerEnabled(server, true);
+    }
+    if (picked.itemType === "disable") {
+      await this.setMcpServerEnabled(server, false);
+    }
+    if (picked.itemType === "remove") {
+      await this.removeMcpServer(server);
     }
   }
 
@@ -248,6 +257,40 @@ export class CodeGopherConfigUiController {
     }
     await this.clientProvider().saveMcpServer(snapshot.name, server);
     await this.dialogs.showInformationMessage(`CodeGopher MCP server saved: ${snapshot.name}`);
+  }
+
+  private async setMcpServerEnabled(snapshot: McpServerSnapshotPayload, enabled: boolean): Promise<void> {
+    if (!(await this.isProjectServer(snapshot))) {
+      return;
+    }
+    await this.clientProvider().setMcpServerEnabled(snapshot.name, enabled);
+    await this.dialogs.showInformationMessage(
+      `CodeGopher MCP server ${enabled ? "enabled" : "disabled"}: ${snapshot.name}`
+    );
+  }
+
+  private async removeMcpServer(snapshot: McpServerSnapshotPayload): Promise<void> {
+    if (!(await this.isProjectServer(snapshot))) {
+      return;
+    }
+    const confirmed = await this.dialogs.showWarningMessage(
+      `Remove MCP server ${snapshot.name}?`,
+      { modal: true },
+      "Remove"
+    );
+    if (confirmed !== "Remove") {
+      return;
+    }
+    await this.clientProvider().deleteMcpServer(snapshot.name);
+    await this.dialogs.showInformationMessage(`CodeGopher MCP server removed: ${snapshot.name}`);
+  }
+
+  private async isProjectServer(snapshot: McpServerSnapshotPayload): Promise<boolean> {
+    if (snapshot.source === "project") {
+      return true;
+    }
+    await this.dialogs.showErrorMessage("Only project-local MCP servers can be enabled, disabled, or removed.");
+    return false;
   }
 
   private async editSseServer(snapshot: McpServerSnapshotPayload): Promise<void> {
@@ -486,6 +529,7 @@ export function formatMcpServerListItems(snapshot: McpServersEvent): McpServerLi
 }
 
 export function formatMcpServerActionItems(snapshot: McpServerSnapshotPayload): McpServerActionItem[] {
+  const enabled = snapshot.server.enabled !== false;
   return [
     {
       itemType: "edit",
@@ -493,6 +537,20 @@ export function formatMcpServerActionItems(snapshot: McpServerSnapshotPayload): 
       label: "$(edit) Edit server",
       description: "non-secret fields",
       detail: "Update project-local settings through Python validation"
+    },
+    {
+      itemType: enabled ? "disable" : "enable",
+      server: snapshot,
+      label: enabled ? "$(debug-pause) Disable server" : "$(debug-start) Enable server",
+      description: "project only",
+      detail: "Update the project-local enabled state"
+    },
+    {
+      itemType: "remove",
+      server: snapshot,
+      label: "$(trash) Remove server",
+      description: "project only",
+      detail: "Delete the project-local MCP server entry"
     }
   ];
 }
