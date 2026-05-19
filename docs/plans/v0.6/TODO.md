@@ -190,7 +190,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T072: Pass configured provider, model, base URL, API family, and approval mode overrides to the CLI.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T073: Select the workspace root deterministically and show it in `/status`.
+- [x] T073: Select the workspace root deterministically and show it in `/status`.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T074: Handle multi-root workspaces with a clear default and user-facing status.
   Verify: `cd extensions/vscode && npm test`

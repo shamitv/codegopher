@@ -44,14 +44,27 @@ export interface CodeGopherChatControllerOptions {
   clientFactory?: () => CodeGopherChatClient;
   settingsProvider?: () => CodeGopherChatSettings;
   workspaceRootProvider?: () => string | undefined;
+  workspaceSelectionProvider?: () => WorkspaceSelection;
   turnIdFactory?: () => string;
+}
+
+export interface WorkspaceFolderInfo {
+  readonly uri: {
+    readonly fsPath: string;
+  };
+}
+
+export interface WorkspaceSelection {
+  selectedRoot: string | undefined;
+  roots: string[];
+  reason: "first-workspace-folder" | "no-workspace";
 }
 
 export class CodeGopherChatController {
   private readonly outputChannel: vscode.OutputChannel;
   private readonly clientFactory: () => CodeGopherChatClient;
   private readonly settingsProvider: () => CodeGopherChatSettings;
-  private readonly workspaceRootProvider: () => string | undefined;
+  private readonly workspaceSelectionProvider: () => WorkspaceSelection;
   private readonly turnIdFactory: () => string;
   private readonly pendingApprovals = new Map<string, PendingApproval>();
   private client: CodeGopherChatClient | undefined;
@@ -60,7 +73,11 @@ export class CodeGopherChatController {
     this.outputChannel = options.outputChannel;
     this.clientFactory = options.clientFactory ?? (() => this.createClientFromSettings());
     this.settingsProvider = options.settingsProvider ?? readSettings;
-    this.workspaceRootProvider = options.workspaceRootProvider ?? defaultWorkspaceRoot;
+    this.workspaceSelectionProvider =
+      options.workspaceSelectionProvider ??
+      (options.workspaceRootProvider
+        ? () => workspaceSelectionFromRoot(options.workspaceRootProvider?.())
+        : defaultWorkspaceSelection);
     this.turnIdFactory = options.turnIdFactory ?? (() => `turn-${Date.now().toString(36)}`);
   }
 
@@ -291,7 +308,8 @@ export class CodeGopherChatController {
   }
 
   private createClientFromSettings(): CodeGopherClient {
-    const workspaceRoot = this.workspaceRootProvider();
+    const workspace = this.workspaceSelectionProvider();
+    const workspaceRoot = workspace.selectedRoot;
     if (!workspaceRoot) {
       throw new CodeGopherClientError("Open a workspace folder before using CodeGopher.");
     }
@@ -315,7 +333,8 @@ export class CodeGopherChatController {
 
   private statusMarkdown(): string {
     const settings = this.settingsProvider();
-    const workspaceRoot = this.workspaceRootProvider();
+    const workspace = this.workspaceSelectionProvider();
+    const workspaceRoot = workspace.selectedRoot;
     const session = this.client?.sessionStarted;
     const provider = (session?.provider ?? settings.provider) || "configured default";
     const model = (session?.model ?? settings.model) || "configured default";
@@ -326,6 +345,7 @@ export class CodeGopherChatController {
       "",
       `- CLI: \`${settings.cliPath}\``,
       `- Workspace: \`${workspaceRoot ?? "No workspace folder"}\``,
+      `- Workspace selection: ${formatWorkspaceSelection(workspace)}`,
       `- Subprocess: ${this.client?.isRunning ? "running" : "not started"}`,
       `- Provider: ${provider}`,
       `- Model: ${model}`,
@@ -372,8 +392,32 @@ function readSettings(): CodeGopherChatSettings {
   };
 }
 
-function defaultWorkspaceRoot(): string | undefined {
-  return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+export function selectWorkspaceRoot(workspaceFolders: readonly WorkspaceFolderInfo[] | undefined): WorkspaceSelection {
+  const roots = [...(workspaceFolders ?? [])].map((folder) => folder.uri.fsPath);
+  return {
+    selectedRoot: roots[0],
+    roots,
+    reason: roots.length > 0 ? "first-workspace-folder" : "no-workspace"
+  };
+}
+
+function defaultWorkspaceSelection(): WorkspaceSelection {
+  return selectWorkspaceRoot(vscode.workspace.workspaceFolders);
+}
+
+function workspaceSelectionFromRoot(root: string | undefined): WorkspaceSelection {
+  return {
+    selectedRoot: root,
+    roots: root ? [root] : [],
+    reason: root ? "first-workspace-folder" : "no-workspace"
+  };
+}
+
+function formatWorkspaceSelection(selection: WorkspaceSelection): string {
+  if (!selection.selectedRoot) {
+    return "No workspace folder is open";
+  }
+  return "first workspace folder";
 }
 
 function formatSummary(summary: string | undefined): string {

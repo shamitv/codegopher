@@ -7,6 +7,7 @@ import {
   approvalDenyCommandId,
   CodeGopherChatController,
   defaultApprovalDenialReason,
+  selectWorkspaceRoot,
   type CodeGopherChatClient
 } from "../../chat";
 import type { Disposable } from "../../client";
@@ -700,11 +701,57 @@ suite("CodeGopher chat controller", () => {
     assert.equal(fakeClient.startCalls.length, 1);
     assert.match(stream.markdownParts[0], /CLI: `\/bin\/cgopher`/);
     assert.match(stream.markdownParts[0], /Workspace: `\/repo`/);
+    assert.match(stream.markdownParts[0], /Workspace selection: first workspace folder/);
     assert.match(stream.markdownParts[0], /Subprocess: running/);
     assert.match(stream.markdownParts[0], /Provider: openai/);
     assert.match(stream.markdownParts[0], /Model: gpt-session/);
     assert.match(stream.markdownParts[0], /Approval mode: review/);
     assert.match(stream.markdownParts[0], /Protocol trace: enabled/);
+  });
+
+  test("selects the first workspace root deterministically", () => {
+    assert.deepEqual(selectWorkspaceRoot(undefined), {
+      selectedRoot: undefined,
+      roots: [],
+      reason: "no-workspace"
+    });
+    assert.deepEqual(selectWorkspaceRoot([workspaceFolder("/repo-a")]), {
+      selectedRoot: "/repo-a",
+      roots: ["/repo-a"],
+      reason: "first-workspace-folder"
+    });
+    assert.deepEqual(selectWorkspaceRoot([workspaceFolder("/repo-a"), workspaceFolder("/repo-b")]), {
+      selectedRoot: "/repo-a",
+      roots: ["/repo-a", "/repo-b"],
+      reason: "first-workspace-folder"
+    });
+  });
+
+  test("renders no-workspace status without starting an agent turn", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      workspaceSelectionProvider: () => selectWorkspaceRoot(undefined)
+    });
+
+    const result = await controller.handleRequest(
+      fakeRequest("", "status"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    assert.deepEqual(result, {
+      metadata: {
+        command: "status",
+        participant: "codegopher"
+      }
+    });
+    assert.equal(fakeClient.startCalls.length, 0);
+    assert.match(stream.markdownParts[0], /Workspace: `No workspace folder`/);
+    assert.match(stream.markdownParts[0], /Workspace selection: No workspace folder is open/);
   });
 
   test("restarts from chat command", async () => {
@@ -919,6 +966,12 @@ function fakeRequest(prompt: string, command?: string): vscode.ChatRequest {
 function fakeContext(): vscode.ChatContext {
   return {
     history: []
+  };
+}
+
+function workspaceFolder(fsPath: string): { uri: { fsPath: string } } {
+  return {
+    uri: { fsPath }
   };
 }
 
