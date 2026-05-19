@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run CodeGopher Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "preLaunchTask": "npm: compile",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-workspace-trust",
+        "--extensions-dir=${workspaceFolder}\\.vscode-test\\manual-extensions",
+        "--user-data-dir=${workspaceFolder}\\.vscode-test\\manual-user-data"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ]
+    }
+  ]
+}
