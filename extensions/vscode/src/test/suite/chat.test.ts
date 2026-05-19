@@ -1002,6 +1002,35 @@ suite("CodeGopher chat controller", () => {
 
     assert.equal(fakeClient.restartCalls, 1);
   });
+
+  test("recreates the client on restart so current settings and secrets are used", async () => {
+    const firstClient = new FakeChatClient();
+    const secondClient = new FakeChatClient();
+    const clients = [firstClient, secondClient];
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => clients.shift() ?? new FakeChatClient(),
+      turnIdFactory: () => "turn-before-restart"
+    });
+
+    const turn = controller.handleRequest(
+      fakeRequest("hello"),
+      fakeContext(),
+      new FakeChatResponseStream().asChatStream(),
+      fakeCancellationToken()
+    );
+    firstClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-before-restart"
+    });
+    await turn;
+
+    await controller.restart();
+
+    assert.equal(firstClient.restartCalls, 0);
+    assert.equal(secondClient.restartCalls, 1);
+  });
 });
 
 interface StartCall {

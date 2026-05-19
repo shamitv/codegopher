@@ -288,6 +288,19 @@ export class CodeGopherChatController {
   }
 
   private restartAgent(): Promise<SessionStartedEvent> {
+    return this.restartAgentWithLatestSettings();
+  }
+
+  private async restartAgentWithLatestSettings(): Promise<SessionStartedEvent> {
+    const previousClient = this.client;
+    if (previousClient && hasShutdown(previousClient)) {
+      try {
+        await previousClient.shutdown();
+      } catch (error) {
+        this.outputChannel.appendLine(redactLogText(`CodeGopher shutdown before restart failed: ${errorMessage(error)}`));
+      }
+    }
+    this.client = undefined;
     return this.getClient().restart();
   }
 
@@ -384,6 +397,14 @@ export class CodeGopherChatController {
 interface PendingApproval {
   client: CodeGopherChatClient;
   turnId: string;
+}
+
+interface ShutdownCapableClient {
+  shutdown(): Promise<void>;
+}
+
+function hasShutdown(client: CodeGopherChatClient): client is CodeGopherChatClient & ShutdownCapableClient {
+  return typeof (client as Partial<ShutdownCapableClient>).shutdown === "function";
 }
 
 function commandResult(command: string): vscode.ChatResult {
