@@ -606,6 +606,82 @@ suite("CodeGopherClient startup", () => {
     assert.equal(exitError.stderrTail.length, 8000);
     assert.equal(exitError.stderrTail, "x".repeat(8000));
   });
+
+  test("sends shutdown and resolves when the subprocess closes", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const errors: Error[] = [];
+    const client = startedClient(fakeProcess);
+    client.onError((error) => {
+      errors.push(error);
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await started;
+
+    const firstShutdown = client.shutdown();
+    const secondShutdown = client.shutdown();
+
+    assert.equal(firstShutdown, secondShutdown);
+    assert.deepEqual(decodeProtocolLine(writes[0]), {
+      version: 1,
+      type: "shutdown"
+    });
+
+    fakeProcess.close(0, null);
+    await firstShutdown;
+
+    assert.equal(client.isRunning, false);
+    assert.equal(client.sessionStarted, undefined);
+    assert.deepEqual(errors, []);
+  });
+
+  test("restarts with a fresh subprocess and preserves listeners", async () => {
+    const firstProcess = new FakeCodeGopherProcess();
+    const secondProcess = new FakeCodeGopherProcess();
+    const firstWrites = collectStdin(firstProcess);
+    const events: ProtocolEvent[] = [];
+    let spawnCount = 0;
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      spawnProcess: () => {
+        spawnCount += 1;
+        return spawnCount === 1 ? firstProcess : secondProcess;
+      }
+    });
+    client.onEvent((event) => {
+      events.push(event);
+    });
+
+    const started = client.start();
+    firstProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await started;
+
+    const restarted = client.restart();
+    await Promise.resolve();
+    assert.deepEqual(decodeProtocolLine(firstWrites[0]), {
+      version: 1,
+      type: "shutdown"
+    });
+    firstProcess.close(0, null);
+    await Promise.resolve();
+    assert.equal(spawnCount, 2);
+
+    const secondSession: SessionStartedEvent = {
+      ...sessionStartedEvent,
+      session_id: "session-2",
+      model: "gpt-next"
+    };
+    secondProcess.stdout.write(encodeProtocolMessage(secondSession));
+
+    assert.deepEqual(await restarted, secondSession);
+    assert.deepEqual(
+      events.filter((event) => event.type === "session_started"),
+      [sessionStartedEvent, secondSession]
+    );
+  });
 });
 
 const sessionStartedEvent: SessionStartedEvent = {

@@ -160,6 +160,9 @@ export class CodeGopherClient {
   private pendingManagement: PendingManagement | undefined;
   private stderrTail = "";
   private launchDetails: LaunchDetails | undefined;
+  private closingIntentionally = false;
+  private closePromise: Promise<void> | undefined;
+  private resolveClose: (() => void) | undefined;
 
   constructor(options: CodeGopherClientOptions) {
     this.options = options;
@@ -293,6 +296,31 @@ export class CodeGopherClient {
     });
   }
 
+  shutdown(): Promise<void> {
+    if (!this.process) {
+      this.resetProcessState();
+      return Promise.resolve();
+    }
+    if (this.closePromise) {
+      return this.closePromise;
+    }
+
+    this.closingIntentionally = true;
+    this.closePromise = new Promise<void>((resolve) => {
+      this.resolveClose = resolve;
+    });
+    this.send({
+      version: 1,
+      type: "shutdown"
+    });
+    return this.closePromise;
+  }
+
+  async restart(): Promise<SessionStartedEvent> {
+    await this.shutdown();
+    return this.start();
+  }
+
   getEffectiveConfig(): Promise<ConfigSnapshotEvent> {
     return this.requestManagement<ConfigSnapshotEvent>(
       {
@@ -372,14 +400,19 @@ export class CodeGopherClient {
     });
     process.on("close", (code, signal) => {
       const exitError = this.createExitError(code, signal);
-      if (!this.session) {
+      if (this.closingIntentionally) {
+        this.failPendingOperations(new CodeGopherClientError("CodeGopher subprocess shut down."));
+      } else if (!this.session) {
         this.rejectStartup(exitError);
       } else {
         this.failPendingOperations(exitError);
         this.emitClientError(exitError);
       }
-      this.process = undefined;
-      this.startPromise = undefined;
+      const resolveClose = this.resolveClose;
+      this.resetProcessState();
+      resolveClose?.();
+      this.resolveClose = undefined;
+      this.closePromise = undefined;
     });
   }
 
@@ -570,6 +603,18 @@ export class CodeGopherClient {
       signal,
       stderrTail: this.stderrTail
     });
+  }
+
+  private resetProcessState(): void {
+    this.process = undefined;
+    this.startPromise = undefined;
+    this.resolveStart = undefined;
+    this.rejectStart = undefined;
+    this.session = undefined;
+    this.parser.clear();
+    this.stderrTail = "";
+    this.launchDetails = undefined;
+    this.closingIntentionally = false;
   }
 }
 

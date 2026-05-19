@@ -128,7 +128,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T047: Add stderr capture and structured subprocess exit errors.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T048: Add restart and shutdown lifecycle behavior.
+- [x] T048: Add restart and shutdown lifecycle behavior.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T049: Add trace logging with redaction when `codegopher.traceProtocol` is enabled.
   Verify: `cd extensions/vscode && npm test`
