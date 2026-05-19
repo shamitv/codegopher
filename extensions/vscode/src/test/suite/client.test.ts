@@ -1,5 +1,6 @@
 import * as assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
+import * as path from "node:path";
 import { PassThrough } from "node:stream";
 
 import {
@@ -8,6 +9,7 @@ import {
   SubprocessExitError,
   SubprocessStartError,
   buildCliArgs,
+  resolveCliPath,
   type CodeGopherProcess,
   type ProtocolTraceEntry,
   type SpawnOptions
@@ -55,6 +57,89 @@ suite("CodeGopherClient startup", () => {
       }),
       ["--events"]
     );
+  });
+
+  test("resolves CLI path settings before spawn", () => {
+    const fileSystem = fakeCliPathFileSystem({
+      "/repo/tools/cgopher": { mode: 0o755 },
+      "/opt/cgopher": { mode: 0o755 },
+      "C:\\tools\\cgopher.exe": { mode: 0o644 },
+      "C:\\repo\\tools\\cgopher.exe": { mode: 0o644 }
+    });
+
+    assert.deepEqual(resolveCliPath("cgopher", "/repo", { fileSystem, pathModule: path.posix, platform: "linux" }), {
+      command: "cgopher",
+      source: "path"
+    });
+    assert.deepEqual(
+      resolveCliPath("tools/cgopher", "/repo", { fileSystem, pathModule: path.posix, platform: "linux" }),
+      {
+        command: "/repo/tools/cgopher",
+        source: "workspace"
+      }
+    );
+    assert.deepEqual(resolveCliPath("/opt/cgopher", "/repo", { fileSystem, pathModule: path.posix, platform: "linux" }), {
+      command: "/opt/cgopher",
+      source: "absolute"
+    });
+    assert.deepEqual(
+      resolveCliPath("C:\\tools\\cgopher.exe", "C:\\repo", {
+        fileSystem,
+        pathModule: path.win32,
+        platform: "win32"
+      }),
+      {
+        command: "C:\\tools\\cgopher.exe",
+        source: "absolute"
+      }
+    );
+    assert.deepEqual(
+      resolveCliPath(".\\tools\\cgopher.exe", "C:\\repo", {
+        fileSystem,
+        pathModule: path.win32,
+        platform: "win32"
+      }),
+      {
+        command: "C:\\repo\\tools\\cgopher.exe",
+        source: "workspace"
+      }
+    );
+  });
+
+  test("rejects missing and non-executable local CLI paths", () => {
+    const fileSystem = fakeCliPathFileSystem({
+      "/repo/not-executable": { mode: 0o644 },
+      "/repo/not-file": { isFile: false, mode: 0o755 }
+    });
+
+    assert.throws(
+      () => resolveCliPath("./missing", "/repo", { fileSystem, pathModule: path.posix, platform: "linux" }),
+      /CodeGopher CLI not found/
+    );
+    assert.throws(
+      () => resolveCliPath("./not-file", "/repo", { fileSystem, pathModule: path.posix, platform: "linux" }),
+      /is not a file/
+    );
+    assert.throws(
+      () => resolveCliPath("./not-executable", "/repo", { fileSystem, pathModule: path.posix, platform: "linux" }),
+      /is not executable/
+    );
+    assert.deepEqual(
+      resolveCliPath("./not-executable", "/repo", { fileSystem, pathModule: path.posix, platform: "win32" }),
+      {
+        command: "/repo/not-executable",
+        source: "workspace"
+      }
+    );
+  });
+
+  test("rejects missing PATH CLI with actionable startup error", async () => {
+    const client = new CodeGopherClient({
+      cliPath: `codegopher-missing-cli-${process.pid}-${Date.now()}`,
+      workspaceRoot: process.cwd()
+    });
+
+    await assert.rejects(client.start(), /The executable was not found.*codegopher\.cliPath/);
   });
 
   test("spawns cgopher events mode in the workspace root", async () => {
@@ -1003,6 +1088,24 @@ function collectStdin(fakeProcess: FakeCodeGopherProcess): string[] {
     writes.push(chunk.toString());
   });
   return writes;
+}
+
+function fakeCliPathFileSystem(
+  entries: Record<string, { isFile?: boolean; mode?: number }>
+): {
+  existsSync(candidate: string): boolean;
+  statSync(candidate: string): { mode: number; isFile(): boolean };
+} {
+  return {
+    existsSync: (candidate) => Object.hasOwn(entries, candidate),
+    statSync: (candidate) => {
+      const entry = entries[candidate];
+      return {
+        mode: entry?.mode ?? 0o755,
+        isFile: () => entry?.isFile ?? true
+      };
+    }
+  };
 }
 
 function traceMessage(

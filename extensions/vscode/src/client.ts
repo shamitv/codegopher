@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import type { Readable, Writable } from "node:stream";
 
 import {
@@ -160,7 +162,33 @@ interface LaunchDetails {
   cwd: string;
 }
 
+export interface CliPathResolution {
+  command: string;
+  source: "path" | "absolute" | "workspace";
+}
+
+interface CliPathStats {
+  mode: number;
+  isFile(): boolean;
+}
+
+interface CliPathFileSystem {
+  existsSync(candidate: string): boolean;
+  statSync(candidate: string): CliPathStats;
+}
+
+interface CliPathResolveOptions {
+  fileSystem?: CliPathFileSystem;
+  pathModule?: Pick<typeof path, "isAbsolute" | "resolve">;
+  platform?: typeof process.platform;
+}
+
 const maxStderrTailLength = 8000;
+const defaultCliPath = "cgopher";
+const defaultCliPathFileSystem: CliPathFileSystem = {
+  existsSync: fs.existsSync,
+  statSync: (candidate) => fs.statSync(candidate)
+};
 
 export class CodeGopherClient implements CodeGopherConfigClient {
   private readonly options: CodeGopherClientOptions;
@@ -195,24 +223,31 @@ export class CodeGopherClient implements CodeGopherConfigClient {
       return this.startPromise;
     }
 
-    const args = buildCliArgs(this.options);
     this.stderrTail = "";
-    this.launchDetails = {
-      command: this.options.cliPath,
-      args,
-      cwd: this.options.workspaceRoot
-    };
-    this.process = this.spawnProcess(this.launchDetails.command, this.launchDetails.args, {
-      cwd: this.launchDetails.cwd,
-      stdio: ["pipe", "pipe", "pipe"]
-    });
-    this.attachProcessHandlers(this.process);
-
-    this.startPromise = new Promise<SessionStartedEvent>((resolve, reject) => {
+    const startPromise = new Promise<SessionStartedEvent>((resolve, reject) => {
       this.resolveStart = resolve;
       this.rejectStart = reject;
     });
-    return this.startPromise;
+    this.startPromise = startPromise;
+
+    try {
+      const args = buildCliArgs(this.options);
+      const cliPath = resolveCliPath(this.options.cliPath, this.options.workspaceRoot);
+      this.launchDetails = {
+        command: cliPath.command,
+        args,
+        cwd: this.options.workspaceRoot
+      };
+      this.process = this.spawnProcess(this.launchDetails.command, this.launchDetails.args, {
+        cwd: this.launchDetails.cwd,
+        stdio: ["pipe", "pipe", "pipe"]
+      });
+      this.attachProcessHandlers(this.process);
+    } catch (error) {
+      this.rejectStartup(toSubprocessStartError(error, this.launchDetails));
+    }
+
+    return startPromise;
   }
 
   get isRunning(): boolean {
@@ -415,7 +450,7 @@ export class CodeGopherClient implements CodeGopherConfigClient {
       this.captureStderr(chunk);
     });
     process.on("error", (error) => {
-      this.rejectStartup(new SubprocessStartError(error.message));
+      this.rejectStartup(createSpawnError(error, this.launchDetails));
     });
     process.on("close", (code, signal) => {
       const exitError = this.createExitError(code, signal);
@@ -658,6 +693,39 @@ export function buildCliArgs(options: CodeGopherClientOptions): string[] {
   return args;
 }
 
+export function resolveCliPath(
+  cliPath: string,
+  workspaceRoot: string,
+  options: CliPathResolveOptions = {}
+): CliPathResolution {
+  const value = cliPath.trim() || defaultCliPath;
+  const pathModule = options.pathModule ?? path;
+  const fileSystem = options.fileSystem ?? defaultCliPathFileSystem;
+  const platform = options.platform ?? process.platform;
+
+  if (!isPathLike(value)) {
+    return {
+      command: value,
+      source: "path"
+    };
+  }
+
+  if (isAbsoluteCliPath(value, pathModule)) {
+    validateLocalCliPath(value, fileSystem, platform);
+    return {
+      command: value,
+      source: "absolute"
+    };
+  }
+
+  const resolved = pathModule.resolve(workspaceRoot, value);
+  validateLocalCliPath(resolved, fileSystem, platform);
+  return {
+    command: resolved,
+    source: "workspace"
+  };
+}
+
 function pushOptionalArg(args: string[], flag: string, value: string | undefined): void {
   if (value && value.length > 0) {
     args.push(flag, value);
@@ -666,6 +734,70 @@ function pushOptionalArg(args: string[], flag: string, value: string | undefined
 
 function defaultSpawnProcess(command: string, args: string[], options: SpawnOptions): CodeGopherProcess {
   return spawn(command, args, options);
+}
+
+function isPathLike(value: string): boolean {
+  return value.includes("/") || value.includes("\\") || isWindowsDriveAbsolute(value);
+}
+
+function isAbsoluteCliPath(value: string, pathModule: Pick<typeof path, "isAbsolute">): boolean {
+  return pathModule.isAbsolute(value) || isWindowsDriveAbsolute(value) || value.startsWith("\\\\");
+}
+
+function isWindowsDriveAbsolute(value: string): boolean {
+  return /^[A-Za-z]:[\\/]/.test(value);
+}
+
+function validateLocalCliPath(candidate: string, fileSystem: CliPathFileSystem, platform: typeof process.platform): void {
+  if (!fileSystem.existsSync(candidate)) {
+    throw new SubprocessStartError(
+      `CodeGopher CLI not found at "${candidate}". Update codegopher.cliPath or install cgopher. ` +
+        `Use "cgopher" to resolve the executable from PATH.`
+    );
+  }
+
+  const stats = fileSystem.statSync(candidate);
+  if (!stats.isFile()) {
+    throw new SubprocessStartError(
+      `CodeGopher CLI path "${candidate}" is not a file. Update codegopher.cliPath to a cgopher executable.`
+    );
+  }
+
+  if (platform !== "win32" && (stats.mode & 0o111) === 0) {
+    throw new SubprocessStartError(
+      `CodeGopher CLI path "${candidate}" is not executable. Run chmod +x on the file or update codegopher.cliPath.`
+    );
+  }
+}
+
+function toSubprocessStartError(error: unknown, launchDetails: LaunchDetails | undefined): SubprocessStartError {
+  if (error instanceof SubprocessStartError) {
+    return error;
+  }
+  if (error instanceof Error) {
+    return createSpawnError(error, launchDetails);
+  }
+  return new SubprocessStartError("Failed to start CodeGopher CLI. Update codegopher.cliPath and try again.");
+}
+
+function createSpawnError(error: Error, launchDetails: LaunchDetails | undefined): SubprocessStartError {
+  const command = launchDetails?.command ?? defaultCliPath;
+  const cwd = launchDetails?.cwd ?? process.cwd();
+  const errorCode = (error as { code?: unknown }).code;
+  const code = typeof errorCode === "string" ? errorCode : "";
+  const prefix = `Failed to start CodeGopher CLI "${command}" from "${cwd}".`;
+
+  if (code === "ENOENT") {
+    return new SubprocessStartError(
+      `${prefix} The executable was not found. Update codegopher.cliPath, install cgopher, or use an absolute path.`
+    );
+  }
+  if (code === "EACCES") {
+    return new SubprocessStartError(
+      `${prefix} The executable is not executable. Run chmod +x on the file or update codegopher.cliPath.`
+    );
+  }
+  return new SubprocessStartError(`${prefix} ${error.message}`);
 }
 
 function formatExitCode(code: number | null, signal: string | null): string {

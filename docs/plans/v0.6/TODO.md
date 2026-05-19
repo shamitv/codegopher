@@ -186,7 +186,7 @@ Commit rules:
 
 ## Milestone 10 - Settings, Errors, And Workspace Handling
 
-- [ ] T071: Implement `codegopher.cliPath` resolution with clear missing-executable errors.
+- [x] T071: Implement `codegopher.cliPath` resolution with clear missing-executable errors.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T072: Pass configured provider, model, base URL, API family, and approval mode overrides to the CLI.
   Verify: `cd extensions/vscode && npm test`
