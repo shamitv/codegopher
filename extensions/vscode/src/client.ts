@@ -10,8 +10,14 @@ import {
   type ApiFamily,
   type ApprovalMode,
   type ApprovalRequestEvent,
+  type ConfigSnapshotEvent,
   type ErrorEvent,
+  type McpServerDeletedEvent,
+  type McpServerPayload,
+  type McpServerSavedEvent,
+  type McpServersEvent,
   type ProtocolEvent,
+  type ProtocolCommand,
   type ProtocolMessage,
   type SessionStartedEvent,
   type StartTurnCommand,
@@ -89,6 +95,14 @@ interface PendingTurn {
   reject: (error: Error) => void;
 }
 
+type ManagementEvent = ConfigSnapshotEvent | McpServersEvent | McpServerSavedEvent | McpServerDeletedEvent;
+
+interface PendingManagement {
+  expectedType: ManagementEvent["type"];
+  resolve: (event: ManagementEvent) => void;
+  reject: (error: Error) => void;
+}
+
 export class CodeGopherClient {
   private readonly options: CodeGopherClientOptions;
   private readonly spawnProcess: SpawnProcess;
@@ -102,6 +116,7 @@ export class CodeGopherClient {
   private readonly errorListeners = new Set<ClientErrorListener>();
   private activeTurn: PendingTurn | undefined;
   private readonly activeApprovals = new Map<string, ApprovalRequestEvent>();
+  private pendingManagement: PendingManagement | undefined;
 
   constructor(options: CodeGopherClientOptions) {
     this.options = options;
@@ -159,6 +174,9 @@ export class CodeGopherClient {
   async startTurn(prompt: string, options: StartTurnOptions = {}): Promise<TurnCompleteEvent> {
     if (this.activeTurn) {
       throw new CodeGopherClientError(`Turn already active: ${this.activeTurn.turnId}`);
+    }
+    if (this.pendingManagement) {
+      throw new CodeGopherClientError(`Management request already active: ${this.pendingManagement.expectedType}`);
     }
 
     const turnId = options.turnId ?? `turn-${randomUUID()}`;
@@ -224,6 +242,66 @@ export class CodeGopherClient {
       type: "cancel_turn",
       turn_id: turnId
     });
+  }
+
+  getEffectiveConfig(): Promise<ConfigSnapshotEvent> {
+    return this.requestManagement<ConfigSnapshotEvent>(
+      {
+        version: 1,
+        type: "get_effective_config",
+        workspace_root: this.options.workspaceRoot
+      },
+      "config_snapshot"
+    );
+  }
+
+  listMcpServers(): Promise<McpServersEvent> {
+    return this.requestManagement<McpServersEvent>(
+      {
+        version: 1,
+        type: "list_mcp_servers",
+        workspace_root: this.options.workspaceRoot
+      },
+      "mcp_servers"
+    );
+  }
+
+  saveMcpServer(serverName: string, server: McpServerPayload): Promise<McpServerSavedEvent> {
+    return this.requestManagement<McpServerSavedEvent>(
+      {
+        version: 1,
+        type: "save_mcp_server",
+        workspace_root: this.options.workspaceRoot,
+        server_name: serverName,
+        server
+      },
+      "mcp_server_saved"
+    );
+  }
+
+  setMcpServerEnabled(serverName: string, enabled: boolean): Promise<McpServerSavedEvent> {
+    return this.requestManagement<McpServerSavedEvent>(
+      {
+        version: 1,
+        type: "set_mcp_server_enabled",
+        workspace_root: this.options.workspaceRoot,
+        server_name: serverName,
+        enabled
+      },
+      "mcp_server_saved"
+    );
+  }
+
+  deleteMcpServer(serverName: string): Promise<McpServerDeletedEvent> {
+    return this.requestManagement<McpServerDeletedEvent>(
+      {
+        version: 1,
+        type: "delete_mcp_server",
+        workspace_root: this.options.workspaceRoot,
+        server_name: serverName
+      },
+      "mcp_server_deleted"
+    );
   }
 
   protected send(message: ProtocolMessage): void {
@@ -292,9 +370,12 @@ export class CodeGopherClient {
       return;
     }
     if (event.type === "error") {
-      this.rejectTurnIfMatched(event);
+      if (!this.rejectTurnIfMatched(event)) {
+        this.rejectManagement(new CodeGopherClientError(`${event.code}: ${event.message}`));
+      }
       return;
     }
+    this.resolveManagementIfMatched(event);
     if (event.type !== "session_started") {
       return;
     }
@@ -314,14 +395,15 @@ export class CodeGopherClient {
     turn.resolve(event);
   }
 
-  private rejectTurnIfMatched(event: ErrorEvent): void {
+  private rejectTurnIfMatched(event: ErrorEvent): boolean {
     if (!this.activeTurn || event.turn_id !== this.activeTurn.turnId) {
-      return;
+      return false;
     }
     const turn = this.activeTurn;
     this.activeTurn = undefined;
     this.activeApprovals.clear();
     turn.reject(new CodeGopherClientError(`${event.code}: ${event.message}`));
+    return true;
   }
 
   private failPendingOperations(error: Error): void {
@@ -330,6 +412,66 @@ export class CodeGopherClient {
       this.activeTurn = undefined;
     }
     this.activeApprovals.clear();
+    this.rejectManagement(error);
+  }
+
+  private async requestManagement<T extends ManagementEvent>(
+    command: ProtocolCommand,
+    expectedType: T["type"]
+  ): Promise<T> {
+    if (this.activeTurn) {
+      throw new CodeGopherClientError(`Turn already active: ${this.activeTurn.turnId}`);
+    }
+    if (this.pendingManagement) {
+      throw new CodeGopherClientError(`Management request already active: ${this.pendingManagement.expectedType}`);
+    }
+
+    let resolveManagement: (event: ManagementEvent) => void = () => undefined;
+    let rejectManagement: (error: Error) => void = () => undefined;
+    const managementPromise = new Promise<T>((resolve, reject) => {
+      resolveManagement = (event: ManagementEvent) => {
+        resolve(event as T);
+      };
+      rejectManagement = reject;
+    });
+    const pendingManagement: PendingManagement = {
+      expectedType,
+      resolve: resolveManagement,
+      reject: rejectManagement
+    };
+    this.pendingManagement = pendingManagement;
+
+    try {
+      await this.start();
+      this.send(command);
+    } catch (error) {
+      if (this.pendingManagement === pendingManagement) {
+        pendingManagement.reject(
+          error instanceof Error ? error : new CodeGopherClientError(`Failed to send ${command.type}.`)
+        );
+        this.pendingManagement = undefined;
+      }
+    }
+
+    return managementPromise;
+  }
+
+  private resolveManagementIfMatched(event: ProtocolEvent): void {
+    if (!this.pendingManagement || event.type !== this.pendingManagement.expectedType) {
+      return;
+    }
+    const pending = this.pendingManagement;
+    this.pendingManagement = undefined;
+    pending.resolve(event as ManagementEvent);
+  }
+
+  private rejectManagement(error: Error): void {
+    if (!this.pendingManagement) {
+      return;
+    }
+    const pending = this.pendingManagement;
+    this.pendingManagement = undefined;
+    pending.reject(error);
   }
 
   private rejectStartup(error: Error): void {

@@ -124,7 +124,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T045: Add pending request tracking for turns and approvals.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T046: Add subprocess client helpers for effective-config and MCP server management commands.
+- [x] T046: Add subprocess client helpers for effective-config and MCP server management commands.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T047: Add stderr capture and structured subprocess exit errors.
   Verify: `cd extensions/vscode && npm test`

@@ -364,6 +364,194 @@ suite("CodeGopherClient startup", () => {
     );
     await assert.rejects(turn, /turn_cancelled: Turn cancelled/);
   });
+
+  test("sends effective-config command and resolves config_snapshot", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const client = startedClient(fakeProcess);
+
+    const config = client.getEffectiveConfig();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    assert.deepEqual(decodeProtocolLine(writes[0]), {
+      version: 1,
+      type: "get_effective_config",
+      workspace_root: "/repo"
+    });
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "config_snapshot",
+        workspace_root: "/repo",
+        provider: "openai",
+        model: "gpt-test",
+        api_family: "responses",
+        base_url: "https://api.example.test/v1",
+        config_sources: ["defaults", "project"]
+      })
+    );
+
+    assert.deepEqual(await config, {
+      version: 1,
+      type: "config_snapshot",
+      workspace_root: "/repo",
+      provider: "openai",
+      model: "gpt-test",
+      api_family: "responses",
+      base_url: "https://api.example.test/v1",
+      config_sources: ["defaults", "project"]
+    });
+  });
+
+  test("sends MCP management commands and resolves matching events", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const client = startedClient(fakeProcess);
+    const started = client.start();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await started;
+
+    const listed = client.listMcpServers();
+    await Promise.resolve();
+    assert.deepEqual(decodeProtocolLine(writes[0]), {
+      version: 1,
+      type: "list_mcp_servers",
+      workspace_root: "/repo"
+    });
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "mcp_servers",
+        workspace_root: "/repo",
+        servers: []
+      })
+    );
+    assert.deepEqual(await listed, {
+      version: 1,
+      type: "mcp_servers",
+      workspace_root: "/repo",
+      servers: []
+    });
+
+    const saved = client.saveMcpServer("playwright", {
+      transport: "stdio",
+      command: "npx",
+      args: ["@playwright/mcp@latest"]
+    });
+    await Promise.resolve();
+    assert.deepEqual(decodeProtocolLine(writes[1]), {
+      version: 1,
+      type: "save_mcp_server",
+      workspace_root: "/repo",
+      server_name: "playwright",
+      server: {
+        transport: "stdio",
+        command: "npx",
+        args: ["@playwright/mcp@latest"]
+      }
+    });
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "mcp_server_saved",
+        workspace_root: "/repo",
+        server_name: "playwright",
+        server: {
+          transport: "stdio",
+          command: "npx",
+          args: ["@playwright/mcp@latest"]
+        }
+      })
+    );
+    assert.equal((await saved).server_name, "playwright");
+
+    const disabled = client.setMcpServerEnabled("playwright", false);
+    await Promise.resolve();
+    assert.deepEqual(decodeProtocolLine(writes[2]), {
+      version: 1,
+      type: "set_mcp_server_enabled",
+      workspace_root: "/repo",
+      server_name: "playwright",
+      enabled: false
+    });
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "mcp_server_saved",
+        workspace_root: "/repo",
+        server_name: "playwright",
+        server: {
+          enabled: false,
+          transport: "stdio",
+          command: "npx",
+          args: ["@playwright/mcp@latest"]
+        }
+      })
+    );
+    assert.equal((await disabled).server.enabled, false);
+
+    const deleted = client.deleteMcpServer("playwright");
+    await Promise.resolve();
+    assert.deepEqual(decodeProtocolLine(writes[3]), {
+      version: 1,
+      type: "delete_mcp_server",
+      workspace_root: "/repo",
+      server_name: "playwright"
+    });
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "mcp_server_deleted",
+        workspace_root: "/repo",
+        server_name: "playwright"
+      })
+    );
+    assert.equal((await deleted).server_name, "playwright");
+  });
+
+  test("serializes management requests and rejects command-level errors", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = startedClient(fakeProcess);
+
+    const first = client.getEffectiveConfig();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    await assert.rejects(client.listMcpServers(), /Management request already active: config_snapshot/);
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "error",
+        code: "configuration_error",
+        message: "Invalid settings"
+      })
+    );
+
+    await assert.rejects(first, /configuration_error: Invalid settings/);
+  });
+
+  test("does not start management requests while a turn is active", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = startedClient(fakeProcess);
+
+    const turn = client.startTurn("wait", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    await assert.rejects(client.getEffectiveConfig(), /Turn already active: turn-1/);
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "turn_complete",
+        turn_id: "turn-1"
+      })
+    );
+    await turn;
+  });
 });
 
 const sessionStartedEvent: SessionStartedEvent = {
