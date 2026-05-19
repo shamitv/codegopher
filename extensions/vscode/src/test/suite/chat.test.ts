@@ -338,7 +338,10 @@ suite("CodeGopher chat controller", () => {
     token.cancel();
 
     assert.deepEqual(fakeClient.cancelCalls, ["turn-cancel"]);
-    assert.deepEqual(outputChannel.lines, ["CodeGopher cancellation requested for turn-cancel."]);
+    assert.deepEqual(outputChannel.lines, [
+      "Starting CodeGopher turn turn-cancel.",
+      "CodeGopher cancellation requested for turn-cancel."
+    ]);
 
     fakeClient.emit({
       version: 1,
@@ -707,7 +710,10 @@ suite("CodeGopher chat controller", () => {
 
     assert.deepEqual(stream.markdownParts, ["public answer"]);
     assert.deepEqual(stream.progressParts, []);
-    assert.deepEqual(outputChannel.lines, ["CodeGopher reasoning update for turn-reasoning."]);
+    assert.deepEqual(outputChannel.lines, [
+      "Starting CodeGopher turn turn-reasoning.",
+      "CodeGopher reasoning update for turn-reasoning."
+    ]);
     assert.ok(!outputChannel.lines.join("\n").includes("private chain of thought"));
   });
 
@@ -877,11 +883,35 @@ suite("CodeGopher chat controller", () => {
     assert.match(stream.markdownParts[0], /Workspace folders: `\/repo-a`, `\/repo-b`/);
   });
 
+  test("logs client creation with selected workspace and redacted CLI settings", () => {
+    const outputChannel = new FakeOutputChannel();
+    const controller = new CodeGopherChatController({
+      outputChannel,
+      settingsProvider: () => ({
+        cliPath: "token=raw-token",
+        provider: "",
+        model: "",
+        baseUrl: "",
+        apiFamily: "",
+        approvalMode: "",
+        traceProtocol: false
+      }),
+      workspaceRootProvider: () => "/repo"
+    });
+
+    controller.configClient();
+
+    assert.match(outputChannel.lines.join("\n"), /Creating CodeGopher client for workspace "\/repo"/);
+    assert.doesNotMatch(outputChannel.lines.join("\n"), /raw-token/);
+    assert.match(outputChannel.lines.join("\n"), /\[redacted\]/);
+  });
+
   test("restarts from chat command", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();
+    const outputChannel = new FakeOutputChannel();
     const controller = new CodeGopherChatController({
-      outputChannel: new FakeOutputChannel(),
+      outputChannel,
       clientFactory: () => fakeClient
     });
 
@@ -901,6 +931,10 @@ suite("CodeGopher chat controller", () => {
     });
     assert.deepEqual(stream.progressParts, ["Restarting CodeGopher..."]);
     assert.deepEqual(stream.markdownParts, ["CodeGopher restarted with openai / gpt-test."]);
+    assert.deepEqual(outputChannel.lines, [
+      "Restarting CodeGopher from chat command.",
+      "CodeGopher restarted from chat command."
+    ]);
   });
 
   test("returns chat restart failures as error results", async () => {

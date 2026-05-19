@@ -9,6 +9,7 @@ import {
   SubprocessExitError,
   SubprocessStartError,
   buildCliArgs,
+  redactLogText,
   resolveCliPath,
   type CodeGopherProcess,
   type ProtocolTraceEntry,
@@ -140,6 +141,13 @@ suite("CodeGopherClient startup", () => {
     });
 
     await assert.rejects(client.start(), /The executable was not found.*codegopher\.cliPath/);
+  });
+
+  test("redacts secret-like lifecycle log text", () => {
+    assert.equal(
+      redactLogText("token=raw-token password: raw-password Authorization: Bearer raw"),
+      "token=[redacted] password=[redacted] Authorization: [redacted]"
+    );
   });
 
   test("spawns cgopher events mode in the workspace root", async () => {
@@ -314,6 +322,26 @@ suite("CodeGopherClient startup", () => {
 
     await assert.rejects(started, /Malformed protocol JSON/);
     assert.match(errors[0].message, /Malformed protocol JSON/);
+  });
+
+  test("logs protocol errors through the lifecycle sink", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const logs: string[] = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      lifecycleSink: (message) => {
+        logs.push(message);
+      },
+      spawnProcess: () => fakeProcess
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write("{not json}\n");
+
+    await assert.rejects(started, /Malformed protocol JSON/);
+    assert.match(logs.join("\n"), /Starting CodeGopher CLI/);
+    assert.match(logs.join("\n"), /CodeGopher protocol error: Malformed protocol JSON/);
   });
 
   test("treats command-shaped stdout as a protocol error", async () => {
@@ -808,6 +836,33 @@ suite("CodeGopherClient startup", () => {
     assert.equal(exitError.signal, null);
     assert.equal(exitError.stderrTail, "provider exploded");
     assert.equal(errors[0], exitError);
+  });
+
+  test("logs subprocess lifecycle events with redaction", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const logs: string[] = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      lifecycleSink: (message) => {
+        logs.push(message);
+      },
+      spawnProcess: () => fakeProcess
+    });
+
+    const turn = client.startTurn("crash", { turnId: "turn-life" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+    fakeProcess.stderr.write("token=raw-token\n");
+    fakeProcess.close(9, null);
+
+    await assert.rejects(turn, /CodeGopher subprocess exited with 9/);
+    const joinedLogs = logs.join("\n");
+    assert.match(joinedLogs, /Starting CodeGopher CLI "cgopher" in "\/repo"/);
+    assert.match(joinedLogs, /CodeGopher session started: openai \/ gpt-test/);
+    assert.match(joinedLogs, /CodeGopher subprocess exited/);
+    assert.doesNotMatch(joinedLogs, /raw-token/);
+    assert.match(joinedLogs, /\[redacted\]/);
   });
 
   test("rejects pending management requests on subprocess exit", async () => {

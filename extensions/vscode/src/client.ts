@@ -37,6 +37,7 @@ export interface CodeGopherClientOptions {
   approvalMode?: ApprovalMode | "";
   traceProtocol?: boolean;
   traceSink?: ProtocolTraceSink;
+  lifecycleSink?: LifecycleSink;
   spawnProcess?: SpawnProcess;
 }
 
@@ -46,6 +47,7 @@ export interface ProtocolTraceEntry {
 }
 
 export type ProtocolTraceSink = (entry: ProtocolTraceEntry) => void;
+export type LifecycleSink = (message: string) => void;
 
 export interface CodeGopherConfigClient {
   getEffectiveConfig(): Promise<ConfigSnapshotEvent>;
@@ -238,13 +240,16 @@ export class CodeGopherClient implements CodeGopherConfigClient {
         args,
         cwd: this.options.workspaceRoot
       };
+      this.logLifecycle(`Starting CodeGopher CLI "${this.launchDetails.command}" in "${this.launchDetails.cwd}".`);
       this.process = this.spawnProcess(this.launchDetails.command, this.launchDetails.args, {
         cwd: this.launchDetails.cwd,
         stdio: ["pipe", "pipe", "pipe"]
       });
       this.attachProcessHandlers(this.process);
     } catch (error) {
-      this.rejectStartup(toSubprocessStartError(error, this.launchDetails));
+      const startError = toSubprocessStartError(error, this.launchDetails);
+      this.logLifecycle(`CodeGopher CLI start failed: ${startError.message}`);
+      this.rejectStartup(startError);
     }
 
     return startPromise;
@@ -450,15 +455,20 @@ export class CodeGopherClient implements CodeGopherConfigClient {
       this.captureStderr(chunk);
     });
     process.on("error", (error) => {
-      this.rejectStartup(createSpawnError(error, this.launchDetails));
+      const startError = createSpawnError(error, this.launchDetails);
+      this.logLifecycle(`CodeGopher CLI start failed: ${startError.message}`);
+      this.rejectStartup(startError);
     });
     process.on("close", (code, signal) => {
       const exitError = this.createExitError(code, signal);
       if (this.closingIntentionally) {
+        this.logLifecycle("CodeGopher subprocess closed after shutdown.");
         this.failPendingOperations(new CodeGopherClientError("CodeGopher subprocess shut down."));
       } else if (!this.session) {
+        this.logLifecycle(`CodeGopher subprocess exited before startup: ${exitError.message}`);
         this.rejectStartup(exitError);
       } else {
+        this.logLifecycle(`CodeGopher subprocess exited: ${exitError.message}`);
         this.failPendingOperations(exitError);
         this.emitClientError(exitError);
       }
@@ -520,6 +530,7 @@ export class CodeGopherClient implements CodeGopherConfigClient {
       return;
     }
     this.session = event;
+    this.logLifecycle(`CodeGopher session started: ${event.provider} / ${event.model}.`);
     this.resolveStart?.(event);
     this.resolveStart = undefined;
     this.rejectStart = undefined;
@@ -622,6 +633,7 @@ export class CodeGopherClient implements CodeGopherConfigClient {
   }
 
   private handleClientError(error: CodeGopherClientError | ProtocolParseError): void {
+    this.logLifecycle(`CodeGopher protocol error: ${error.message}`);
     this.failPendingOperations(error);
     this.rejectStartup(error);
     this.emitClientError(error);
@@ -668,6 +680,10 @@ export class CodeGopherClient implements CodeGopherConfigClient {
       direction,
       message: redactProtocolValue(message)
     });
+  }
+
+  private logLifecycle(message: string): void {
+    this.options.lifecycleSink?.(redactLogText(message));
   }
 
   private resetProcessState(): void {
@@ -724,6 +740,12 @@ export function resolveCliPath(
     command: resolved,
     source: "workspace"
   };
+}
+
+export function redactLogText(value: string): string {
+  return value
+    .replace(/(api[_-]?key|token|password|secret)\s*[:=]\s*[^\s,;"]+/gi, "$1=[redacted]")
+    .replace(/(Authorization)\s*[:=]\s*(Bearer\s+)?[^\s,;"]+/gi, "$1: [redacted]");
 }
 
 function pushOptionalArg(args: string[], flag: string, value: string | undefined): void {

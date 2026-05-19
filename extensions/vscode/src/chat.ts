@@ -6,6 +6,7 @@ import {
   CodeGopherProtocolError,
   SubprocessExitError,
   SubprocessStartError,
+  redactLogText,
   type CodeGopherConfigClient,
   type CodeGopherClientOptions,
   type Disposable,
@@ -85,6 +86,7 @@ export class CodeGopherChatController {
   }
 
   register(context: vscode.ExtensionContext): void {
+    this.outputChannel.appendLine("CodeGopher chat participant registered.");
     const participant = vscode.chat.createChatParticipant(chatParticipantId, (request, context, response, token) =>
       this.handleRequest(request, context, response, token)
     );
@@ -98,6 +100,7 @@ export class CodeGopherChatController {
   }
 
   async openChat(): Promise<void> {
+    this.outputChannel.appendLine("Opening CodeGopher chat.");
     try {
       await vscode.commands.executeCommand("workbench.action.chat.open", { query: chatOpenQuery });
     } catch {
@@ -106,13 +109,14 @@ export class CodeGopherChatController {
   }
 
   async restart(): Promise<void> {
+    this.outputChannel.appendLine("Restarting CodeGopher from command palette.");
     try {
       await this.restartAgent();
       this.outputChannel.appendLine("CodeGopher restarted.");
       void vscode.window.showInformationMessage("CodeGopher restarted.");
     } catch (error) {
       const message = formatChatError(error);
-      this.outputChannel.appendLine(`CodeGopher restart failed: ${message}`);
+      this.outputChannel.appendLine(redactLogText(`CodeGopher restart failed: ${message}`));
       void vscode.window.showErrorMessage(`CodeGopher restart failed: ${message}`);
     }
   }
@@ -151,6 +155,7 @@ export class CodeGopherChatController {
 
     const turnId = this.turnIdFactory();
     const client = this.getClient();
+    this.outputChannel.appendLine(`Starting CodeGopher turn ${turnId}.`);
     const toolNames = new Map<string, string>();
     let reportedError: string | undefined;
     const subscription = client.onEvent((event) => {
@@ -255,12 +260,15 @@ export class CodeGopherChatController {
 
   private async handleRestartCommand(response: vscode.ChatResponseStream): Promise<vscode.ChatResult> {
     response.progress("Restarting CodeGopher...");
+    this.outputChannel.appendLine("Restarting CodeGopher from chat command.");
     try {
       const session = await this.restartAgent();
+      this.outputChannel.appendLine("CodeGopher restarted from chat command.");
       response.markdown(`CodeGopher restarted with ${session.provider} / ${session.model}.`);
       return commandResult("restart");
     } catch (error) {
       const message = formatChatError(error);
+      this.outputChannel.appendLine(redactLogText(`CodeGopher chat restart failed: ${message}`));
       writeChatError(response, message);
       return {
         errorDetails: {
@@ -289,7 +297,7 @@ export class CodeGopherChatController {
     try {
       pending.client.submitApproval(approvalId, approved, reason);
     } catch (error) {
-      this.outputChannel.appendLine(`CodeGopher approval failed for ${approvalId}: ${errorMessage(error)}`);
+      this.outputChannel.appendLine(redactLogText(`CodeGopher approval failed for ${approvalId}: ${errorMessage(error)}`));
     }
   }
 
@@ -306,7 +314,7 @@ export class CodeGopherChatController {
       client.cancelTurn(turnId);
       this.outputChannel.appendLine(`CodeGopher cancellation requested for ${turnId}.`);
     } catch (error) {
-      this.outputChannel.appendLine(`CodeGopher cancellation failed for ${turnId}: ${errorMessage(error)}`);
+      this.outputChannel.appendLine(redactLogText(`CodeGopher cancellation failed for ${turnId}: ${errorMessage(error)}`));
     }
   }
 
@@ -318,6 +326,9 @@ export class CodeGopherChatController {
     }
 
     const settings = this.settingsProvider();
+    this.outputChannel.appendLine(
+      redactLogText(`Creating CodeGopher client for workspace "${workspaceRoot}" with CLI "${settings.cliPath}".`)
+    );
     const options: CodeGopherClientOptions = {
       cliPath: settings.cliPath,
       workspaceRoot,
@@ -329,6 +340,9 @@ export class CodeGopherChatController {
       traceProtocol: settings.traceProtocol,
       traceSink: (entry) => {
         this.outputChannel.appendLine(JSON.stringify(entry));
+      },
+      lifecycleSink: (message) => {
+        this.outputChannel.appendLine(message);
       }
     };
     return new CodeGopherClient(options);
@@ -461,7 +475,7 @@ export function formatChatError(error: unknown): string {
 }
 
 function formatChatErrorMessage(message: string): string {
-  return redactDisplayText(message);
+  return redactLogText(message);
 }
 
 function errorMessage(error: unknown): string {
@@ -469,12 +483,6 @@ function errorMessage(error: unknown): string {
     return error.message;
   }
   return "CodeGopher request failed.";
-}
-
-function redactDisplayText(value: string): string {
-  return value
-    .replace(/(api[_-]?key|token|password|secret)\s*[:=]\s*[^\s,;]+/gi, "$1=[redacted]")
-    .replace(/(Authorization)\s*[:=]\s*(Bearer\s+)?[^\s,;]+/gi, "$1: [redacted]");
 }
 
 export function truncateSummary(summary: string): string {

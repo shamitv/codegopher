@@ -196,7 +196,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T075: Add user-facing recovery guidance for subprocess crashes and invalid protocol messages.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T076: Add output-channel logging for extension lifecycle events.
+- [x] T076: Add output-channel logging for extension lifecycle events.
   Verify: `cd extensions/vscode && npm test`
 
 ## Milestone 11 - Docs, Packaging, And Release Readiness
