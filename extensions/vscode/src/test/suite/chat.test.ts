@@ -4,7 +4,7 @@ import type * as vscode from "vscode";
 
 import { CodeGopherChatController, type CodeGopherChatClient } from "../../chat";
 import type { Disposable } from "../../client";
-import type { ProtocolEvent, TurnCompleteEvent } from "../../protocol";
+import type { ProtocolEvent, SessionStartedEvent, TurnCompleteEvent } from "../../protocol";
 
 suite("CodeGopher chat controller", () => {
   test("streams text_delta events into chat markdown", async () => {
@@ -243,6 +243,96 @@ suite("CodeGopher chat controller", () => {
     assert.deepEqual(outputChannel.lines, ["CodeGopher reasoning update for turn-reasoning."]);
     assert.ok(!outputChannel.lines.join("\n").includes("private chain of thought"));
   });
+
+  test("renders help without starting an agent turn", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient
+    });
+
+    const result = await controller.handleRequest(
+      fakeRequest("", "help"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    assert.deepEqual(result, {
+      metadata: {
+        command: "help",
+        participant: "codegopher"
+      }
+    });
+    assert.equal(fakeClient.startCalls.length, 0);
+    assert.match(stream.markdownParts[0], /@codegopher/);
+    assert.match(stream.markdownParts[0], /\/status/);
+  });
+
+  test("renders status from settings and known session state", async () => {
+    const fakeClient = new FakeChatClient();
+    fakeClient.sessionStarted = {
+      version: 1,
+      type: "session_started",
+      session_id: "session-1",
+      cwd: "/repo",
+      provider: "openai",
+      model: "gpt-session",
+      approval_mode: "review"
+    };
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      settingsProvider: () => ({
+        cliPath: "/bin/cgopher",
+        provider: "configured-provider",
+        model: "configured-model",
+        baseUrl: "",
+        apiFamily: "",
+        approvalMode: "",
+        traceProtocol: true
+      }),
+      workspaceRootProvider: () => "/repo",
+      turnIdFactory: () => "turn-before-status"
+    });
+
+    const turn = controller.handleRequest(
+      fakeRequest("hello"),
+      fakeContext(),
+      new FakeChatResponseStream().asChatStream(),
+      fakeCancellationToken()
+    );
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-before-status"
+    });
+    await turn;
+
+    const result = await controller.handleRequest(
+      fakeRequest("", "status"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    assert.deepEqual(result, {
+      metadata: {
+        command: "status",
+        participant: "codegopher"
+      }
+    });
+    assert.equal(fakeClient.startCalls.length, 1);
+    assert.match(stream.markdownParts[0], /CLI: `\/bin\/cgopher`/);
+    assert.match(stream.markdownParts[0], /Workspace: `\/repo`/);
+    assert.match(stream.markdownParts[0], /Subprocess: running/);
+    assert.match(stream.markdownParts[0], /Provider: openai/);
+    assert.match(stream.markdownParts[0], /Model: gpt-session/);
+    assert.match(stream.markdownParts[0], /Approval mode: review/);
+    assert.match(stream.markdownParts[0], /Protocol trace: enabled/);
+  });
 });
 
 interface StartCall {
@@ -252,6 +342,7 @@ interface StartCall {
 
 class FakeChatClient implements CodeGopherChatClient {
   readonly isRunning = true;
+  sessionStarted: SessionStartedEvent | undefined = undefined;
   readonly startCalls: StartCall[] = [];
   private readonly listeners = new Set<(event: ProtocolEvent) => void>();
   private resolveTurn: ((event: TurnCompleteEvent) => void) | undefined;

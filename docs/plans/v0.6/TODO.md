@@ -145,7 +145,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T054: Hide reasoning deltas by default while surfacing reasoning progress in trace/debug paths.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T055: Implement `/help` and `/status` chat commands.
+- [x] T055: Implement `/help` and `/status` chat commands.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T056: Implement `/restart` chat command.
   Verify: `cd extensions/vscode && npm test`

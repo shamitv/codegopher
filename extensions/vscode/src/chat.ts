@@ -8,6 +8,7 @@ import {
   type StartTurnOptions
 } from "./client";
 import type { ProtocolEvent, TurnCompleteEvent } from "./protocol";
+import type { SessionStartedEvent } from "./protocol";
 
 export const chatParticipantId = "codegopher.codegopher";
 export const chatParticipantName = "codegopher";
@@ -16,25 +17,42 @@ const maxProgressSummaryLength = 160;
 
 export interface CodeGopherChatClient {
   readonly isRunning: boolean;
+  readonly sessionStarted?: SessionStartedEvent;
   startTurn(prompt: string, options?: StartTurnOptions): Promise<TurnCompleteEvent>;
   onEvent(listener: (event: ProtocolEvent) => void): Disposable;
+}
+
+export interface CodeGopherChatSettings {
+  cliPath: string;
+  provider: string;
+  model: string;
+  baseUrl: string;
+  apiFamily: "" | "chat_completions" | "responses";
+  approvalMode: "" | "review" | "auto" | "yolo";
+  traceProtocol: boolean;
 }
 
 export interface CodeGopherChatControllerOptions {
   outputChannel: vscode.OutputChannel;
   clientFactory?: () => CodeGopherChatClient;
+  settingsProvider?: () => CodeGopherChatSettings;
+  workspaceRootProvider?: () => string | undefined;
   turnIdFactory?: () => string;
 }
 
 export class CodeGopherChatController {
   private readonly outputChannel: vscode.OutputChannel;
   private readonly clientFactory: () => CodeGopherChatClient;
+  private readonly settingsProvider: () => CodeGopherChatSettings;
+  private readonly workspaceRootProvider: () => string | undefined;
   private readonly turnIdFactory: () => string;
   private client: CodeGopherChatClient | undefined;
 
   constructor(options: CodeGopherChatControllerOptions) {
     this.outputChannel = options.outputChannel;
     this.clientFactory = options.clientFactory ?? (() => this.createClientFromSettings());
+    this.settingsProvider = options.settingsProvider ?? readSettings;
+    this.workspaceRootProvider = options.workspaceRootProvider ?? defaultWorkspaceRoot;
     this.turnIdFactory = options.turnIdFactory ?? (() => `turn-${Date.now().toString(36)}`);
   }
 
@@ -68,6 +86,15 @@ export class CodeGopherChatController {
   ): Promise<vscode.ChatResult> {
     void context;
     void token;
+
+    if (request.command === "help") {
+      response.markdown(helpMarkdown());
+      return commandResult(request.command);
+    }
+    if (request.command === "status") {
+      response.markdown(this.statusMarkdown());
+      return commandResult(request.command);
+    }
 
     const turnId = this.turnIdFactory();
     const client = this.getClient();
@@ -142,27 +169,84 @@ export class CodeGopherChatController {
   }
 
   private createClientFromSettings(): CodeGopherClient {
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const workspaceRoot = this.workspaceRootProvider();
     if (!workspaceRoot) {
       throw new CodeGopherClientError("Open a workspace folder before using CodeGopher.");
     }
 
-    const config = vscode.workspace.getConfiguration("codegopher");
+    const settings = this.settingsProvider();
     const options: CodeGopherClientOptions = {
-      cliPath: config.get("cliPath", "cgopher"),
+      cliPath: settings.cliPath,
       workspaceRoot,
-      provider: config.get("provider", ""),
-      model: config.get("model", ""),
-      baseUrl: config.get("baseUrl", ""),
-      apiFamily: config.get("apiFamily", ""),
-      approvalMode: config.get("approvalMode", ""),
-      traceProtocol: config.get("traceProtocol", false),
+      provider: settings.provider,
+      model: settings.model,
+      baseUrl: settings.baseUrl,
+      apiFamily: settings.apiFamily,
+      approvalMode: settings.approvalMode,
+      traceProtocol: settings.traceProtocol,
       traceSink: (entry) => {
         this.outputChannel.appendLine(JSON.stringify(entry));
       }
     };
     return new CodeGopherClient(options);
   }
+
+  private statusMarkdown(): string {
+    const settings = this.settingsProvider();
+    const workspaceRoot = this.workspaceRootProvider();
+    const session = this.client?.sessionStarted;
+    const provider = (session?.provider ?? settings.provider) || "configured default";
+    const model = (session?.model ?? settings.model) || "configured default";
+    const approvalMode = (session?.approval_mode ?? settings.approvalMode) || "configured default";
+
+    return [
+      "**CodeGopher Status**",
+      "",
+      `- CLI: \`${settings.cliPath}\``,
+      `- Workspace: \`${workspaceRoot ?? "No workspace folder"}\``,
+      `- Subprocess: ${this.client?.isRunning ? "running" : "not started"}`,
+      `- Provider: ${provider}`,
+      `- Model: ${model}`,
+      `- Approval mode: ${approvalMode}`,
+      `- Protocol trace: ${settings.traceProtocol ? "enabled" : "disabled"}`
+    ].join("\n");
+  }
+}
+
+function commandResult(command: string): vscode.ChatResult {
+  return {
+    metadata: {
+      command,
+      participant: chatParticipantName
+    }
+  };
+}
+
+function helpMarkdown(): string {
+  return [
+    "**CodeGopher**",
+    "",
+    "- Ask `@codegopher` questions about this workspace.",
+    "- Use `/status` to inspect the CLI path, workspace root, model, and subprocess state.",
+    "- Use `/restart` after changing settings or environment variables."
+  ].join("\n");
+}
+
+function readSettings(): CodeGopherChatSettings {
+  const config = vscode.workspace.getConfiguration("codegopher");
+  return {
+    cliPath: config.get("cliPath", "cgopher"),
+    provider: config.get("provider", ""),
+    model: config.get("model", ""),
+    baseUrl: config.get("baseUrl", ""),
+    apiFamily: config.get("apiFamily", ""),
+    approvalMode: config.get("approvalMode", ""),
+    traceProtocol: config.get("traceProtocol", false)
+  };
+}
+
+function defaultWorkspaceRoot(): string | undefined {
+  return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 }
 
 function formatSummary(summary: string | undefined): string {
