@@ -207,7 +207,7 @@ Commit rules:
   Verify: `rg -n "VS Code|IDE|@codegopher" docs/product/INTRO.md`
 - [x] T079: Update release checklist with VS Code extension smoke tests.
   Verify: `rg -n "VS Code|@codegopher|extension" docs/release/CHECKLIST.md`
-- [ ] T080: Add local VSIX packaging instructions.
+- [x] T080: Add local VSIX packaging instructions.
   Verify: `rg -n "vsix|package" extensions/vscode README.md docs`
 - [x] T081: Write detailed VS Code extension testing guidelines under `docs/devguide`, covering macOS, Windows, and Linux, including Stable vs Insiders usage, Extension Development Host debugging, CLI test caveats, and headless Linux notes.
   Verify: `rg -n "macOS|Windows|Linux|Insiders|Extension Development Host|headless" docs/devguide`

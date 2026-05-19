@@ -90,6 +90,7 @@ npm test
 ```
 
 For manual development, open the extension package in VS Code, press `F5` to launch an Extension Development Host, open a disposable workspace, and use VS Code Chat with `@codegopher`.
+To build a local `.vsix` package for VS Code smoke testing, run `npm run package` from `extensions/vscode`; see [the extension README](extensions/vscode/README.md).
 
 Useful VS Code surfaces:
 
