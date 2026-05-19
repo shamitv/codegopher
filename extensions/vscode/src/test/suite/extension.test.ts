@@ -2,6 +2,8 @@ import * as assert from "node:assert/strict";
 
 import * as vscode from "vscode";
 
+import { chatParticipantId } from "../../chat";
+
 const extensionId = "codegopher.codegopher-vscode";
 
 const expectedCommands = [
@@ -40,5 +42,35 @@ suite("CodeGopher extension", () => {
     assert.equal(config.get("apiFamily"), "");
     assert.equal(config.get("approvalMode"), "");
     assert.equal(config.get("traceProtocol"), false);
+  });
+
+  test("contributes the CodeGopher chat participant", () => {
+    const extension = vscode.extensions.getExtension(extensionId);
+    assert.ok(extension, `Expected extension ${extensionId} to be available.`);
+
+    const chatParticipants = extension.packageJSON.contributes.chatParticipants;
+    assert.deepEqual(chatParticipants, [
+      {
+        id: chatParticipantId,
+        name: "codegopher",
+        fullName: "CodeGopher",
+        description: "Ask CodeGopher about the current workspace.",
+        isSticky: true,
+        commands: [
+          {
+            name: "help",
+            description: "Show CodeGopher help."
+          },
+          {
+            name: "status",
+            description: "Show CodeGopher status."
+          },
+          {
+            name: "restart",
+            description: "Restart the CodeGopher agent."
+          }
+        ]
+      }
+    ]);
   });
 });

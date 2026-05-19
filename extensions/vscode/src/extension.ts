@@ -1,16 +1,18 @@
 import * as vscode from "vscode";
 
+import { CodeGopherChatController } from "./chat";
+
 const outputChannelName = "CodeGopher";
 
 export function activate(context: vscode.ExtensionContext): void {
   const outputChannel = vscode.window.createOutputChannel(outputChannelName);
+  const chatController = new CodeGopherChatController(outputChannel);
+  chatController.register(context);
 
   context.subscriptions.push(
     outputChannel,
-    vscode.commands.registerCommand("codegopher.openChat", () => openChat()),
-    vscode.commands.registerCommand("codegopher.restartAgent", () =>
-      showScaffoldMessage("CodeGopher agent restart will be available after the events client is wired.")
-    ),
+    vscode.commands.registerCommand("codegopher.openChat", () => chatController.openChat()),
+    vscode.commands.registerCommand("codegopher.restartAgent", () => chatController.restart()),
     vscode.commands.registerCommand("codegopher.viewLlmEndpoint", () =>
       showScaffoldMessage("CodeGopher endpoint details will be available after config inspection is wired.")
     ),
@@ -26,14 +28,6 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   // Reserved for future subprocess cleanup.
-}
-
-async function openChat(): Promise<void> {
-  try {
-    await vscode.commands.executeCommand("workbench.action.chat.open");
-  } catch {
-    await showScaffoldMessage("CodeGopher chat will be available after @codegopher is wired.");
-  }
 }
 
 function showScaffoldMessage(message: string) {
