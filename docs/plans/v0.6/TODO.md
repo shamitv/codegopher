@@ -211,7 +211,7 @@ Commit rules:
   Verify: `rg -n "vsix|package" extensions/vscode README.md docs`
 - [x] T081: Write detailed VS Code extension testing guidelines under `docs/devguide`, covering macOS, Windows, and Linux, including Stable vs Insiders usage, Extension Development Host debugging, CLI test caveats, and headless Linux notes.
   Verify: `rg -n "macOS|Windows|Linux|Insiders|Extension Development Host|headless" docs/devguide`
-- [ ] T082: Run the complete Python test suite.
+- [x] T082: Run the complete Python test suite.
   Verify: `source .venv/bin/activate && python -m pytest`
 - [ ] T083: Run Python lint and type checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/ && mypy src/`
