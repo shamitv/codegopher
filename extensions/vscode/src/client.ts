@@ -209,6 +209,7 @@ export class CodeGopherClient implements CodeGopherConfigClient {
   private stderrTail = "";
   private launchDetails: LaunchDetails | undefined;
   private closingIntentionally = false;
+  private closingAfterClientError = false;
   private closePromise: Promise<void> | undefined;
   private resolveClose: (() => void) | undefined;
 
@@ -464,6 +465,9 @@ export class CodeGopherClient implements CodeGopherConfigClient {
       if (this.closingIntentionally) {
         this.logLifecycle("CodeGopher subprocess closed after shutdown.");
         this.failPendingOperations(new CodeGopherClientError("CodeGopher subprocess shut down."));
+      } else if (this.closingAfterClientError) {
+        this.logLifecycle("CodeGopher subprocess closed after client-side protocol error.");
+        this.failPendingOperations(new CodeGopherClientError("CodeGopher subprocess closed after protocol error."));
       } else if (!this.session) {
         this.logLifecycle(`CodeGopher subprocess exited before startup: ${exitError.message}`);
         this.rejectStartup(exitError);
@@ -637,6 +641,7 @@ export class CodeGopherClient implements CodeGopherConfigClient {
     this.failPendingOperations(error);
     this.rejectStartup(error);
     this.emitClientError(error);
+    this.closeAfterClientError();
   }
 
   private emitClientError(error: CodeGopherClientError | ProtocolParseError): void {
@@ -696,6 +701,15 @@ export class CodeGopherClient implements CodeGopherConfigClient {
     this.stderrTail = "";
     this.launchDetails = undefined;
     this.closingIntentionally = false;
+    this.closingAfterClientError = false;
+  }
+
+  private closeAfterClientError(): void {
+    if (!this.process || this.process.killed) {
+      return;
+    }
+    this.closingAfterClientError = true;
+    this.process.kill();
   }
 }
 
@@ -755,7 +769,11 @@ function pushOptionalArg(args: string[], flag: string, value: string | undefined
 }
 
 function defaultSpawnProcess(command: string, args: string[], options: SpawnOptions): CodeGopherProcess {
-  return spawn(command, args, options);
+  return spawn(command, args, {
+    ...options,
+    shell: shouldSpawnWithShell(command),
+    windowsHide: true
+  });
 }
 
 function isPathLike(value: string): boolean {
@@ -790,6 +808,10 @@ function validateLocalCliPath(candidate: string, fileSystem: CliPathFileSystem, 
       `CodeGopher CLI path "${candidate}" is not executable. Run chmod +x on the file or update codegopher.cliPath.`
     );
   }
+}
+
+function shouldSpawnWithShell(command: string): boolean {
+  return process.platform === "win32" && /\.(?:bat|cmd)$/i.test(command);
 }
 
 function toSubprocessStartError(error: unknown, launchDetails: LaunchDetails | undefined): SubprocessStartError {

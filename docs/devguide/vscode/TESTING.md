@@ -51,7 +51,7 @@ module.exports = defineConfig({
 });
 ```
 
-To test against VS Code Insiders from the CLI, set `version: 'insiders'` in the test config. For repeatable local and CI runs, prefer Stable or a downloaded test build unless the feature being tested requires Insiders.
+The checked-in test runner targets a downloaded VS Code Insiders build with throwaway `.vscode-test` extension and user-data directories. This keeps automated tests isolated when Stable VS Code is already running as the developer's normal editor.
 
 ## macOS
 
@@ -77,7 +77,7 @@ Manual Extension Development Host workflow:
 4. In the Extension Development Host, open a disposable workspace.
 5. Run CodeGopher commands from the Command Palette and VS Code Chat.
 
-CLI-driven extension tests cannot use a VS Code build that is already running. If `npm test` targets Insiders, close all VS Code Insiders windows before running it. A practical setup is to use Insiders for manual debugging and Stable, or a downloaded test build, for CLI-driven automated tests.
+CLI-driven extension tests cannot use a VS Code build that is already running. The default setup uses Stable for normal work and the downloaded Insiders build for automated tests. If you are also using Insiders for manual debugging, close all VS Code Insiders windows before running `npm test`.
 
 macOS subprocess checks:
 

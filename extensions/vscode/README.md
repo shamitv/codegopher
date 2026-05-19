@@ -15,7 +15,7 @@ npm run lint
 npm test
 ```
 
-`npm test` launches a VS Code Extension Development Host through `@vscode/test-electron`. If a shell is inherited from VS Code, the test runner clears `ELECTRON_RUN_AS_NODE` before launching the downloaded host.
+`npm test` launches a downloaded VS Code Insiders Extension Development Host through `@vscode/test-electron`. Using Insiders plus throwaway `.vscode-test` extension and user-data directories keeps automated tests isolated from a normal Stable VS Code session. If a shell is inherited from VS Code, the test runner clears `ELECTRON_RUN_AS_NODE` before launching the downloaded host.
 
 ## Local VSIX Packaging
 

@@ -215,7 +215,7 @@ Commit rules:
   Verify: `source .venv/bin/activate && python -m pytest`
 - [x] T083: Run Python lint and type checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/ && mypy src/`
-- [ ] T084: Run extension compile, lint, and tests.
+- [x] T084: Run extension compile, lint, and tests.
   Verify: `cd extensions/vscode && npm run compile && npm run lint && npm test`
 - [ ] T085: Build Python distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`

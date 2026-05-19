@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   delete process.env.ELECTRON_RUN_AS_NODE;
   await fs.rm(doneFile, { force: true });
 
-  const vscodeExecutablePath = await downloadAndUnzipVSCode();
+  const vscodeExecutablePath = await downloadAndUnzipVSCode({ version: "insiders" });
   const exitCode = await runDownloadedVsCodeTests({
     vscodeExecutablePath,
     extensionDevelopmentPath,
@@ -38,7 +38,6 @@ interface DownloadedVsCodeTestOptions {
 function runDownloadedVsCodeTests(options: DownloadedVsCodeTestOptions): Promise<number> {
   const profileRoot = path.join(options.extensionDevelopmentPath, ".vscode-test");
   const args = [
-    "--disable-extensions",
     "--disable-workspace-trust",
     "--no-sandbox",
     "--disable-gpu-sandbox",

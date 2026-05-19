@@ -322,6 +322,7 @@ suite("CodeGopherClient startup", () => {
 
     await assert.rejects(started, /Malformed protocol JSON/);
     assert.match(errors[0].message, /Malformed protocol JSON/);
+    assert.equal(fakeProcess.killed, true);
   });
 
   test("logs protocol errors through the lifecycle sink", async () => {

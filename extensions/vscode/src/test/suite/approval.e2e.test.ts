@@ -46,7 +46,7 @@ suite("CodeGopher approval and cancellation e2e", () => {
       });
     } finally {
       await client.shutdown();
-      await fs.rm(workspaceRoot, { force: true, recursive: true });
+      await removeTempDirectory(workspaceRoot);
     }
   });
 
@@ -62,7 +62,7 @@ suite("CodeGopher approval and cancellation e2e", () => {
     try {
       await assert.rejects(client.start(), /Malformed protocol JSON/);
     } finally {
-      await fs.rm(workspaceRoot, { force: true, recursive: true });
+      await removeTempDirectory(workspaceRoot);
     }
   });
 
@@ -79,7 +79,7 @@ suite("CodeGopher approval and cancellation e2e", () => {
       const turn = client.startTurn("crash", { turnId: "turn-crash" });
       await assert.rejects(turn, /CodeGopher subprocess exited with 7: crashed/);
     } finally {
-      await fs.rm(workspaceRoot, { force: true, recursive: true });
+      await removeTempDirectory(workspaceRoot);
     }
   });
 });
@@ -129,6 +129,31 @@ async function writeFakeCli(directory: string, script: string): Promise<string> 
 
 function shellQuote(value: string): string {
   return value.replace(/'/g, "'\\''");
+}
+
+async function removeTempDirectory(directory: string): Promise<void> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    try {
+      await fs.rm(directory, { force: true, recursive: true });
+      return;
+    } catch (error) {
+      if (!isRetryableRemoveError(error) || attempt === 9) {
+        throw error;
+      }
+      await delay(100);
+    }
+  }
+}
+
+function isRetryableRemoveError(error: unknown): boolean {
+  const code = (error as { code?: unknown }).code;
+  return code === "EBUSY" || code === "ENOTEMPTY" || code === "EPERM";
+}
+
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
 }
 
 function fakeEventsScript(): string {
