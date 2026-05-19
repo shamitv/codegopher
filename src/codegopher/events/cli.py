@@ -140,6 +140,14 @@ async def _run_command_loop(
                 active_turn_task = None
             continue
 
+        if isinstance(command, ApprovalResponseCommand):
+            await session.submit_approval(
+                command.approval_id,
+                approved=command.approved,
+                reason=command.reason,
+            )
+            continue
+
         if isinstance(command, ShutdownCommand):
             if active_turn_task is not None:
                 await _await_turn_task(active_turn_task)

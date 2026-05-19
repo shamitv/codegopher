@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 from io import StringIO
 from pathlib import Path
 from queue import Queue
@@ -310,6 +311,79 @@ async def test_events_cli_long_lived_runs_turn_while_waiting_for_more_stdin(tmp_
     assert complete.final_text == "async answer"
     stdin.write_line(ShutdownCommand().model_dump_json())
     assert await asyncio.wait_for(task, timeout=2) == 0
+
+
+async def test_events_cli_long_lived_accepts_approval_response(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "write_file",
+                        "arguments": {"path": "new.txt", "content": "hello"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "approved"}, {"type": "done"}],
+        ]
+    )
+    stdin = BlockingStdin()
+    stdout = StringIO()
+    stderr = StringIO()
+    task = asyncio.create_task(
+        run_events_cli(
+            prompt=None,
+            settings=Settings(),
+            cwd=tmp_path,
+            stdin=stdin,
+            stdout=stdout,
+            stderr=stderr,
+            provider_factory=lambda _settings: provider,
+        )
+    )
+
+    try:
+        await wait_for_output_message(stdout, SessionStartedEvent)
+        stdin.write_line(
+            StartTurnCommand(
+                turn_id="turn-approval",
+                prompt="write",
+                workspace_root=str(tmp_path),
+            ).model_dump_json()
+        )
+        approval = await wait_for_output_message(stdout, ApprovalRequestEvent)
+        stdin.write_line(
+            ApprovalResponseCommand(
+                approval_id=approval.approval_id,
+                approved=True,
+            ).model_dump_json()
+        )
+
+        complete = await wait_for_output_message(stdout, TurnCompleteEvent)
+        messages = decode_output(stdout.getvalue())
+
+        assert approval.tool_name == "write_file"
+        assert complete.turn_id == "turn-approval"
+        assert complete.final_text == "approved"
+        assert not any(
+            isinstance(message, ErrorEvent)
+            and "Unsupported command in events mode: approval_response"
+            in message.message
+            for message in messages
+        )
+    finally:
+        if not task.done():
+            stdin.write_line(ShutdownCommand().model_dump_json())
+            try:
+                assert await asyncio.wait_for(task, timeout=2) == 0
+            except TimeoutError:
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
+                raise
 
 
 def test_events_cli_long_lived_accepts_config_and_mcp_commands(tmp_path: Path) -> None:
