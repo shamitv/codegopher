@@ -122,7 +122,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T044: Add typed event routing for all protocol event types.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T045: Add pending request tracking for turns and approvals.
+- [x] T045: Add pending request tracking for turns and approvals.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T046: Add subprocess client helpers for effective-config and MCP server management commands.
   Verify: `cd extensions/vscode && npm test`

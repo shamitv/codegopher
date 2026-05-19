@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import type { Readable, Writable } from "node:stream";
 
 import {
@@ -8,9 +9,13 @@ import {
   isProtocolEvent,
   type ApiFamily,
   type ApprovalMode,
+  type ApprovalRequestEvent,
+  type ErrorEvent,
   type ProtocolEvent,
   type ProtocolMessage,
-  type SessionStartedEvent
+  type SessionStartedEvent,
+  type StartTurnCommand,
+  type TurnCompleteEvent
 } from "./protocol";
 
 export interface CodeGopherClientOptions {
@@ -71,6 +76,19 @@ export interface Disposable {
 export type ProtocolEventListener = (event: ProtocolEvent) => void;
 export type ClientErrorListener = (error: CodeGopherClientError | ProtocolParseError) => void;
 
+export interface StartTurnOptions {
+  turnId?: string;
+  selectedFile?: string | null;
+  editorMetadata?: Record<string, unknown>;
+  overrides?: Record<string, unknown>;
+}
+
+interface PendingTurn {
+  turnId: string;
+  resolve: (event: TurnCompleteEvent) => void;
+  reject: (error: Error) => void;
+}
+
 export class CodeGopherClient {
   private readonly options: CodeGopherClientOptions;
   private readonly spawnProcess: SpawnProcess;
@@ -82,6 +100,8 @@ export class CodeGopherClient {
   private session: SessionStartedEvent | undefined;
   private readonly eventListeners = new Set<ProtocolEventListener>();
   private readonly errorListeners = new Set<ClientErrorListener>();
+  private activeTurn: PendingTurn | undefined;
+  private readonly activeApprovals = new Map<string, ApprovalRequestEvent>();
 
   constructor(options: CodeGopherClientOptions) {
     this.options = options;
@@ -134,6 +154,76 @@ export class CodeGopherClient {
         this.errorListeners.delete(listener);
       }
     };
+  }
+
+  async startTurn(prompt: string, options: StartTurnOptions = {}): Promise<TurnCompleteEvent> {
+    if (this.activeTurn) {
+      throw new CodeGopherClientError(`Turn already active: ${this.activeTurn.turnId}`);
+    }
+
+    const turnId = options.turnId ?? `turn-${randomUUID()}`;
+    const command: StartTurnCommand = {
+      version: 1,
+      type: "start_turn",
+      turn_id: turnId,
+      prompt,
+      workspace_root: this.options.workspaceRoot
+    };
+    if (options.selectedFile !== undefined) {
+      command.selected_file = options.selectedFile;
+    }
+    if (options.editorMetadata !== undefined) {
+      command.editor_metadata = options.editorMetadata;
+    }
+    if (options.overrides !== undefined) {
+      command.overrides = options.overrides;
+    }
+
+    let resolveTurn: (event: TurnCompleteEvent) => void = () => undefined;
+    let rejectTurn: (error: Error) => void = () => undefined;
+    const turnPromise = new Promise<TurnCompleteEvent>((resolve, reject) => {
+      resolveTurn = resolve;
+      rejectTurn = reject;
+    });
+    const pendingTurn: PendingTurn = { turnId, resolve: resolveTurn, reject: rejectTurn };
+    this.activeTurn = pendingTurn;
+
+    try {
+      await this.start();
+      this.send(command);
+    } catch (error) {
+      if (this.activeTurn === pendingTurn) {
+        pendingTurn.reject(error instanceof Error ? error : new CodeGopherClientError("Failed to send start_turn."));
+        this.activeTurn = undefined;
+      }
+    }
+
+    return turnPromise;
+  }
+
+  submitApproval(approvalId: string, approved: boolean, reason?: string | null): void {
+    if (!this.activeApprovals.has(approvalId)) {
+      throw new CodeGopherClientError(`No active approval request for id: ${approvalId}`);
+    }
+    this.activeApprovals.delete(approvalId);
+    this.send({
+      version: 1,
+      type: "approval_response",
+      approval_id: approvalId,
+      approved,
+      reason
+    });
+  }
+
+  cancelTurn(turnId: string): void {
+    if (!this.activeTurn || this.activeTurn.turnId !== turnId) {
+      throw new CodeGopherClientError(`No active turn for id: ${turnId}`);
+    }
+    this.send({
+      version: 1,
+      type: "cancel_turn",
+      turn_id: turnId
+    });
   }
 
   protected send(message: ProtocolMessage): void {
@@ -189,13 +279,57 @@ export class CodeGopherClient {
       return;
     }
     this.emitEvent(message);
-    if (message.type !== "session_started") {
+    this.handleProtocolEvent(message);
+  }
+
+  private handleProtocolEvent(event: ProtocolEvent): void {
+    if (event.type === "approval_request") {
+      this.activeApprovals.set(event.approval_id, event);
       return;
     }
-    this.session = message;
-    this.resolveStart?.(message);
+    if (event.type === "turn_complete") {
+      this.resolveTurn(event);
+      return;
+    }
+    if (event.type === "error") {
+      this.rejectTurnIfMatched(event);
+      return;
+    }
+    if (event.type !== "session_started") {
+      return;
+    }
+    this.session = event;
+    this.resolveStart?.(event);
     this.resolveStart = undefined;
     this.rejectStart = undefined;
+  }
+
+  private resolveTurn(event: TurnCompleteEvent): void {
+    if (!this.activeTurn || this.activeTurn.turnId !== event.turn_id) {
+      return;
+    }
+    const turn = this.activeTurn;
+    this.activeTurn = undefined;
+    this.activeApprovals.clear();
+    turn.resolve(event);
+  }
+
+  private rejectTurnIfMatched(event: ErrorEvent): void {
+    if (!this.activeTurn || event.turn_id !== this.activeTurn.turnId) {
+      return;
+    }
+    const turn = this.activeTurn;
+    this.activeTurn = undefined;
+    this.activeApprovals.clear();
+    turn.reject(new CodeGopherClientError(`${event.code}: ${event.message}`));
+  }
+
+  private failPendingOperations(error: Error): void {
+    if (this.activeTurn) {
+      this.activeTurn.reject(error);
+      this.activeTurn = undefined;
+    }
+    this.activeApprovals.clear();
   }
 
   private rejectStartup(error: Error): void {
@@ -206,6 +340,7 @@ export class CodeGopherClient {
   }
 
   private handleClientError(error: CodeGopherClientError | ProtocolParseError): void {
+    this.failPendingOperations(error);
     this.rejectStartup(error);
     for (const listener of [...this.errorListeners]) {
       listener(error);

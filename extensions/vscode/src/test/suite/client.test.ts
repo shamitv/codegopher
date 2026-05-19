@@ -10,7 +10,7 @@ import {
   type CodeGopherProcess,
   type SpawnOptions
 } from "../../client";
-import { encodeProtocolMessage, type ProtocolEvent, type SessionStartedEvent } from "../../protocol";
+import { decodeProtocolLine, encodeProtocolMessage, type ProtocolEvent, type SessionStartedEvent } from "../../protocol";
 
 suite("CodeGopherClient startup", () => {
   test("builds cli args with non-empty overrides", () => {
@@ -205,6 +205,165 @@ suite("CodeGopherClient startup", () => {
 
     await assert.rejects(started, CodeGopherProtocolError);
   });
+
+  test("sends start_turn and resolves matching turn_complete", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const client = startedClient(fakeProcess);
+
+    const turn = client.startTurn("hello", {
+      turnId: "turn-1",
+      selectedFile: "README.md",
+      editorMetadata: { language: "markdown" },
+      overrides: { model: "gpt-test" }
+    });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    assert.deepEqual(decodeProtocolLine(writes[0]), {
+      version: 1,
+      type: "start_turn",
+      turn_id: "turn-1",
+      prompt: "hello",
+      workspace_root: "/repo",
+      selected_file: "README.md",
+      editor_metadata: { language: "markdown" },
+      overrides: { model: "gpt-test" }
+    });
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "turn_complete",
+        turn_id: "turn-1",
+        final_text: "done",
+        tool_count: 0,
+        approval_count: 0,
+        iteration_count: 1
+      })
+    );
+
+    assert.deepEqual(await turn, {
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-1",
+      final_text: "done",
+      tool_count: 0,
+      approval_count: 0,
+      iteration_count: 1
+    });
+  });
+
+  test("rejects a second concurrent turn", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = startedClient(fakeProcess);
+
+    const turn = client.startTurn("first", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    await assert.rejects(client.startTurn("second", { turnId: "turn-2" }), /Turn already active: turn-1/);
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "turn_complete",
+        turn_id: "turn-1"
+      })
+    );
+    await turn;
+  });
+
+  test("rejects active turns on matching error events", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = startedClient(fakeProcess);
+
+    const turn = client.startTurn("fail", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "error",
+        turn_id: "turn-1",
+        code: "provider_error",
+        message: "provider failed"
+      })
+    );
+
+    await assert.rejects(turn, /provider_error: provider failed/);
+  });
+
+  test("tracks approval requests and sends one approval response", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const client = startedClient(fakeProcess);
+
+    const turn = client.startTurn("write", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "approval_request",
+        turn_id: "turn-1",
+        approval_id: "approval-1",
+        tool_name: "write_file",
+        arguments_summary: "{\"path\":\"new.txt\"}",
+        raw_arguments: { path: "new.txt" }
+      })
+    );
+
+    client.submitApproval("approval-1", false, "not now");
+
+    assert.deepEqual(decodeProtocolLine(writes[1]), {
+      version: 1,
+      type: "approval_response",
+      approval_id: "approval-1",
+      approved: false,
+      reason: "not now"
+    });
+    assert.throws(() => client.submitApproval("approval-1", true), /No active approval request/);
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "turn_complete",
+        turn_id: "turn-1"
+      })
+    );
+    await turn;
+  });
+
+  test("sends cancel_turn only for the active turn", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const writes = collectStdin(fakeProcess);
+    const client = startedClient(fakeProcess);
+
+    const turn = client.startTurn("wait", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    client.cancelTurn("turn-1");
+
+    assert.deepEqual(decodeProtocolLine(writes[1]), {
+      version: 1,
+      type: "cancel_turn",
+      turn_id: "turn-1"
+    });
+    assert.throws(() => client.cancelTurn("turn-2"), /No active turn for id: turn-2/);
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "error",
+        turn_id: "turn-1",
+        code: "turn_cancelled",
+        message: "Turn cancelled"
+      })
+    );
+    await assert.rejects(turn, /turn_cancelled: Turn cancelled/);
+  });
 });
 
 const sessionStartedEvent: SessionStartedEvent = {
@@ -332,4 +491,20 @@ class FakeCodeGopherProcess extends EventEmitter implements CodeGopherProcess {
     this.emit("exit", code, signal);
     this.emit("close", code, signal);
   }
+}
+
+function startedClient(fakeProcess: FakeCodeGopherProcess): CodeGopherClient {
+  return new CodeGopherClient({
+    cliPath: "cgopher",
+    workspaceRoot: "/repo",
+    spawnProcess: () => fakeProcess
+  });
+}
+
+function collectStdin(fakeProcess: FakeCodeGopherProcess): string[] {
+  const writes: string[] = [];
+  fakeProcess.stdin.on("data", (chunk: Buffer | string) => {
+    writes.push(chunk.toString());
+  });
+  return writes;
 }
