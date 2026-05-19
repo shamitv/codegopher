@@ -269,6 +269,57 @@ suite("CodeGopher chat controller", () => {
     await resultPromise;
   });
 
+  test("prevents duplicate approval decisions for the same approval id", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const outputChannel = new FakeOutputChannel();
+    const controller = new CodeGopherChatController({
+      outputChannel,
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-duplicate-approval"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("write"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.emit({
+      version: 1,
+      type: "approval_request",
+      turn_id: "turn-duplicate-approval",
+      approval_id: "approval-duplicate",
+      tool_name: "write_file"
+    });
+
+    controller.approveApproval("approval-duplicate");
+    controller.approveApproval("approval-duplicate");
+    controller.denyApproval("approval-duplicate");
+
+    assert.deepEqual(fakeClient.approvalCalls, [
+      {
+        approvalId: "approval-duplicate",
+        approved: true,
+        reason: undefined
+      }
+    ]);
+    assert.equal(
+      outputChannel.lines.filter((line) =>
+        line.includes("CodeGopher approval ignored; no pending approval for approval-duplicate.")
+      ).length,
+      2
+    );
+
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-duplicate-approval"
+    });
+    await resultPromise;
+  });
+
   test("returns one user-facing error when an error event rejects the turn", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();

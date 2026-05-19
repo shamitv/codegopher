@@ -177,7 +177,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T067: Route Deny button clicks to `approval_response` with a default denial reason.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T068: Prevent duplicate approval decisions for the same approval id.
+- [x] T068: Prevent duplicate approval decisions for the same approval id.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T069: Respect VS Code cancellation tokens by sending `cancel_turn`.
   Verify: `cd extensions/vscode && npm test`
