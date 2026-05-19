@@ -1,6 +1,6 @@
 import * as assert from "node:assert/strict";
 
-import { CodeGopherConfigUiController } from "../../configUi";
+import { CodeGopherConfigUiController, formatEndpointDetails } from "../../configUi";
 import type { CodeGopherConfigClient } from "../../client";
 import type {
   ConfigSnapshotEvent,
@@ -10,7 +10,7 @@ import type {
 } from "../../protocol";
 
 suite("CodeGopher config UI", () => {
-  test("requests effective config and shows an endpoint summary", async () => {
+  test("requests effective config and shows endpoint details", async () => {
     const client = new FakeConfigClient();
     const dialogs = new FakeConfigDialogs();
     const controller = new CodeGopherConfigUiController({
@@ -21,8 +21,53 @@ suite("CodeGopher config UI", () => {
     await controller.viewLlmEndpoint();
 
     assert.equal(client.getEffectiveConfigCalls, 1);
-    assert.deepEqual(dialogs.informationMessages, ["CodeGopher endpoint: openai / gpt-test"]);
+    assert.deepEqual(dialogs.informationMessages, [
+      [
+        "CodeGopher LLM Endpoint",
+        "Workspace: /repo",
+        "Provider: openai",
+        "Model: gpt-test",
+        "API family: responses",
+        "Base URL: https://api.example.test/v1",
+        "Config sources: defaults, project"
+      ].join("\n")
+    ]);
     assert.deepEqual(dialogs.errorMessages, []);
+  });
+
+  test("formats missing endpoint details without secrets", () => {
+    const details = formatEndpointDetails({
+      version: 1,
+      type: "config_snapshot",
+      workspace_root: "/repo",
+      provider: "local",
+      model: "gpt-local",
+      api_family: "chat_completions",
+      base_url: null,
+      config_sources: []
+    });
+
+    assert.match(details, /Base URL: Not configured/);
+    assert.match(details, /Config sources: Not reported/);
+  });
+
+  test("redacts secret-like endpoint display values", () => {
+    const details = formatEndpointDetails({
+      version: 1,
+      type: "config_snapshot",
+      workspace_root: "/repo?token=raw-token",
+      provider: "openai",
+      model: "gpt-test",
+      api_family: "responses",
+      base_url: "https://user:raw-secret@example.test/v1?api_key=raw-key&token=raw-token",
+      config_sources: ["project", "authorization=Bearer raw-auth"]
+    });
+
+    assert.doesNotMatch(details, /raw-token/);
+    assert.doesNotMatch(details, /raw-key/);
+    assert.doesNotMatch(details, /raw-secret/);
+    assert.doesNotMatch(details, /raw-auth/);
+    assert.match(details, /\[redacted\]/);
   });
 
   test("shows endpoint request errors", async () => {
