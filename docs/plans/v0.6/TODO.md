@@ -116,7 +116,7 @@ Commit rules:
 
 ## Milestone 6 - Subprocess Protocol Client
 
-- [ ] T042: Add a TypeScript JSONL parser with partial-line buffering.
+- [x] T042: Add a TypeScript JSONL parser with partial-line buffering.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T043: Add a CodeGopher subprocess client that launches `cgopher --events` in the workspace root.
   Verify: `cd extensions/vscode && npm test`
