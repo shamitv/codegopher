@@ -1,11 +1,19 @@
 import * as assert from "node:assert/strict";
 
-import { CodeGopherConfigUiController, formatEndpointDetails, formatMcpServerListItems } from "../../configUi";
+import {
+  CodeGopherConfigUiController,
+  formatEndpointDetails,
+  formatMcpServerListItems,
+  parseJsonStringArray,
+  parseOptionalPositiveNumber,
+  validateMcpServerName
+} from "../../configUi";
 import type { CodeGopherConfigClient } from "../../client";
 import type { CodeGopherQuickPickItem } from "../../configUi";
 import type {
   ConfigSnapshotEvent,
   McpServerDeletedEvent,
+  McpServerPayload,
   McpServerSavedEvent,
   McpServersEvent
 } from "../../protocol";
@@ -159,12 +167,132 @@ suite("CodeGopher config UI", () => {
     assert.deepEqual(dialogs.informationMessages, []);
     assert.deepEqual(dialogs.errorMessages, []);
   });
+
+  test("creates a stdio MCP server from prompts", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(add) Add stdio server");
+    dialogs.inputValues.push("playwright", "npx", "[\"@playwright/mcp@latest\"]", "/repo", "45");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, [
+      {
+        serverName: "playwright",
+        server: {
+          enabled: true,
+          transport: "stdio",
+          command: "npx",
+          args: ["@playwright/mcp@latest"],
+          cwd: "/repo",
+          startup_timeout_seconds: 45
+        }
+      }
+    ]);
+    assert.deepEqual(dialogs.informationMessages, ["CodeGopher MCP server saved: playwright"]);
+  });
+
+  test("creates an SSE MCP server from prompts", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(add) Add SSE server");
+    dialogs.inputValues.push("docs", "https://mcp.example.test/sse", "10", "600");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, [
+      {
+        serverName: "docs",
+        server: {
+          enabled: true,
+          transport: "sse",
+          url: "https://mcp.example.test/sse",
+          timeout_seconds: 10,
+          sse_read_timeout_seconds: 600
+        }
+      }
+    ]);
+    assert.deepEqual(dialogs.informationMessages, ["CodeGopher MCP server saved: docs"]);
+  });
+
+  test("cancels MCP creation when an input is cancelled", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(add) Add stdio server");
+    dialogs.inputValues.push("playwright", undefined);
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, []);
+    assert.deepEqual(dialogs.errorMessages, []);
+  });
+
+  test("rejects invalid MCP creation inputs before sending to Python", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(add) Add stdio server");
+    dialogs.inputValues.push("bad.name");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, []);
+    assert.deepEqual(dialogs.errorMessages, ["MCP server names may contain only letters, numbers, '_' and '-'."]);
+  });
+
+  test("surfaces invalid MCP creation argument JSON", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(add) Add stdio server");
+    dialogs.inputValues.push("playwright", "npx", "{not-json");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, []);
+    assert.match(dialogs.errorMessages[0] ?? "", /Arguments must be a JSON string array/);
+  });
+
+  test("parses creation helper values", () => {
+    assert.equal(validateMcpServerName("ok-name_1"), undefined);
+    assert.equal(validateMcpServerName("bad.name"), "MCP server names may contain only letters, numbers, '_' and '-'.");
+    assert.deepEqual(parseJsonStringArray("[\"a\", \"b\"]", "Arguments"), ["a", "b"]);
+    assert.deepEqual(parseJsonStringArray("", "Arguments"), []);
+    assert.equal(parseOptionalPositiveNumber("2.5", "Timeout"), 2.5);
+    assert.equal(parseOptionalPositiveNumber("", "Timeout"), undefined);
+    assert.throws(() => parseJsonStringArray("[1]", "Arguments"), /Arguments must be a JSON string array/);
+    assert.throws(() => parseOptionalPositiveNumber("0", "Timeout"), /Timeout must be a positive number/);
+  });
 });
+
+interface SaveMcpServerCall {
+  serverName: string;
+  server: McpServerPayload;
+}
 
 class FakeConfigClient implements CodeGopherConfigClient {
   getEffectiveConfigCalls = 0;
   getEffectiveConfigError: Error | undefined;
   listMcpServersCalls = 0;
+  readonly saveMcpServerCalls: SaveMcpServerCall[] = [];
   mcpServers: McpServersEvent["servers"] = [
     {
       name: "playwright",
@@ -205,8 +333,15 @@ class FakeConfigClient implements CodeGopherConfigClient {
     });
   }
 
-  saveMcpServer(): Promise<McpServerSavedEvent> {
-    throw new Error("Not implemented.");
+  saveMcpServer(serverName: string, server: McpServerPayload): Promise<McpServerSavedEvent> {
+    this.saveMcpServerCalls.push({ serverName, server });
+    return Promise.resolve({
+      version: 1,
+      type: "mcp_server_saved",
+      workspace_root: "/repo",
+      server_name: serverName,
+      server
+    });
   }
 
   setMcpServerEnabled(): Promise<McpServerSavedEvent> {
@@ -222,6 +357,9 @@ class FakeConfigDialogs {
   readonly informationMessages: string[] = [];
   readonly errorMessages: string[] = [];
   readonly quickPickCalls: Array<{ items: readonly CodeGopherQuickPickItem[]; options: unknown }> = [];
+  readonly quickPickSelectionLabels: string[] = [];
+  readonly inputValues: Array<string | undefined> = [];
+  readonly inputBoxCalls: unknown[] = [];
 
   showInformationMessage(message: string): PromiseLike<string | undefined> {
     this.informationMessages.push(message);
@@ -238,6 +376,12 @@ class FakeConfigDialogs {
     options?: unknown
   ): PromiseLike<T | undefined> {
     this.quickPickCalls.push({ items, options });
-    return Promise.resolve(undefined);
+    const label = this.quickPickSelectionLabels.shift();
+    return Promise.resolve(label ? items.find((item) => item.label === label) : undefined);
+  }
+
+  showInputBox(options?: unknown): PromiseLike<string | undefined> {
+    this.inputBoxCalls.push(options);
+    return Promise.resolve(this.inputValues.shift());
   }
 }
