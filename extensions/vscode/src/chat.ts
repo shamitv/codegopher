@@ -72,8 +72,14 @@ export class CodeGopherChatController {
     const turnId = this.turnIdFactory();
     const client = this.getClient();
     const toolNames = new Map<string, string>();
+    let reportedError: string | undefined;
     const subscription = client.onEvent((event) => {
       if (!("turn_id" in event) || event.turn_id !== turnId) {
+        return;
+      }
+      if (event.type === "error") {
+        reportedError = `${event.code}: ${event.message}`;
+        writeChatError(response, reportedError);
         return;
       }
       if (event.type === "text_delta") {
@@ -98,6 +104,21 @@ export class CodeGopherChatController {
         selectedFile: activeEditorPath(),
         editorMetadata: activeEditorMetadata()
       });
+    } catch (error) {
+      const message = reportedError ?? errorMessage(error);
+      if (!reportedError) {
+        writeChatError(response, message);
+      }
+      return {
+        errorDetails: {
+          message
+        },
+        metadata: {
+          command: request.command ?? null,
+          participant: chatParticipantName,
+          turnId
+        }
+      };
     } finally {
       subscription.dispose();
     }
@@ -145,6 +166,17 @@ function formatSummary(summary: string | undefined): string {
     return "";
   }
   return `: ${truncateSummary(summary)}`;
+}
+
+function writeChatError(response: vscode.ChatResponseStream, message: string): void {
+  response.markdown(`CodeGopher error: ${message}`);
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return "CodeGopher request failed.";
 }
 
 export function truncateSummary(summary: string): string {

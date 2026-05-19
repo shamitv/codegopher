@@ -141,7 +141,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T052: Render `tool_call` and `tool_result` events as progress and compact chat summaries.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T053: Render provider and protocol errors as user-facing chat errors.
+- [x] T053: Render provider and protocol errors as user-facing chat errors.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T054: Hide reasoning deltas by default while surfacing reasoning progress in trace/debug paths.
   Verify: `cd extensions/vscode && npm test`

@@ -130,6 +130,75 @@ suite("CodeGopher chat controller", () => {
     assert.equal(stream.progressParts[1].length, "read_file completed: ".length + 160);
     assert.match(stream.progressParts[1], /\.\.\.$/);
   });
+
+  test("returns one user-facing error when an error event rejects the turn", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-error"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("fail"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.emit({
+      version: 1,
+      type: "error",
+      turn_id: "turn-error",
+      code: "provider_error",
+      message: "provider failed"
+    });
+    fakeClient.failTurn(new Error("provider_error: provider failed"));
+
+    assert.deepEqual(await resultPromise, {
+      errorDetails: {
+        message: "provider_error: provider failed"
+      },
+      metadata: {
+        command: null,
+        participant: "codegopher",
+        turnId: "turn-error"
+      }
+    });
+    assert.deepEqual(stream.markdownParts, ["CodeGopher error: provider_error: provider failed"]);
+  });
+
+  test("renders client failures without a protocol error event", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-client-error"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("fail before event"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.failTurn(new Error("CodeGopher subprocess exited."));
+
+    assert.deepEqual(await resultPromise, {
+      errorDetails: {
+        message: "CodeGopher subprocess exited."
+      },
+      metadata: {
+        command: null,
+        participant: "codegopher",
+        turnId: "turn-client-error"
+      }
+    });
+    assert.deepEqual(stream.markdownParts, ["CodeGopher error: CodeGopher subprocess exited."]);
+  });
 });
 
 interface StartCall {
@@ -142,11 +211,13 @@ class FakeChatClient implements CodeGopherChatClient {
   readonly startCalls: StartCall[] = [];
   private readonly listeners = new Set<(event: ProtocolEvent) => void>();
   private resolveTurn: ((event: TurnCompleteEvent) => void) | undefined;
+  private rejectTurn: ((error: Error) => void) | undefined;
 
   startTurn(prompt: string, options?: unknown): Promise<TurnCompleteEvent> {
     this.startCalls.push({ prompt, options });
-    return new Promise<TurnCompleteEvent>((resolve) => {
+    return new Promise<TurnCompleteEvent>((resolve, reject) => {
       this.resolveTurn = resolve;
+      this.rejectTurn = reject;
     });
   }
 
@@ -167,6 +238,10 @@ class FakeChatClient implements CodeGopherChatClient {
 
   completeTurn(event: TurnCompleteEvent): void {
     this.resolveTurn?.(event);
+  }
+
+  failTurn(error: Error): void {
+    this.rejectTurn?.(error);
   }
 }
 
