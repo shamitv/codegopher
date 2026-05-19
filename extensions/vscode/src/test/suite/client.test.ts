@@ -5,6 +5,7 @@ import { PassThrough } from "node:stream";
 import {
   CodeGopherClient,
   CodeGopherProtocolError,
+  SubprocessExitError,
   SubprocessStartError,
   buildCliArgs,
   type CodeGopherProcess,
@@ -552,6 +553,59 @@ suite("CodeGopherClient startup", () => {
     );
     await turn;
   });
+
+  test("rejects active turns with structured subprocess exit errors", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = startedClient(fakeProcess);
+    const errors: Error[] = [];
+    client.onError((error) => {
+      errors.push(error);
+    });
+
+    const turn = client.startTurn("wait", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+    fakeProcess.stderr.write("provider exploded");
+    fakeProcess.close(9, null);
+
+    const exitError = await rejectedWith<SubprocessExitError>(turn, SubprocessExitError);
+    assert.equal(exitError.command, "cgopher");
+    assert.deepEqual(exitError.args, ["--events"]);
+    assert.equal(exitError.cwd, "/repo");
+    assert.equal(exitError.code, 9);
+    assert.equal(exitError.signal, null);
+    assert.equal(exitError.stderrTail, "provider exploded");
+    assert.equal(errors[0], exitError);
+  });
+
+  test("rejects pending management requests on subprocess exit", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = startedClient(fakeProcess);
+
+    const config = client.getEffectiveConfig();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+    fakeProcess.stderr.write("invalid config");
+    fakeProcess.close(2, null);
+
+    const exitError = await rejectedWith<SubprocessExitError>(config, SubprocessExitError);
+    assert.equal(exitError.stderrTail, "invalid config");
+  });
+
+  test("keeps a bounded stderr tail", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = startedClient(fakeProcess);
+
+    const turn = client.startTurn("wait", { turnId: "turn-1" });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+    fakeProcess.stderr.write(`prefix-${"x".repeat(9000)}`);
+    fakeProcess.close(1, null);
+
+    const exitError = await rejectedWith<SubprocessExitError>(turn, SubprocessExitError);
+    assert.equal(exitError.stderrTail.length, 8000);
+    assert.equal(exitError.stderrTail, "x".repeat(8000));
+  });
 });
 
 const sessionStartedEvent: SessionStartedEvent = {
@@ -695,4 +749,17 @@ function collectStdin(fakeProcess: FakeCodeGopherProcess): string[] {
     writes.push(chunk.toString());
   });
   return writes;
+}
+
+async function rejectedWith<T extends Error>(
+  promise: Promise<unknown>,
+  errorType: new (...args: never[]) => T
+): Promise<T> {
+  try {
+    await promise;
+  } catch (error) {
+    assert.ok(error instanceof errorType);
+    return error;
+  }
+  assert.fail(`Expected promise to reject with ${errorType.name}.`);
 }

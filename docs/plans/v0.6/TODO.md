@@ -126,7 +126,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T046: Add subprocess client helpers for effective-config and MCP server management commands.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T047: Add stderr capture and structured subprocess exit errors.
+- [x] T047: Add stderr capture and structured subprocess exit errors.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T048: Add restart and shutdown lifecycle behavior.
   Verify: `cd extensions/vscode && npm test`

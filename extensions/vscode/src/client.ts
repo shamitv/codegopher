@@ -68,6 +68,39 @@ export class SubprocessStartError extends CodeGopherClientError {
   }
 }
 
+export interface SubprocessExitErrorDetails {
+  command: string;
+  args: string[];
+  cwd: string;
+  code: number | null;
+  signal: string | null;
+  stderrTail: string;
+}
+
+export class SubprocessExitError extends SubprocessStartError {
+  readonly command: string;
+  readonly args: string[];
+  readonly cwd: string;
+  readonly code: number | null;
+  readonly signal: string | null;
+  readonly stderrTail: string;
+
+  constructor(details: SubprocessExitErrorDetails) {
+    super(
+      `CodeGopher subprocess exited with ${formatExitCode(details.code, details.signal)}${
+        details.stderrTail ? `: ${details.stderrTail}` : "."
+      }`
+    );
+    this.name = "SubprocessExitError";
+    this.command = details.command;
+    this.args = details.args;
+    this.cwd = details.cwd;
+    this.code = details.code;
+    this.signal = details.signal;
+    this.stderrTail = details.stderrTail;
+  }
+}
+
 export class CodeGopherProtocolError extends CodeGopherClientError {
   constructor(message: string) {
     super(message);
@@ -103,6 +136,14 @@ interface PendingManagement {
   reject: (error: Error) => void;
 }
 
+interface LaunchDetails {
+  command: string;
+  args: string[];
+  cwd: string;
+}
+
+const maxStderrTailLength = 8000;
+
 export class CodeGopherClient {
   private readonly options: CodeGopherClientOptions;
   private readonly spawnProcess: SpawnProcess;
@@ -117,6 +158,8 @@ export class CodeGopherClient {
   private activeTurn: PendingTurn | undefined;
   private readonly activeApprovals = new Map<string, ApprovalRequestEvent>();
   private pendingManagement: PendingManagement | undefined;
+  private stderrTail = "";
+  private launchDetails: LaunchDetails | undefined;
 
   constructor(options: CodeGopherClientOptions) {
     this.options = options;
@@ -132,8 +175,14 @@ export class CodeGopherClient {
     }
 
     const args = buildCliArgs(this.options);
-    this.process = this.spawnProcess(this.options.cliPath, args, {
-      cwd: this.options.workspaceRoot,
+    this.stderrTail = "";
+    this.launchDetails = {
+      command: this.options.cliPath,
+      args,
+      cwd: this.options.workspaceRoot
+    };
+    this.process = this.spawnProcess(this.launchDetails.command, this.launchDetails.args, {
+      cwd: this.launchDetails.cwd,
       stdio: ["pipe", "pipe", "pipe"]
     });
     this.attachProcessHandlers(this.process);
@@ -315,16 +364,19 @@ export class CodeGopherClient {
     process.stdout.on("data", (chunk: Buffer | string) => {
       this.handleStdoutChunk(chunk);
     });
+    process.stderr.on("data", (chunk: Buffer | string) => {
+      this.captureStderr(chunk);
+    });
     process.on("error", (error) => {
       this.rejectStartup(new SubprocessStartError(error.message));
     });
     process.on("close", (code, signal) => {
+      const exitError = this.createExitError(code, signal);
       if (!this.session) {
-        this.rejectStartup(
-          new SubprocessStartError(
-            `CodeGopher subprocess exited before session_started (code ${formatExitCode(code, signal)}).`
-          )
-        );
+        this.rejectStartup(exitError);
+      } else {
+        this.failPendingOperations(exitError);
+        this.emitClientError(exitError);
       }
       this.process = undefined;
       this.startPromise = undefined;
@@ -484,6 +536,10 @@ export class CodeGopherClient {
   private handleClientError(error: CodeGopherClientError | ProtocolParseError): void {
     this.failPendingOperations(error);
     this.rejectStartup(error);
+    this.emitClientError(error);
+  }
+
+  private emitClientError(error: CodeGopherClientError | ProtocolParseError): void {
     for (const listener of [...this.errorListeners]) {
       listener(error);
     }
@@ -493,6 +549,27 @@ export class CodeGopherClient {
     for (const listener of [...this.eventListeners]) {
       listener(event);
     }
+  }
+
+  private captureStderr(chunk: Buffer | string): void {
+    this.stderrTail += chunk.toString();
+    if (this.stderrTail.length > maxStderrTailLength) {
+      this.stderrTail = this.stderrTail.slice(-maxStderrTailLength);
+    }
+  }
+
+  private createExitError(code: number | null, signal: string | null): SubprocessExitError {
+    const launchDetails = this.launchDetails ?? {
+      command: this.options.cliPath,
+      args: buildCliArgs(this.options),
+      cwd: this.options.workspaceRoot
+    };
+    return new SubprocessExitError({
+      ...launchDetails,
+      code,
+      signal,
+      stderrTail: this.stderrTail
+    });
   }
 }
 
