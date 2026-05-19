@@ -192,7 +192,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T073: Select the workspace root deterministically and show it in `/status`.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T074: Handle multi-root workspaces with a clear default and user-facing status.
+- [x] T074: Handle multi-root workspaces with a clear default and user-facing status.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T075: Add user-facing recovery guidance for subprocess crashes and invalid protocol messages.
   Verify: `cd extensions/vscode && npm test`

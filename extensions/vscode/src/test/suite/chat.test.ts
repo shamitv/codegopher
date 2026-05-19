@@ -702,6 +702,7 @@ suite("CodeGopher chat controller", () => {
     assert.match(stream.markdownParts[0], /CLI: `\/bin\/cgopher`/);
     assert.match(stream.markdownParts[0], /Workspace: `\/repo`/);
     assert.match(stream.markdownParts[0], /Workspace selection: first workspace folder/);
+    assert.match(stream.markdownParts[0], /Workspace folders: `\/repo`/);
     assert.match(stream.markdownParts[0], /Subprocess: running/);
     assert.match(stream.markdownParts[0], /Provider: openai/);
     assert.match(stream.markdownParts[0], /Model: gpt-session/);
@@ -752,6 +753,35 @@ suite("CodeGopher chat controller", () => {
     assert.equal(fakeClient.startCalls.length, 0);
     assert.match(stream.markdownParts[0], /Workspace: `No workspace folder`/);
     assert.match(stream.markdownParts[0], /Workspace selection: No workspace folder is open/);
+    assert.match(stream.markdownParts[0], /Workspace folders: No workspace folders/);
+  });
+
+  test("renders multi-root status with the first folder as the clear default", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      workspaceSelectionProvider: () => selectWorkspaceRoot([workspaceFolder("/repo-a"), workspaceFolder("/repo-b")])
+    });
+
+    const result = await controller.handleRequest(
+      fakeRequest("", "status"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    assert.deepEqual(result, {
+      metadata: {
+        command: "status",
+        participant: "codegopher"
+      }
+    });
+    assert.equal(fakeClient.startCalls.length, 0);
+    assert.match(stream.markdownParts[0], /Workspace: `\/repo-a`/);
+    assert.match(stream.markdownParts[0], /Workspace selection: first workspace folder \(1 of 2\)/);
+    assert.match(stream.markdownParts[0], /Workspace folders: `\/repo-a`, `\/repo-b`/);
   });
 
   test("restarts from chat command", async () => {

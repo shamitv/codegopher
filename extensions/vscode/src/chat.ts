@@ -346,6 +346,7 @@ export class CodeGopherChatController {
       `- CLI: \`${settings.cliPath}\``,
       `- Workspace: \`${workspaceRoot ?? "No workspace folder"}\``,
       `- Workspace selection: ${formatWorkspaceSelection(workspace)}`,
+      `- Workspace folders: ${formatWorkspaceFolders(workspace)}`,
       `- Subprocess: ${this.client?.isRunning ? "running" : "not started"}`,
       `- Provider: ${provider}`,
       `- Model: ${model}`,
@@ -417,7 +418,17 @@ function formatWorkspaceSelection(selection: WorkspaceSelection): string {
   if (!selection.selectedRoot) {
     return "No workspace folder is open";
   }
+  if (selection.roots.length > 1) {
+    return `first workspace folder (1 of ${selection.roots.length})`;
+  }
   return "first workspace folder";
+}
+
+function formatWorkspaceFolders(selection: WorkspaceSelection): string {
+  if (selection.roots.length === 0) {
+    return "No workspace folders";
+  }
+  return selection.roots.map((root) => `\`${root}\``).join(", ");
 }
 
 function formatSummary(summary: string | undefined): string {
