@@ -66,7 +66,7 @@ Command Palette -> Shell Command: Install 'code-insiders' command in PATH
 Open the repo in Insiders:
 
 ```bash
-code-insiders /Users/shamit/work/codegopher
+code-insiders /Users/username/path-to/codegopher
 ```
 
 Manual Extension Development Host workflow:
