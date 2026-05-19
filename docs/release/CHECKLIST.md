@@ -7,9 +7,12 @@ Use this checklist before publishing a CodeGopher release.
 - Run `mypy src/`.
 - Run `python -m pytest`.
 - Run `python -m hatch build`.
+- Run VS Code extension checks: `cd extensions/vscode`, then `npm run compile`, `npm run lint`, and `npm test`.
+- Build a local VS Code extension package with `npm run package` and confirm the generated `.vsix` is not committed.
 - Install the built wheel in a clean virtual environment.
 - Smoke test `codegopher --help`.
 - Smoke test `cgopher -p "hello" --json` with a configured provider or the local test mock.
+- Smoke test `cgopher --events -p "hello"` and confirm stdout contains JSONL protocol events only.
 - Smoke test implicit project init in a disposable project: first `cgopher -p "hello"` creates `.codegopher/skills/project/SKILL.md`, while `cgopher --no-project-init -p "hello"` does not create `.codegopher/`.
 - Smoke test real OpenAI-compatible endpoint, when available: `OPENAI_API_KEY=dummy-key cgopher -p "Reply with exactly: codegopher-smoke-ok" --json`.
 - Smoke test Responses API, when available: `cgopher --api-family responses -p "Reply with exactly: codegopher-responses-ok" --json`.
@@ -32,4 +35,16 @@ Use this checklist before publishing a CodeGopher release.
   - `@skill:repo-domain-docs` reaches provider context and can produce a domain documentation outline.
   - `@skill:repo-tech-docs` reaches provider context and can produce a technical documentation outline.
   - `@skill:crud-owasp-static-audit` reaches provider context and keeps the OWASP Top 10:2025 review static-only.
+- Smoke test VS Code Extension Development Host in a disposable workspace:
+  - `CodeGopher: Open Chat` focuses VS Code Chat with `@codegopher`.
+  - `@codegopher /status` shows CLI path, selected workspace root, provider/model settings, approval mode, and subprocess state.
+  - A read-only `@codegopher` prompt streams assistant text.
+  - A tool-using prompt shows tool progress, approval buttons, and compact results.
+  - Approve and deny buttons each send one approval response.
+  - Chat cancellation sends `cancel_turn` and the next turn still works.
+  - `CodeGopher: Restart Agent` restarts the local events subprocess.
+- Smoke test VS Code configuration commands:
+  - `CodeGopher: View LLM Endpoint` shows provider, model, API family, base URL when configured, and source metadata without secrets.
+  - `CodeGopher: Manage MCP Servers` can list, add, edit, disable, enable, and remove a disposable MCP server entry.
+  - Confirm MCP header values, raw environment values, and values resolved through `headers_env` are not shown in VS Code output or protocol traces.
 - Tag the release only after the branch is pushed and CI is green.

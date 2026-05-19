@@ -205,7 +205,7 @@ Commit rules:
   Verify: `rg -n "VS Code|@codegopher|--events" README.md`
 - [x] T078: Update product intro to mention the v0.6 IDE workflow.
   Verify: `rg -n "VS Code|IDE|@codegopher" docs/product/INTRO.md`
-- [ ] T079: Update release checklist with VS Code extension smoke tests.
+- [x] T079: Update release checklist with VS Code extension smoke tests.
   Verify: `rg -n "VS Code|@codegopher|extension" docs/release/CHECKLIST.md`
 - [ ] T080: Add local VSIX packaging instructions.
   Verify: `rg -n "vsix|package" extensions/vscode README.md docs`
