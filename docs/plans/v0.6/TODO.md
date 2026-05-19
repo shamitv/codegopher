@@ -203,7 +203,7 @@ Commit rules:
 
 - [x] T077: Update README with VS Code extension usage and setup.
   Verify: `rg -n "VS Code|@codegopher|--events" README.md`
-- [ ] T078: Update product intro to mention the v0.6 IDE workflow.
+- [x] T078: Update product intro to mention the v0.6 IDE workflow.
   Verify: `rg -n "VS Code|IDE|@codegopher" docs/product/INTRO.md`
 - [ ] T079: Update release checklist with VS Code extension smoke tests.
   Verify: `rg -n "VS Code|@codegopher|extension" docs/release/CHECKLIST.md`
