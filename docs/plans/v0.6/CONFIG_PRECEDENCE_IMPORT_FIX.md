@@ -13,6 +13,8 @@ This note documents the agreed approach for two review findings discovered after
 
 These fixes should land before T086/T087 manual smoke gates are finalized.
 
+A separate manual smoke hang has already been fixed in `6afc1cc Fix long-lived events stdin blocking`. That fix is not a substitute for the config precedence/import-order work below, but it explains why the VS Code smoke path now reaches `turn_complete` for normal chat prompts.
+
 ## Config Precedence Approach
 
 The desired rule is: provider-specific fields must apply to the final selected provider after home, project, environment, and CLI provider/model precedence is resolved.
@@ -91,6 +93,12 @@ Run these after implementing the fixes:
 .\.venv\Scripts\python.exe -m pytest
 ```
 
+Also keep the long-lived events regression green:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_events_cli.py
+```
+
 For the VS Code smoke path, rerun the status check after rebuilding/reloading the Extension Development Host:
 
 ```text
@@ -110,3 +118,11 @@ Then rerun:
 ```
 
 The restart path must not report `OPENAI_API_KEY` when `codegopher.apiKeyEnv` is `HF_TOKEN` and the token has been stored with `CodeGopher: Set API Key`.
+
+For the normal chat path, the smoke prompt should return:
+
+```text
+codegopher-smoke-ok
+```
+
+Trace output should include `start_turn`, `turn_started`, `text_delta`, and `turn_complete`.

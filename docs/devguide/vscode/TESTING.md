@@ -173,12 +173,15 @@ Run these in an Extension Development Host with a disposable workspace:
 - `CodeGopher: Open Chat` focuses VS Code Chat with `@codegopher`.
 - `@codegopher /status` shows CLI path, workspace root, provider, model, approval mode, and subprocess state.
 - A read-only prompt streams assistant text.
+- The exact smoke prompt `@codegopher Reply with exactly: codegopher-smoke-ok` returns `codegopher-smoke-ok`.
 - A tool-using prompt shows tool progress.
 - Approve and deny buttons each send one approval response.
 - Cancellation returns the subprocess to a usable state.
 - `CodeGopher: Restart Agent` restarts the subprocess.
 - `CodeGopher: View LLM Endpoint` shows provider, model, API family, base URL when present, and source metadata without secrets.
 - `CodeGopher: Manage MCP Servers` can list, add, edit, disable, enable, and remove disposable MCP server config without exposing header or env values.
+
+If chat stays on `Analyzing` and the CodeGopher Output channel stops after `Starting CodeGopher turn ...`, first verify the branch includes the long-lived events stdin fix and run `.\.venv\Scripts\python.exe -m pytest tests/integration/test_events_cli.py`. With `codegopher.traceProtocol` enabled, a healthy turn should show `start_turn`, `turn_started`, `text_delta`, and `turn_complete`.
 
 ## References
 

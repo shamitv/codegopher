@@ -25,8 +25,11 @@ Recent commits relevant to this handoff:
   - Adds `codegopher.apiKeyEnv` so a stored token can be exposed to `cgopher` as `HF_TOKEN`, `OPENAI_API_KEY`, or another provider-specific env var.
 - `b4bd4db Refresh VS Code client on restart`
   - Fixes a stale-client restart issue where `/restart` could reuse old settings and continue expecting `OPENAI_API_KEY`.
+- `6afc1cc Fix long-lived events stdin blocking`
+  - Fixes the long-lived `cgopher --events` command loop so it can run a `start_turn` while waiting for future stdin commands from VS Code.
+  - Adds a regression test proving `turn_complete` arrives without requiring an additional stdin line.
 
-Latest extension verification after those commits:
+Latest extension verification after the VS Code extension commits:
 
 ```powershell
 cd D:\work\codegopher\extensions\vscode
@@ -38,6 +41,16 @@ npm test
 Result: `107 passing`.
 
 The VS Code test runner may still print an Insiders mutex diagnostic after the test run, but the command exited successfully during the last verification.
+
+Latest Python verification after the long-lived events fix:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check src/codegopher/events/cli.py tests/integration/test_events_cli.py
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_events_cli.py
+.\.venv\Scripts\python.exe -m pytest
+```
+
+Result: `584 passed, 1 skipped`.
 
 ## Important UX Rule
 
@@ -87,6 +100,24 @@ API key env: HF_TOKEN
 ```
 
 If `/status` does not show `HF_TOKEN`, do not continue the smoke test. Fix the Extension Development Host/settings issue first.
+
+## Resolved Stuck Turn Symptom
+
+The manual smoke attempt also exposed a separate hang:
+
+```text
+Starting CodeGopher turn ...
+```
+
+The VS Code Output channel stopped there, even though one-shot CLI calls such as `cgopher -p "Reply with exactly: codegopher-smoke-ok"` returned correctly. Root cause: the Python long-lived events command loop created a turn task and then blocked synchronously waiting for the next stdin line, preventing the asyncio turn task from running.
+
+Commit `6afc1cc` fixes this by reading stdin through `asyncio.to_thread(...)` and keeping the event loop free to run the active turn. After this fix, the Extension Development Host successfully returned:
+
+```text
+codegopher-smoke-ok
+```
+
+The trace output showed `start_turn`, `turn_started`, `text_delta`, and `turn_complete` events for the smoke prompt.
 
 ## Fresh Manual Test Procedure
 
@@ -218,6 +249,13 @@ If the CLI path works in a terminal but not in the extension:
 - Remember that Extension Development Host subprocesses do not necessarily inherit the same activated virtualenv environment as an integrated terminal.
 - Prefer the absolute `codegopher.cliPath` during manual smoke testing.
 
+If VS Code gets stuck at `Starting CodeGopher turn ...`:
+
+- Confirm the branch includes `6afc1cc Fix long-lived events stdin blocking`.
+- Re-run `.\.venv\Scripts\python.exe -m pytest tests/integration/test_events_cli.py`.
+- Stop and relaunch the Extension Development Host so it uses the updated Python source.
+- Enable `codegopher.traceProtocol`, rerun the smoke prompt, and confirm `start_turn`, `turn_started`, `text_delta`, and `turn_complete` appear in the CodeGopher Output channel.
+
 ## Files To Reference
 
 - `docs/devguide/vscode/TESTING.md`
@@ -228,3 +266,5 @@ If the CLI path works in a terminal but not in the extension:
 - `extensions/vscode/src/extension.ts`
 - `extensions/vscode/src/chat.ts`
 - `extensions/vscode/src/client.ts`
+- `src/codegopher/events/cli.py`
+- `tests/integration/test_events_cli.py`

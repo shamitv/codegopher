@@ -12,11 +12,12 @@ Last reviewed: 2026-05-19
 - Automated release gates T082 through T085 are complete: full Python tests, Python lint/type checks, extension compile/lint/tests, and Python distribution build.
 - Manual VS Code smoke tests T086 and T087 remain pending and should be checked only after a human confirms the Extension Development Host workflows passed.
 - T088 tracks the documented remediation approach for the config precedence and import-order findings that should be resolved before finalizing the manual smoke gates.
+- The VS Code long-lived events chat hang discovered during manual smoke testing is fixed by `6afc1cc`; the smoke prompt now returns `codegopher-smoke-ok`.
 
 Practical readiness estimate:
 
 - v0.6 is a release candidate pending the documented T088 follow-up and the two manual VS Code smoke-test gates.
-- No implementation blockers remain from the automated test, lint, typecheck, or build passes before the T088 review findings were identified.
+- No implementation blockers remain from the automated test, lint, typecheck, or build passes before the T088 review findings were identified; the separate long-lived events stdin blocker is resolved.
 
 ## Current Repository State
 
@@ -45,6 +46,7 @@ Practical readiness estimate:
 - Extension compile, lint, and tests passed: `npm run compile`, `npm run lint`, and `npm test`.
 - Extension tests now run against a downloaded VS Code Insiders host with isolated `.vscode-test` extension and user-data directories, avoiding Stable VS Code mutex collisions from an active developer session.
 - Extension automated tests passed with `102 passing`, including TypeScript unit suites and e2e subprocess/config UI suites.
+- Long-lived events chat fix verification passed: `tests/integration/test_events_cli.py` and full `pytest` with `584 passed, 1 skipped`.
 - The Windows `.cmd` subprocess path is covered by e2e tests after the T084 fix.
 - Invalid protocol output now terminates the subprocess and avoids Windows temp-directory cleanup races in e2e tests.
 - Python distribution artifacts build successfully with Hatch:
