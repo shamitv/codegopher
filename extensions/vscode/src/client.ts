@@ -45,6 +45,14 @@ export interface ProtocolTraceEntry {
 
 export type ProtocolTraceSink = (entry: ProtocolTraceEntry) => void;
 
+export interface CodeGopherConfigClient {
+  getEffectiveConfig(): Promise<ConfigSnapshotEvent>;
+  listMcpServers(): Promise<McpServersEvent>;
+  saveMcpServer(serverName: string, server: McpServerPayload): Promise<McpServerSavedEvent>;
+  setMcpServerEnabled(serverName: string, enabled: boolean): Promise<McpServerSavedEvent>;
+  deleteMcpServer(serverName: string): Promise<McpServerDeletedEvent>;
+}
+
 export interface SpawnOptions {
   cwd: string;
   stdio: ["pipe", "pipe", "pipe"];
@@ -154,7 +162,7 @@ interface LaunchDetails {
 
 const maxStderrTailLength = 8000;
 
-export class CodeGopherClient {
+export class CodeGopherClient implements CodeGopherConfigClient {
   private readonly options: CodeGopherClientOptions;
   private readonly spawnProcess: SpawnProcess;
   private readonly parser = new JsonlProtocolParser();

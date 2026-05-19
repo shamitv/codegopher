@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import {
   CodeGopherClient,
   CodeGopherClientError,
+  type CodeGopherConfigClient,
   type CodeGopherClientOptions,
   type Disposable,
   type StartTurnOptions
@@ -84,6 +85,10 @@ export class CodeGopherChatController {
       this.outputChannel.appendLine(`CodeGopher restart failed: ${message}`);
       void vscode.window.showErrorMessage(`CodeGopher restart failed: ${message}`);
     }
+  }
+
+  configClient(): CodeGopherConfigClient {
+    return this.getClient() as unknown as CodeGopherConfigClient;
   }
 
   async handleRequest(

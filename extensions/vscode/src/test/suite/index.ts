@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
 import Mocha from "mocha";
+import * as vscode from "vscode";
 
 async function collectTests(directory: string): Promise<string[]> {
   const entries = await fs.readdir(directory, { withFileTypes: true });
@@ -34,13 +35,17 @@ export async function run(): Promise<void> {
     mocha.addFile(file);
   }
 
-  await new Promise<void>((resolve, reject) => {
-    mocha.run((failures) => {
-      if (failures > 0) {
-        reject(new Error(`${failures} test(s) failed.`));
-        return;
-      }
-      resolve();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      mocha.run((failures) => {
+        if (failures > 0) {
+          reject(new Error(`${failures} test(s) failed.`));
+          return;
+        }
+        resolve();
+      });
     });
-  });
+  } finally {
+    await vscode.commands.executeCommand("workbench.action.closeWindow");
+  }
 }
