@@ -1,6 +1,6 @@
 import * as assert from "node:assert/strict";
 
-import type * as vscode from "vscode";
+import * as vscode from "vscode";
 
 import {
   approvalApproveCommandId,
@@ -138,7 +138,7 @@ suite("CodeGopher chat controller", () => {
     assert.match(stream.progressParts[1], /\.\.\.$/);
   });
 
-  test("renders approval requests with approve and deny buttons", async () => {
+  test("renders approval requests with inline approve and deny actions", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();
     const controller = new CodeGopherChatController({
@@ -172,18 +172,13 @@ suite("CodeGopher chat controller", () => {
     await resultPromise;
 
     assert.deepEqual(stream.progressParts, ["Approval required for write_file: {\"path\":\"new.txt\"}"]);
-    assert.deepEqual(stream.buttonParts, [
-      {
-        command: approvalApproveCommandId,
-        title: "Approve",
-        arguments: ["approval-1"]
-      },
-      {
-        command: approvalDenyCommandId,
-        title: "Deny",
-        arguments: ["approval-1"]
-      }
-    ]);
+    assert.deepEqual(stream.buttonParts, []);
+    assert.equal(stream.markdownParts.length, 1);
+    assert.match(stream.markdownParts[0], /\$\(check\) Approve/);
+    assert.match(stream.markdownParts[0], /\$\(close\) Deny/);
+    assert.match(stream.markdownParts[0], new RegExp(`command:${approvalApproveCommandId}`));
+    assert.match(stream.markdownParts[0], new RegExp(`command:${approvalDenyCommandId}`));
+    assert.match(stream.markdownParts[0], /%5B%22approval-1%22%5D/);
   });
 
   test("routes approve decisions to approval_response", async () => {
@@ -1124,7 +1119,7 @@ class FakeChatResponseStream {
   asChatStream(): vscode.ChatResponseStream {
     return {
       markdown: (value) => {
-        this.markdownParts.push(value.toString());
+        this.markdownParts.push(value instanceof vscode.MarkdownString ? value.value : value.toString());
       },
       anchor: () => undefined,
       button: (value) => {

@@ -189,16 +189,7 @@ export class CodeGopherChatController {
       if (event.type === "approval_request") {
         this.pendingApprovals.set(event.approval_id, { client, turnId });
         response.progress(`Approval required for ${event.tool_name}${formatSummary(event.arguments_summary)}`);
-        response.button({
-          command: approvalApproveCommandId,
-          title: "Approve",
-          arguments: [event.approval_id]
-        });
-        response.button({
-          command: approvalDenyCommandId,
-          title: "Deny",
-          arguments: [event.approval_id]
-        });
+        response.markdown(approvalActionsMarkdown(event.approval_id));
         return;
       }
       if (event.type === "tool_result") {
@@ -428,6 +419,23 @@ function helpMarkdown(): string {
     "- Use `CodeGopher: Set API Key` to store a provider token in VS Code Secret Storage.",
     "- Use `/restart` after changing settings or stored credentials."
   ].join("\n");
+}
+
+function approvalActionsMarkdown(approvalId: string): vscode.MarkdownString {
+  const approveUri = commandUri(approvalApproveCommandId, [approvalId]);
+  const denyUri = commandUri(approvalDenyCommandId, [approvalId]);
+  const markdown = new vscode.MarkdownString(
+    `[$(check) Approve](${approveUri} "Approve")  [$(close) Deny](${denyUri} "Deny")`,
+    true
+  );
+  markdown.isTrusted = {
+    enabledCommands: [approvalApproveCommandId, approvalDenyCommandId]
+  };
+  return markdown;
+}
+
+function commandUri(command: string, args: unknown[]): string {
+  return `command:${command}?${encodeURIComponent(JSON.stringify(args))}`;
 }
 
 function readSettings(): CodeGopherChatSettings {
