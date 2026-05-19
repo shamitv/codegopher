@@ -217,7 +217,7 @@ Commit rules:
   Verify: `source .venv/bin/activate && ruff check src/ tests/ && mypy src/`
 - [x] T084: Run extension compile, lint, and tests.
   Verify: `cd extensions/vscode && npm run compile && npm run lint && npm test`
-- [ ] T085: Build Python distribution artifacts.
+- [x] T085: Build Python distribution artifacts.
   Verify: `source .venv/bin/activate && python -m hatch build`
 - [ ] T086: Run a manual VS Code Chat smoke test with `@codegopher`.
   Verify: manual run in VS Code Extension Development Host
