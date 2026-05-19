@@ -11,11 +11,12 @@ Last reviewed: 2026-05-19
 - Docs and packaging-readiness tasks T077 through T081 are complete.
 - Automated release gates T082 through T085 are complete: full Python tests, Python lint/type checks, extension compile/lint/tests, and Python distribution build.
 - Manual VS Code smoke tests T086 and T087 remain pending and should be checked only after a human confirms the Extension Development Host workflows passed.
+- T088 tracks the documented remediation approach for the config precedence and import-order findings that should be resolved before finalizing the manual smoke gates.
 
 Practical readiness estimate:
 
-- v0.6 is a release candidate pending the two manual VS Code smoke-test gates.
-- No implementation blockers remain from the automated test, lint, typecheck, or build passes.
+- v0.6 is a release candidate pending the documented T088 follow-up and the two manual VS Code smoke-test gates.
+- No implementation blockers remain from the automated test, lint, typecheck, or build passes before the T088 review findings were identified.
 
 ## Current Repository State
 
@@ -34,11 +35,11 @@ Practical readiness estimate:
 | Chat, approval, and cancellation UX | Complete | Streaming text, tool progress, errors, approval buttons, duplicate-decision prevention, cancellation, and recovery are covered by automated tests. |
 | Settings, errors, and workspace handling | Complete | CLI path resolution, overrides, deterministic workspace selection, recovery guidance, and lifecycle logging are implemented. |
 | Docs and packaging readiness | Complete through T085 | README, product intro, release checklist, VSIX docs, testing guide, automated checks, and Hatch build are complete. |
-| Manual VS Code smoke tests | Pending | T086 and T087 still require human confirmation in a VS Code Extension Development Host. |
+| Manual VS Code smoke tests | Pending | T086 and T087 still require human confirmation in a VS Code Extension Development Host after the T088 review follow-up is resolved. |
 
 ## Verified Facts
 
-- `docs/plans/v0.6/TODO.md` has T077 through T085 checked and T086/T087 still unchecked.
+- `docs/plans/v0.6/TODO.md` has T077 through T085 checked and T086/T087/T088 still unchecked.
 - Full Python test suite passed on Windows with Python 3.13.11: `582 passed, 1 skipped`.
 - Python lint and type checks passed: `ruff check src/ tests/` and `mypy src/`.
 - Extension compile, lint, and tests passed: `npm run compile`, `npm run lint`, and `npm test`.
@@ -54,8 +55,9 @@ Practical readiness estimate:
 
 - T086: Run a manual VS Code Chat smoke test with `@codegopher` in an Extension Development Host.
 - T087: Run manual configured LLM endpoint and MCP server management smoke tests in an Extension Development Host.
-- After those pass, check T086/T087 in `TODO.md` and commit each confirmation separately.
+- T088: Document and resolve the config precedence and import-order remediation approach before finalizing manual smoke gates.
+- After those pass, check T086/T087/T088 in `TODO.md` with focused commits.
 
 ## Implementation Recommendation
 
-Do not start new v0.6 implementation work before the manual smoke gates. Run the manual Extension Development Host checks in a disposable workspace, confirm the results, then mark and commit T086 and T087. Keep generated `.vsix`, `dist/`, `node_modules/`, `out/`, and `.vscode-test/` artifacts uncommitted.
+Resolve the T088 review follow-up first, then run the manual Extension Development Host checks in a disposable workspace, confirm the results, then mark and commit T086 and T087. Keep generated `.vsix`, `dist/`, `node_modules/`, `out/`, and `.vscode-test/` artifacts uncommitted.

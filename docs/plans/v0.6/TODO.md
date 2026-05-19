@@ -223,3 +223,5 @@ Commit rules:
   Verify: manual run in VS Code Extension Development Host
 - [ ] T087: Run manual configured LLM endpoint and MCP server management smoke tests in VS Code.
   Verify: manual run in VS Code Extension Development Host
+- [ ] T088: Document the config precedence and import-order remediation approach.
+  Verify: `rg -n "CODEGOPHER_API_KEY_ENV|config precedence|import-order|events.__init__|HF_TOKEN" docs/plans/v0.6/CONFIG_PRECEDENCE_IMPORT_FIX.md`
