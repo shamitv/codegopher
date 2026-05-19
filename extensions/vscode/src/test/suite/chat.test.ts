@@ -320,6 +320,46 @@ suite("CodeGopher chat controller", () => {
     await resultPromise;
   });
 
+  test("sends cancel_turn when VS Code cancels the chat request", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const outputChannel = new FakeOutputChannel();
+    const token = fakeCancellationToken();
+    const controller = new CodeGopherChatController({
+      outputChannel,
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-cancel"
+    });
+
+    const resultPromise = controller.handleRequest(fakeRequest("stop"), fakeContext(), stream.asChatStream(), token);
+
+    token.cancel();
+    token.cancel();
+
+    assert.deepEqual(fakeClient.cancelCalls, ["turn-cancel"]);
+    assert.deepEqual(outputChannel.lines, ["CodeGopher cancellation requested for turn-cancel."]);
+
+    fakeClient.emit({
+      version: 1,
+      type: "error",
+      turn_id: "turn-cancel",
+      code: "turn_cancelled",
+      message: "Turn cancelled"
+    });
+    fakeClient.failTurn(new Error("turn_cancelled: Turn cancelled"));
+
+    assert.deepEqual(await resultPromise, {
+      errorDetails: {
+        message: "turn_cancelled: Turn cancelled"
+      },
+      metadata: {
+        command: null,
+        participant: "codegopher",
+        turnId: "turn-cancel"
+      }
+    });
+  });
+
   test("returns one user-facing error when an error event rejects the turn", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();
@@ -607,6 +647,7 @@ class FakeChatClient implements CodeGopherChatClient {
   sessionStarted: SessionStartedEvent | undefined = undefined;
   readonly startCalls: StartCall[] = [];
   readonly approvalCalls: ApprovalCall[] = [];
+  readonly cancelCalls: string[] = [];
   restartCalls = 0;
   restartError: Error | undefined;
   private readonly listeners = new Set<(event: ProtocolEvent) => void>();
@@ -623,6 +664,10 @@ class FakeChatClient implements CodeGopherChatClient {
 
   submitApproval(approvalId: string, approved: boolean, reason?: string | null): void {
     this.approvalCalls.push({ approvalId, approved, reason });
+  }
+
+  cancelTurn(turnId: string): void {
+    this.cancelCalls.push(turnId);
   }
 
   onEvent(listener: (event: ProtocolEvent) => void): Disposable {
@@ -733,9 +778,39 @@ function fakeContext(): vscode.ChatContext {
   };
 }
 
-function fakeCancellationToken(): vscode.CancellationToken {
-  return {
-    isCancellationRequested: false,
-    onCancellationRequested: () => ({ dispose: () => undefined })
-  };
+function fakeCancellationToken(): FakeCancellationToken {
+  return new FakeCancellationToken();
+}
+
+class FakeCancellationToken implements vscode.CancellationToken {
+  isCancellationRequested = false;
+  private readonly listeners = new Set<() => void>();
+
+  onCancellationRequested(
+    listener: (event: unknown) => unknown,
+    thisArgs?: unknown,
+    disposables?: vscode.Disposable[]
+  ): vscode.Disposable {
+    const wrapped = () => {
+      listener.call(thisArgs, undefined);
+    };
+    this.listeners.add(wrapped);
+    const disposable = {
+      dispose: () => {
+        this.listeners.delete(wrapped);
+      }
+    };
+    disposables?.push(disposable);
+    return disposable;
+  }
+
+  cancel(): void {
+    if (this.isCancellationRequested) {
+      return;
+    }
+    this.isCancellationRequested = true;
+    for (const listener of [...this.listeners]) {
+      listener();
+    }
+  }
 }

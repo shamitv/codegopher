@@ -24,6 +24,7 @@ export interface CodeGopherChatClient {
   readonly sessionStarted?: SessionStartedEvent;
   startTurn(prompt: string, options?: StartTurnOptions): Promise<TurnCompleteEvent>;
   submitApproval(approvalId: string, approved: boolean, reason?: string | null): void;
+  cancelTurn(turnId: string): void;
   restart(): Promise<SessionStartedEvent>;
   onEvent(listener: (event: ProtocolEvent) => void): Disposable;
 }
@@ -115,7 +116,6 @@ export class CodeGopherChatController {
     token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
     void context;
-    void token;
 
     if (request.command === "help") {
       response.markdown(helpMarkdown());
@@ -177,12 +177,27 @@ export class CodeGopherChatController {
       }
     });
 
+    let cancellationSubscription: vscode.Disposable | undefined;
+    let cancellationSent = false;
+    const cancelCurrentTurn = () => {
+      if (cancellationSent) {
+        return;
+      }
+      cancellationSent = true;
+      this.cancelActiveTurn(client, turnId);
+    };
+
     try {
-      await client.startTurn(request.prompt, {
+      const turn = client.startTurn(request.prompt, {
         turnId,
         selectedFile: activeEditorPath(),
         editorMetadata: activeEditorMetadata()
       });
+      cancellationSubscription = token.onCancellationRequested(cancelCurrentTurn);
+      if (token.isCancellationRequested) {
+        cancelCurrentTurn();
+      }
+      await turn;
     } catch (error) {
       const message = reportedError ?? errorMessage(error);
       if (!reportedError) {
@@ -199,6 +214,7 @@ export class CodeGopherChatController {
         }
       };
     } finally {
+      cancellationSubscription?.dispose();
       subscription.dispose();
       this.clearTurnApprovals(turnId);
     }
@@ -262,6 +278,15 @@ export class CodeGopherChatController {
       if (pending.turnId === turnId) {
         this.pendingApprovals.delete(approvalId);
       }
+    }
+  }
+
+  private cancelActiveTurn(client: CodeGopherChatClient, turnId: string): void {
+    try {
+      client.cancelTurn(turnId);
+      this.outputChannel.appendLine(`CodeGopher cancellation requested for ${turnId}.`);
+    } catch (error) {
+      this.outputChannel.appendLine(`CodeGopher cancellation failed for ${turnId}: ${errorMessage(error)}`);
     }
   }
 

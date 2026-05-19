@@ -179,7 +179,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T068: Prevent duplicate approval decisions for the same approval id.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T069: Respect VS Code cancellation tokens by sending `cancel_turn`.
+- [x] T069: Respect VS Code cancellation tokens by sending `cancel_turn`.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T070: Confirm the subprocess can run another turn after cancellation or denial.
   Verify: `cd extensions/vscode && npm test`
