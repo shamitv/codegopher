@@ -199,6 +199,50 @@ suite("CodeGopher chat controller", () => {
     });
     assert.deepEqual(stream.markdownParts, ["CodeGopher error: CodeGopher subprocess exited."]);
   });
+
+  test("hides reasoning deltas from chat while logging content-free progress", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const outputChannel = new FakeOutputChannel();
+    const controller = new CodeGopherChatController({
+      outputChannel,
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-reasoning"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("think"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.emit({
+      version: 1,
+      type: "reasoning_delta",
+      turn_id: "turn-reasoning",
+      content: "private chain of thought"
+    });
+    fakeClient.emit({
+      version: 1,
+      type: "text_delta",
+      turn_id: "turn-reasoning",
+      content: "public answer"
+    });
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-reasoning",
+      final_text: "public answer"
+    });
+
+    await resultPromise;
+
+    assert.deepEqual(stream.markdownParts, ["public answer"]);
+    assert.deepEqual(stream.progressParts, []);
+    assert.deepEqual(outputChannel.lines, ["CodeGopher reasoning update for turn-reasoning."]);
+    assert.ok(!outputChannel.lines.join("\n").includes("private chain of thought"));
+  });
 });
 
 interface StartCall {

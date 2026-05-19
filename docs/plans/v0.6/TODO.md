@@ -143,7 +143,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T053: Render provider and protocol errors as user-facing chat errors.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T054: Hide reasoning deltas by default while surfacing reasoning progress in trace/debug paths.
+- [x] T054: Hide reasoning deltas by default while surfacing reasoning progress in trace/debug paths.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T055: Implement `/help` and `/status` chat commands.
   Verify: `cd extensions/vscode && npm test`

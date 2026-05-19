@@ -86,6 +86,10 @@ export class CodeGopherChatController {
         response.markdown(event.content);
         return;
       }
+      if (event.type === "reasoning_delta") {
+        this.outputChannel.appendLine(`CodeGopher reasoning update for ${turnId}.`);
+        return;
+      }
       if (event.type === "tool_call") {
         toolNames.set(event.tool_id, event.tool_name);
         response.progress(`Calling ${event.tool_name}${formatSummary(event.arguments_summary)}`);
