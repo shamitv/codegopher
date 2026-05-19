@@ -120,6 +120,12 @@ def _cli_overrides(overrides: CliOverrides | None) -> dict[str, Any]:
     return data
 
 
+def _apply_non_cli_env_overrides(data: dict[str, Any], environ: Mapping[str, str]) -> None:
+    """Re-apply env-only provider fields that have no CLI flag equivalent."""
+    if api_key_env := environ.get("CODEGOPHER_API_KEY_ENV"):
+        _ensure_provider_entry(data)["api_key_env"] = api_key_env
+
+
 def load_settings(
     *,
     cwd: Path | None = None,
@@ -157,6 +163,7 @@ def load_settings_with_metadata(
     data = _merge(data, project_config)
     data = _merge(data, env_config)
     data = _merge(data, cli_config)
+    _apply_non_cli_env_overrides(data, env)
 
     sources: list[str] = []
     if home_config or project_config:
