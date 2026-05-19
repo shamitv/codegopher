@@ -4,12 +4,13 @@ import { PassThrough } from "node:stream";
 
 import {
   CodeGopherClient,
+  CodeGopherProtocolError,
   SubprocessStartError,
   buildCliArgs,
   type CodeGopherProcess,
   type SpawnOptions
 } from "../../client";
-import { encodeProtocolMessage, type SessionStartedEvent } from "../../protocol";
+import { encodeProtocolMessage, type ProtocolEvent, type SessionStartedEvent } from "../../protocol";
 
 suite("CodeGopherClient startup", () => {
   test("builds cli args with non-empty overrides", () => {
@@ -116,6 +117,94 @@ suite("CodeGopherClient startup", () => {
 
     await assert.rejects(started, SubprocessStartError);
   });
+
+  test("routes typed protocol events to listeners", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      spawnProcess: () => fakeProcess
+    });
+    const events: ProtocolEvent[] = [];
+    client.onEvent((event) => {
+      events.push(event);
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write(allProtocolEvents.map((event) => encodeProtocolMessage(event)).join(""));
+
+    assert.deepEqual(await started, sessionStartedEvent);
+    assert.deepEqual(
+      events.map((event) => event.type),
+      allProtocolEvents.map((event) => event.type)
+    );
+  });
+
+  test("disposes protocol event listeners", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      spawnProcess: () => fakeProcess
+    });
+    const events: ProtocolEvent[] = [];
+    const disposable = client.onEvent((event) => {
+      events.push(event);
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    disposable.dispose();
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "text_delta",
+        turn_id: "turn-1",
+        content: "after dispose"
+      })
+    );
+
+    await started;
+    assert.deepEqual(events, [sessionStartedEvent]);
+  });
+
+  test("rejects startup and emits errors for invalid stdout protocol", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      spawnProcess: () => fakeProcess
+    });
+    const errors: Error[] = [];
+    client.onError((error) => {
+      errors.push(error);
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write("{not json}\n");
+
+    await assert.rejects(started, /Malformed protocol JSON/);
+    assert.match(errors[0].message, /Malformed protocol JSON/);
+  });
+
+  test("treats command-shaped stdout as a protocol error", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      spawnProcess: () => fakeProcess
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "shutdown"
+      })
+    );
+
+    await assert.rejects(started, CodeGopherProtocolError);
+  });
 });
 
 const sessionStartedEvent: SessionStartedEvent = {
@@ -127,6 +216,104 @@ const sessionStartedEvent: SessionStartedEvent = {
   model: "gpt-test",
   approval_mode: "review"
 };
+
+const allProtocolEvents: ProtocolEvent[] = [
+  sessionStartedEvent,
+  {
+    version: 1,
+    type: "turn_started",
+    session_id: "session-1",
+    turn_id: "turn-1",
+    cwd: "/repo"
+  },
+  {
+    version: 1,
+    type: "text_delta",
+    turn_id: "turn-1",
+    content: "answer"
+  },
+  {
+    version: 1,
+    type: "reasoning_delta",
+    turn_id: "turn-1",
+    content: "thinking"
+  },
+  {
+    version: 1,
+    type: "tool_call",
+    turn_id: "turn-1",
+    tool_id: "tool-1",
+    tool_name: "read_file",
+    arguments_summary: "{\"path\":\"README.md\"}"
+  },
+  {
+    version: 1,
+    type: "approval_request",
+    turn_id: "turn-1",
+    approval_id: "approval-1",
+    tool_name: "write_file",
+    arguments_summary: "{\"path\":\"new.txt\"}",
+    raw_arguments: { path: "new.txt" }
+  },
+  {
+    version: 1,
+    type: "tool_result",
+    turn_id: "turn-1",
+    tool_id: "tool-1",
+    is_error: false,
+    result_summary: "ok"
+  },
+  {
+    version: 1,
+    type: "error",
+    code: "provider_error",
+    message: "provider failed"
+  },
+  {
+    version: 1,
+    type: "turn_complete",
+    turn_id: "turn-1",
+    final_text: "answer",
+    tool_count: 1,
+    approval_count: 1,
+    iteration_count: 1
+  },
+  {
+    version: 1,
+    type: "config_snapshot",
+    workspace_root: "/repo",
+    provider: "openai",
+    model: "gpt-test",
+    api_family: "responses",
+    base_url: "https://api.example.test/v1",
+    config_sources: ["defaults"]
+  },
+  {
+    version: 1,
+    type: "mcp_servers",
+    workspace_root: "/repo",
+    servers: [
+      {
+        name: "playwright",
+        source: "project",
+        server: { transport: "stdio", command: "npx", args: ["@playwright/mcp@latest"] }
+      }
+    ]
+  },
+  {
+    version: 1,
+    type: "mcp_server_saved",
+    workspace_root: "/repo",
+    server_name: "playwright",
+    server: { transport: "stdio", command: "npx", args: ["@playwright/mcp@latest"] }
+  },
+  {
+    version: 1,
+    type: "mcp_server_deleted",
+    workspace_root: "/repo",
+    server_name: "playwright"
+  }
+];
 
 class FakeCodeGopherProcess extends EventEmitter implements CodeGopherProcess {
   readonly stdin = new PassThrough();

@@ -5,8 +5,10 @@ import {
   JsonlProtocolParser,
   ProtocolParseError,
   encodeProtocolMessage,
+  isProtocolEvent,
   type ApiFamily,
   type ApprovalMode,
+  type ProtocolEvent,
   type ProtocolMessage,
   type SessionStartedEvent
 } from "./protocol";
@@ -55,6 +57,20 @@ export class SubprocessStartError extends CodeGopherClientError {
   }
 }
 
+export class CodeGopherProtocolError extends CodeGopherClientError {
+  constructor(message: string) {
+    super(message);
+    this.name = "CodeGopherProtocolError";
+  }
+}
+
+export interface Disposable {
+  dispose(): void;
+}
+
+export type ProtocolEventListener = (event: ProtocolEvent) => void;
+export type ClientErrorListener = (error: CodeGopherClientError | ProtocolParseError) => void;
+
 export class CodeGopherClient {
   private readonly options: CodeGopherClientOptions;
   private readonly spawnProcess: SpawnProcess;
@@ -64,6 +80,8 @@ export class CodeGopherClient {
   private resolveStart: ((event: SessionStartedEvent) => void) | undefined;
   private rejectStart: ((error: Error) => void) | undefined;
   private session: SessionStartedEvent | undefined;
+  private readonly eventListeners = new Set<ProtocolEventListener>();
+  private readonly errorListeners = new Set<ClientErrorListener>();
 
   constructor(options: CodeGopherClientOptions) {
     this.options = options;
@@ -100,6 +118,24 @@ export class CodeGopherClient {
     return this.session;
   }
 
+  onEvent(listener: ProtocolEventListener): Disposable {
+    this.eventListeners.add(listener);
+    return {
+      dispose: () => {
+        this.eventListeners.delete(listener);
+      }
+    };
+  }
+
+  onError(listener: ClientErrorListener): Disposable {
+    this.errorListeners.add(listener);
+    return {
+      dispose: () => {
+        this.errorListeners.delete(listener);
+      }
+    };
+  }
+
   protected send(message: ProtocolMessage): void {
     if (!this.process) {
       throw new CodeGopherClientError("CodeGopher subprocess is not running.");
@@ -132,8 +168,13 @@ export class CodeGopherClient {
     try {
       messages = this.parser.push(chunk);
     } catch (error) {
-      const parseError = error instanceof Error ? error : new ProtocolParseError("Unknown protocol parse error");
-      this.rejectStartup(parseError);
+      if (error instanceof ProtocolParseError) {
+        this.handleClientError(error);
+      } else if (error instanceof Error) {
+        this.handleClientError(new CodeGopherProtocolError(error.message));
+      } else {
+        this.handleClientError(new ProtocolParseError("Unknown protocol parse error"));
+      }
       return;
     }
 
@@ -143,6 +184,11 @@ export class CodeGopherClient {
   }
 
   private handleMessage(message: ProtocolMessage): void {
+    if (!isProtocolEvent(message)) {
+      this.handleClientError(new CodeGopherProtocolError(`Unexpected protocol command on stdout: ${message.type}`));
+      return;
+    }
+    this.emitEvent(message);
     if (message.type !== "session_started") {
       return;
     }
@@ -157,6 +203,19 @@ export class CodeGopherClient {
     this.resolveStart = undefined;
     this.rejectStart = undefined;
     this.startPromise = undefined;
+  }
+
+  private handleClientError(error: CodeGopherClientError | ProtocolParseError): void {
+    this.rejectStartup(error);
+    for (const listener of [...this.errorListeners]) {
+      listener(error);
+    }
+  }
+
+  private emitEvent(event: ProtocolEvent): void {
+    for (const listener of [...this.eventListeners]) {
+      listener(event);
+    }
   }
 }
 

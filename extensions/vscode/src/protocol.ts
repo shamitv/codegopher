@@ -240,7 +240,24 @@ export const protocolTypes = [
 
 type ProtocolType = (typeof protocolTypes)[number];
 
+export const protocolEventTypes = [
+  "session_started",
+  "turn_started",
+  "text_delta",
+  "reasoning_delta",
+  "tool_call",
+  "approval_request",
+  "tool_result",
+  "error",
+  "turn_complete",
+  "config_snapshot",
+  "mcp_servers",
+  "mcp_server_saved",
+  "mcp_server_deleted"
+] as const;
+
 const protocolTypeSet = new Set<string>(protocolTypes);
+const protocolEventTypeSet = new Set<string>(protocolEventTypes);
 
 export class ProtocolParseError extends Error {
   constructor(message: string) {
@@ -322,6 +339,10 @@ export class JsonlProtocolParser {
   clear(): void {
     this.buffer = "";
   }
+}
+
+export function isProtocolEvent(message: ProtocolMessage): message is ProtocolEvent {
+  return protocolEventTypeSet.has(message.type);
 }
 
 function validateMessage(type: ProtocolType, message: Record<string, unknown>): void {

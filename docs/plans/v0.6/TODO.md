@@ -120,7 +120,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T043: Add a CodeGopher subprocess client that launches `cgopher --events` in the workspace root.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T044: Add typed event routing for all protocol event types.
+- [x] T044: Add typed event routing for all protocol event types.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T045: Add pending request tracking for turns and approvals.
   Verify: `cd extensions/vscode && npm test`
