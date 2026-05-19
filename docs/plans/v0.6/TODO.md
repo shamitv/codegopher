@@ -175,7 +175,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T066: Route Approve button clicks to `approval_response`.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T067: Route Deny button clicks to `approval_response` with a default denial reason.
+- [x] T067: Route Deny button clicks to `approval_response` with a default denial reason.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T068: Prevent duplicate approval decisions for the same approval id.
   Verify: `cd extensions/vscode && npm test`

@@ -6,6 +6,7 @@ import {
   approvalApproveCommandId,
   approvalDenyCommandId,
   CodeGopherChatController,
+  defaultApprovalDenialReason,
   type CodeGopherChatClient
 } from "../../chat";
 import type { Disposable } from "../../client";
@@ -222,6 +223,48 @@ suite("CodeGopher chat controller", () => {
       version: 1,
       type: "turn_complete",
       turn_id: "turn-approve"
+    });
+    await resultPromise;
+  });
+
+  test("routes deny decisions to approval_response with a default reason", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-deny"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("write"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.emit({
+      version: 1,
+      type: "approval_request",
+      turn_id: "turn-deny",
+      approval_id: "approval-deny",
+      tool_name: "write_file"
+    });
+
+    controller.denyApproval("approval-deny");
+
+    assert.deepEqual(fakeClient.approvalCalls, [
+      {
+        approvalId: "approval-deny",
+        approved: false,
+        reason: defaultApprovalDenialReason
+      }
+    ]);
+
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-deny"
     });
     await resultPromise;
   });

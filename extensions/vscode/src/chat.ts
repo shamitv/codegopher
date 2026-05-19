@@ -16,6 +16,7 @@ export const chatParticipantName = "codegopher";
 export const chatOpenQuery = "@codegopher ";
 export const approvalApproveCommandId = "codegopher.approveApproval";
 export const approvalDenyCommandId = "codegopher.denyApproval";
+export const defaultApprovalDenialReason = "Denied from VS Code.";
 const maxProgressSummaryLength = 160;
 
 export interface CodeGopherChatClient {
@@ -70,7 +71,8 @@ export class CodeGopherChatController {
 
     context.subscriptions.push(
       participant,
-      vscode.commands.registerCommand(approvalApproveCommandId, (approvalId: string) => this.approveApproval(approvalId))
+      vscode.commands.registerCommand(approvalApproveCommandId, (approvalId: string) => this.approveApproval(approvalId)),
+      vscode.commands.registerCommand(approvalDenyCommandId, (approvalId: string) => this.denyApproval(approvalId))
     );
   }
 
@@ -96,6 +98,10 @@ export class CodeGopherChatController {
 
   approveApproval(approvalId: string): void {
     this.submitApprovalDecision(approvalId, true);
+  }
+
+  denyApproval(approvalId: string): void {
+    this.submitApprovalDecision(approvalId, false, defaultApprovalDenialReason);
   }
 
   configClient(): CodeGopherConfigClient {
