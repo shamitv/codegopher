@@ -1,7 +1,8 @@
 import * as assert from "node:assert/strict";
 
-import { CodeGopherConfigUiController, formatEndpointDetails } from "../../configUi";
+import { CodeGopherConfigUiController, formatEndpointDetails, formatMcpServerListItems } from "../../configUi";
 import type { CodeGopherConfigClient } from "../../client";
+import type { CodeGopherQuickPickItem } from "../../configUi";
 import type {
   ConfigSnapshotEvent,
   McpServerDeletedEvent,
@@ -86,11 +87,96 @@ suite("CodeGopher config UI", () => {
       "CodeGopher endpoint inspection failed: configuration_error: Invalid settings"
     ]);
   });
+
+  test("shows MCP add actions for an empty server list", async () => {
+    const client = new FakeConfigClient();
+    client.mcpServers = [];
+    const dialogs = new FakeConfigDialogs();
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.equal(client.listMcpServersCalls, 1);
+    assert.equal(dialogs.quickPickCalls.length, 1);
+    assert.deepEqual(
+      dialogs.quickPickCalls[0]?.items.map((item) => item.label),
+      ["$(add) Add stdio server", "$(add) Add SSE server"]
+    );
+  });
+
+  test("formats MCP stdio and SSE server rows", () => {
+    const items = formatMcpServerListItems({
+      version: 1,
+      type: "mcp_servers",
+      workspace_root: "/repo",
+      servers: [
+        {
+          name: "playwright",
+          source: "project",
+          server: {
+            enabled: true,
+            transport: "stdio",
+            command: "npx",
+            args: ["@playwright/mcp@latest"]
+          }
+        },
+        {
+          name: "docs",
+          source: "user",
+          server: {
+            enabled: false,
+            transport: "sse",
+            url: "https://mcp.example.test/sse?token=raw-token"
+          }
+        }
+      ]
+    });
+
+    assert.deepEqual(
+      items.map((item) => item.label),
+      ["$(add) Add stdio server", "$(add) Add SSE server", "$(check) playwright", "$(circle-slash) docs"]
+    );
+    assert.equal(items[2]?.description, "enabled - stdio - project");
+    assert.equal(items[2]?.detail, "npx @playwright/mcp@latest");
+    assert.equal(items[3]?.description, "disabled - sse - user");
+    assert.equal(items[3]?.detail, "https://mcp.example.test/sse?token=[redacted]");
+  });
+
+  test("leaves MCP list selection cancellation alone", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.equal(client.listMcpServersCalls, 1);
+    assert.deepEqual(dialogs.informationMessages, []);
+    assert.deepEqual(dialogs.errorMessages, []);
+  });
 });
 
 class FakeConfigClient implements CodeGopherConfigClient {
   getEffectiveConfigCalls = 0;
   getEffectiveConfigError: Error | undefined;
+  listMcpServersCalls = 0;
+  mcpServers: McpServersEvent["servers"] = [
+    {
+      name: "playwright",
+      source: "project",
+      server: {
+        enabled: true,
+        transport: "stdio",
+        command: "npx",
+        args: ["@playwright/mcp@latest"]
+      }
+    }
+  ];
 
   getEffectiveConfig(): Promise<ConfigSnapshotEvent> {
     this.getEffectiveConfigCalls += 1;
@@ -110,7 +196,13 @@ class FakeConfigClient implements CodeGopherConfigClient {
   }
 
   listMcpServers(): Promise<McpServersEvent> {
-    throw new Error("Not implemented.");
+    this.listMcpServersCalls += 1;
+    return Promise.resolve({
+      version: 1,
+      type: "mcp_servers",
+      workspace_root: "/repo",
+      servers: this.mcpServers
+    });
   }
 
   saveMcpServer(): Promise<McpServerSavedEvent> {
@@ -129,6 +221,7 @@ class FakeConfigClient implements CodeGopherConfigClient {
 class FakeConfigDialogs {
   readonly informationMessages: string[] = [];
   readonly errorMessages: string[] = [];
+  readonly quickPickCalls: Array<{ items: readonly CodeGopherQuickPickItem[]; options: unknown }> = [];
 
   showInformationMessage(message: string): PromiseLike<string | undefined> {
     this.informationMessages.push(message);
@@ -137,6 +230,14 @@ class FakeConfigDialogs {
 
   showErrorMessage(message: string): PromiseLike<string | undefined> {
     this.errorMessages.push(message);
+    return Promise.resolve(undefined);
+  }
+
+  showQuickPick<T extends CodeGopherQuickPickItem>(
+    items: readonly T[],
+    options?: unknown
+  ): PromiseLike<T | undefined> {
+    this.quickPickCalls.push({ items, options });
     return Promise.resolve(undefined);
   }
 }
