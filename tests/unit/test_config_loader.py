@@ -113,6 +113,24 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
     assert settings.providers["openai"][0].api_family.value == "responses"
 
 
+def test_load_settings_preserves_env_api_key_env_with_cli_endpoint_overrides(tmp_path: Path) -> None:
+    settings = load_settings(
+        cwd=tmp_path,
+        home=tmp_path,
+        environ={"CODEGOPHER_API_KEY_ENV": "LOCAL_API_KEY"},
+        cli_overrides=CliOverrides(
+            model="local-model",
+            base_url="http://localhost:8000/v1",
+            api_family="chat_completions",
+        ),
+    )
+
+    assert settings.model.name == "local-model"
+    assert settings.providers["openai"][0].base_url == "http://localhost:8000/v1"
+    assert settings.providers["openai"][0].api_key_env == "LOCAL_API_KEY"
+    assert settings.providers["openai"][0].api_family.value == "chat_completions"
+
+
 def test_load_settings_reports_malformed_toml_source(tmp_path: Path) -> None:
     config_dir = tmp_path / ".codegopher"
     config_dir.mkdir()
