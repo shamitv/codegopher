@@ -170,6 +170,48 @@ suite("CodeGopherClient startup", () => {
     assert.equal(client.isRunning, true);
   });
 
+  test("spawns cgopher events mode with configured CLI overrides", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const calls: Array<{ command: string; args: string[]; options: SpawnOptions }> = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      provider: "openai",
+      model: "gpt-test",
+      baseUrl: "https://api.example.test/v1",
+      apiFamily: "responses",
+      approvalMode: "review",
+      spawnProcess: (command, args, options) => {
+        calls.push({ command, args, options });
+        return fakeProcess;
+      }
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+
+    assert.deepEqual(calls, [
+      {
+        command: "cgopher",
+        args: [
+          "--events",
+          "--provider",
+          "openai",
+          "--model",
+          "gpt-test",
+          "--base-url",
+          "https://api.example.test/v1",
+          "--api-family",
+          "responses",
+          "--approval-mode",
+          "review"
+        ],
+        options: { cwd: "/repo", stdio: ["pipe", "pipe", "pipe"] }
+      }
+    ]);
+    assert.deepEqual(await started, sessionStartedEvent);
+  });
+
   test("returns the existing startup promise when called twice", async () => {
     const fakeProcess = new FakeCodeGopherProcess();
     let spawnCount = 0;

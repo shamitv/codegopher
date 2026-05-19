@@ -188,7 +188,7 @@ Commit rules:
 
 - [x] T071: Implement `codegopher.cliPath` resolution with clear missing-executable errors.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T072: Pass configured provider, model, base URL, API family, and approval mode overrides to the CLI.
+- [x] T072: Pass configured provider, model, base URL, API family, and approval mode overrides to the CLI.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T073: Select the workspace root deterministically and show it in `/status`.
   Verify: `cd extensions/vscode && npm test`
