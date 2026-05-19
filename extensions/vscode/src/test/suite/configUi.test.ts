@@ -5,6 +5,7 @@ import {
   formatEndpointDetails,
   formatMcpServerActionItems,
   formatMcpServerListItems,
+  formatUserError,
   hasSecretContainers,
   parseJsonStringArray,
   parseOptionalPositiveNumber,
@@ -96,6 +97,22 @@ suite("CodeGopher config UI", () => {
     assert.deepEqual(dialogs.errorMessages, [
       "CodeGopher endpoint inspection failed: configuration_error: Invalid settings"
     ]);
+  });
+
+  test("redacts endpoint request errors", async () => {
+    const client = new FakeConfigClient();
+    client.getEffectiveConfigError = new Error("configuration_error: api_key=raw-key Authorization: Bearer raw-token");
+    const dialogs = new FakeConfigDialogs();
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.viewLlmEndpoint();
+
+    assert.doesNotMatch(dialogs.errorMessages[0] ?? "", /raw-key/);
+    assert.doesNotMatch(dialogs.errorMessages[0] ?? "", /raw-token/);
+    assert.match(dialogs.errorMessages[0] ?? "", /\[redacted\]/);
   });
 
   test("shows MCP add actions for an empty server list", async () => {
@@ -273,6 +290,23 @@ suite("CodeGopher config UI", () => {
     assert.match(dialogs.errorMessages[0] ?? "", /Arguments must be a JSON string array/);
   });
 
+  test("redacts MCP list request errors", async () => {
+    const client = new FakeConfigClient();
+    client.listMcpServersError = new Error("configuration_error: token=raw-token password: raw-password");
+    const dialogs = new FakeConfigDialogs();
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, []);
+    assert.doesNotMatch(dialogs.errorMessages[0] ?? "", /raw-token/);
+    assert.doesNotMatch(dialogs.errorMessages[0] ?? "", /raw-password/);
+    assert.match(dialogs.errorMessages[0] ?? "", /\[redacted\]/);
+  });
+
   test("edits a project-local stdio MCP server", async () => {
     const client = new FakeConfigClient();
     const dialogs = new FakeConfigDialogs();
@@ -298,6 +332,23 @@ suite("CodeGopher config UI", () => {
         }
       }
     ]);
+  });
+
+  test("redacts MCP save errors", async () => {
+    const client = new FakeConfigClient();
+    client.saveMcpServerError = new Error("configuration_error: headers Authorization=Bearer raw-token");
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(add) Add SSE server");
+    dialogs.inputValues.push("docs", "https://mcp.example.test/sse", "", "");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.doesNotMatch(dialogs.errorMessages[0] ?? "", /raw-token/);
+    assert.match(dialogs.errorMessages[0] ?? "", /\[redacted\]/);
   });
 
   test("edits an SSE MCP server", async () => {
@@ -544,6 +595,15 @@ suite("CodeGopher config UI", () => {
     assert.throws(() => parseOptionalPositiveNumber("0", "Timeout"), /Timeout must be a positive number/);
   });
 
+  test("formats user errors with redaction", () => {
+    const message = formatUserError(
+      "Prefix",
+      new Error("provider failed with credential: raw-credential and Bearer raw-token")
+    );
+
+    assert.equal(message, "Prefix: provider failed with credential: [redacted] and Bearer [redacted]");
+  });
+
   test("formats MCP action rows and detects secret containers", () => {
     const [item] = formatMcpServerActionItems({
       name: "playwright",
@@ -583,6 +643,8 @@ class FakeConfigClient implements CodeGopherConfigClient {
   getEffectiveConfigCalls = 0;
   getEffectiveConfigError: Error | undefined;
   listMcpServersCalls = 0;
+  listMcpServersError: Error | undefined;
+  saveMcpServerError: Error | undefined;
   readonly saveMcpServerCalls: SaveMcpServerCall[] = [];
   readonly setMcpServerEnabledCalls: SetMcpServerEnabledCall[] = [];
   readonly deleteMcpServerCalls: string[] = [];
@@ -618,6 +680,9 @@ class FakeConfigClient implements CodeGopherConfigClient {
 
   listMcpServers(): Promise<McpServersEvent> {
     this.listMcpServersCalls += 1;
+    if (this.listMcpServersError) {
+      return Promise.reject(this.listMcpServersError);
+    }
     return Promise.resolve({
       version: 1,
       type: "mcp_servers",
@@ -628,6 +693,9 @@ class FakeConfigClient implements CodeGopherConfigClient {
 
   saveMcpServer(serverName: string, server: McpServerPayload): Promise<McpServerSavedEvent> {
     this.saveMcpServerCalls.push({ serverName, server });
+    if (this.saveMcpServerError) {
+      return Promise.reject(this.saveMcpServerError);
+    }
     return Promise.resolve({
       version: 1,
       type: "mcp_server_saved",

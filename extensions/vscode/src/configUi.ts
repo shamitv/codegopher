@@ -71,7 +71,7 @@ export class CodeGopherConfigUiController {
       const snapshot = await this.clientProvider().getEffectiveConfig();
       await this.dialogs.showInformationMessage(formatEndpointDetails(snapshot));
     } catch (error) {
-      await this.dialogs.showErrorMessage(`CodeGopher endpoint inspection failed: ${errorMessage(error)}`);
+      await this.dialogs.showErrorMessage(formatUserError("CodeGopher endpoint inspection failed", error));
     }
   }
 
@@ -95,7 +95,7 @@ export class CodeGopherConfigUiController {
         await this.manageExistingServer(picked.server);
       }
     } catch (error) {
-      await this.dialogs.showErrorMessage(`CodeGopher MCP server management failed: ${errorMessage(error)}`);
+      await this.dialogs.showErrorMessage(formatUserError("CodeGopher MCP server management failed", error));
     }
   }
 
@@ -451,11 +451,8 @@ function defaultDialogs(): CodeGopherConfigDialogs {
   };
 }
 
-function errorMessage(error: unknown): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return "CodeGopher request failed.";
+export function formatUserError(prefix: string, error: unknown): string {
+  return `${prefix}: ${redactDisplayText(errorMessage(error))}`;
 }
 
 function formatConfigSources(sources: string[] | undefined): string {
@@ -467,8 +464,10 @@ function formatConfigSources(sources: string[] | undefined): string {
 
 export function redactDisplayText(value: string): string {
   return value
-    .replace(/(authorization\s*=\s*)(?:bearer\s+)?[^&\s]+/gi, "$1[redacted]")
-    .replace(/(api[_-]?key|authorization|password|passwd|secret|token|credential)=([^&\s]+)/gi, "$1=[redacted]")
+    .replace(
+      /((?:api[_-]?key|authorization|password|passwd|secret|token|credential)\s*[:=]\s*)(?:bearer\s+)?[^&\s,;]+/gi,
+      "$1[redacted]"
+    )
     .replace(/(bearer\s+)[^\s,;]+/gi, "$1[redacted]")
     .replace(/\/\/[^/@\s]+@/g, "//[redacted]@");
 }
@@ -587,4 +586,11 @@ function mcpServerDetail(snapshot: McpServerSnapshotPayload): string {
   }
   const command = [snapshot.server.command, ...(snapshot.server.args ?? [])].filter(Boolean).join(" ");
   return redactDisplayText(command || "No command configured");
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return "CodeGopher request failed.";
 }
