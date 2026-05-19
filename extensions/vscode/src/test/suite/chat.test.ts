@@ -2,7 +2,12 @@ import * as assert from "node:assert/strict";
 
 import type * as vscode from "vscode";
 
-import { CodeGopherChatController, type CodeGopherChatClient } from "../../chat";
+import {
+  approvalApproveCommandId,
+  approvalDenyCommandId,
+  CodeGopherChatController,
+  type CodeGopherChatClient
+} from "../../chat";
 import type { Disposable } from "../../client";
 import type { ProtocolEvent, SessionStartedEvent, TurnCompleteEvent } from "../../protocol";
 
@@ -129,6 +134,54 @@ suite("CodeGopher chat controller", () => {
     assert.match(stream.progressParts[1], /^read_file completed: line line/);
     assert.equal(stream.progressParts[1].length, "read_file completed: ".length + 160);
     assert.match(stream.progressParts[1], /\.\.\.$/);
+  });
+
+  test("renders approval requests with approve and deny buttons", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-approval"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("write"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.emit({
+      version: 1,
+      type: "approval_request",
+      turn_id: "turn-approval",
+      approval_id: "approval-1",
+      tool_name: "write_file",
+      arguments_summary: "{\"path\":\"new.txt\"}",
+      raw_arguments: { path: "new.txt" }
+    });
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-approval"
+    });
+
+    await resultPromise;
+
+    assert.deepEqual(stream.progressParts, ["Approval required for write_file: {\"path\":\"new.txt\"}"]);
+    assert.deepEqual(stream.buttonParts, [
+      {
+        command: approvalApproveCommandId,
+        title: "Approve",
+        arguments: ["approval-1"]
+      },
+      {
+        command: approvalDenyCommandId,
+        title: "Deny",
+        arguments: ["approval-1"]
+      }
+    ]);
   });
 
   test("returns one user-facing error when an error event rejects the turn", async () => {
@@ -469,6 +522,7 @@ class FakeChatClient implements CodeGopherChatClient {
 class FakeChatResponseStream {
   readonly markdownParts: string[] = [];
   readonly progressParts: string[] = [];
+  readonly buttonParts: vscode.Command[] = [];
 
   asChatStream(): vscode.ChatResponseStream {
     return {
@@ -476,7 +530,9 @@ class FakeChatResponseStream {
         this.markdownParts.push(value.toString());
       },
       anchor: () => undefined,
-      button: () => undefined,
+      button: (value) => {
+        this.buttonParts.push(value);
+      },
       filetree: () => undefined,
       progress: (value) => {
         this.progressParts.push(value);

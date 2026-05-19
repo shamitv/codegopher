@@ -14,6 +14,8 @@ import type { SessionStartedEvent } from "./protocol";
 export const chatParticipantId = "codegopher.codegopher";
 export const chatParticipantName = "codegopher";
 export const chatOpenQuery = "@codegopher ";
+export const approvalApproveCommandId = "codegopher.approveApproval";
+export const approvalDenyCommandId = "codegopher.denyApproval";
 const maxProgressSummaryLength = 160;
 
 export interface CodeGopherChatClient {
@@ -136,6 +138,20 @@ export class CodeGopherChatController {
       if (event.type === "tool_call") {
         toolNames.set(event.tool_id, event.tool_name);
         response.progress(`Calling ${event.tool_name}${formatSummary(event.arguments_summary)}`);
+        return;
+      }
+      if (event.type === "approval_request") {
+        response.progress(`Approval required for ${event.tool_name}${formatSummary(event.arguments_summary)}`);
+        response.button({
+          command: approvalApproveCommandId,
+          title: "Approve",
+          arguments: [event.approval_id]
+        });
+        response.button({
+          command: approvalDenyCommandId,
+          title: "Deny",
+          arguments: [event.approval_id]
+        });
         return;
       }
       if (event.type === "tool_result") {

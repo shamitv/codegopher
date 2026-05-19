@@ -171,7 +171,7 @@ Commit rules:
 
 ## Milestone 9 - Approval And Cancellation UX
 
-- [ ] T065: Render approval requests with Approve and Deny chat buttons.
+- [x] T065: Render approval requests with Approve and Deny chat buttons.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T066: Route Approve button clicks to `approval_response`.
   Verify: `cd extensions/vscode && npm test`
