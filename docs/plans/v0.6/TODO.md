@@ -137,7 +137,7 @@ Commit rules:
 
 - [x] T050: Register the `@codegopher` chat participant in the extension manifest and activation code.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T051: Stream `text_delta` events into VS Code Chat markdown.
+- [x] T051: Stream `text_delta` events into VS Code Chat markdown.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T052: Render `tool_call` and `tool_result` events as progress and compact chat summaries.
   Verify: `cd extensions/vscode && npm test`

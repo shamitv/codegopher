@@ -6,7 +6,7 @@ const outputChannelName = "CodeGopher";
 
 export function activate(context: vscode.ExtensionContext): void {
   const outputChannel = vscode.window.createOutputChannel(outputChannelName);
-  const chatController = new CodeGopherChatController(outputChannel);
+  const chatController = new CodeGopherChatController({ outputChannel });
   chatController.register(context);
 
   context.subscriptions.push(
