@@ -152,21 +152,21 @@ Commit rules:
 
 ## Milestone 8 - Endpoint And MCP Configuration UI
 
-- [ ] T057: Implement `CodeGopher: View LLM Endpoint` using the Python `get_effective_config` response.
+- [x] T057: Implement `CodeGopher: View LLM Endpoint` using the Python `get_effective_config` response.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T058: Display provider, model, API family, base URL, and config source for the configured LLM endpoint without secrets.
+- [x] T058: Display provider, model, API family, base URL, and config source for the configured LLM endpoint without secrets.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T059: Implement `CodeGopher: Manage MCP Servers` list view with server name, enabled state, transport, and source.
+- [x] T059: Implement `CodeGopher: Manage MCP Servers` list view with server name, enabled state, transport, and source.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T060: Add MCP server creation flows for stdio and SSE servers.
+- [x] T060: Add MCP server creation flows for stdio and SSE servers.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T061: Add MCP server edit flows for supported non-secret fields.
+- [x] T061: Add MCP server edit flows for supported non-secret fields.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T062: Add MCP server enable, disable, and remove flows with confirmation for destructive actions.
+- [x] T062: Add MCP server enable, disable, and remove flows with confirmation for destructive actions.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T063: Surface Python validation and config-write errors in VS Code without raw secret values.
+- [x] T063: Surface Python validation and config-write errors in VS Code without raw secret values.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T064: Add VS Code command tests for endpoint display and MCP server management flows.
+- [x] T064: Add VS Code command tests for endpoint display and MCP server management flows.
   Verify: `cd extensions/vscode && npm test`
 
 ## Milestone 9 - Approval And Cancellation UX
