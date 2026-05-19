@@ -16,3 +16,15 @@ def test_tui_imports_are_available() -> None:
 
 def test_builtin_skill_discovery_import_is_available() -> None:
     assert callable(discover_builtin_skills)
+
+
+def test_config_inspection_import_is_available() -> None:
+    from codegopher.config.inspection import inspect_effective_config
+
+    assert callable(inspect_effective_config)
+
+
+def test_events_session_lazy_export_is_available() -> None:
+    from codegopher.events import EventsSession
+
+    assert EventsSession.__name__ == "EventsSession"
