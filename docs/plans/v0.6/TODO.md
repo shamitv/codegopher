@@ -213,7 +213,7 @@ Commit rules:
   Verify: `rg -n "macOS|Windows|Linux|Insiders|Extension Development Host|headless" docs/devguide`
 - [x] T082: Run the complete Python test suite.
   Verify: `source .venv/bin/activate && python -m pytest`
-- [ ] T083: Run Python lint and type checks.
+- [x] T083: Run Python lint and type checks.
   Verify: `source .venv/bin/activate && ruff check src/ tests/ && mypy src/`
 - [ ] T084: Run extension compile, lint, and tests.
   Verify: `cd extensions/vscode && npm run compile && npm run lint && npm test`
