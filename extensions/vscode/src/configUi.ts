@@ -11,6 +11,11 @@ export interface CodeGopherConfigUiControllerOptions {
 export interface CodeGopherConfigDialogs {
   showInformationMessage(message: string, ...items: string[]): PromiseLike<string | undefined>;
   showErrorMessage(message: string, ...items: string[]): PromiseLike<string | undefined>;
+  showWarningMessage(
+    message: string,
+    options: CodeGopherMessageOptions,
+    ...items: string[]
+  ): PromiseLike<string | undefined>;
   showQuickPick<T extends CodeGopherQuickPickItem>(
     items: readonly T[],
     options?: CodeGopherQuickPickOptions
@@ -37,10 +42,19 @@ export interface CodeGopherInputBoxOptions {
   ignoreFocusOut?: boolean;
 }
 
+export interface CodeGopherMessageOptions {
+  modal?: boolean;
+}
+
 export interface McpServerListItem extends CodeGopherQuickPickItem {
   itemType: "add_stdio" | "add_sse" | "server";
   serverName?: string;
   server?: McpServerSnapshotPayload;
+}
+
+export interface McpServerActionItem extends CodeGopherQuickPickItem {
+  itemType: "edit";
+  server: McpServerSnapshotPayload;
 }
 
 export class CodeGopherConfigUiController {
@@ -77,8 +91,24 @@ export class CodeGopherConfigUiController {
       if (picked.itemType === "add_sse") {
         await this.createSseServer();
       }
+      if (picked.itemType === "server" && picked.server) {
+        await this.manageExistingServer(picked.server);
+      }
     } catch (error) {
       await this.dialogs.showErrorMessage(`CodeGopher MCP server management failed: ${errorMessage(error)}`);
+    }
+  }
+
+  private async manageExistingServer(server: McpServerSnapshotPayload): Promise<void> {
+    const picked = await this.dialogs.showQuickPick(formatMcpServerActionItems(server), {
+      title: `CodeGopher MCP Server: ${server.name}`,
+      placeHolder: "Select an action"
+    });
+    if (!picked) {
+      return;
+    }
+    if (picked.itemType === "edit") {
+      await this.editMcpServer(server);
     }
   }
 
@@ -136,6 +166,135 @@ export class CodeGopherConfigUiController {
 
     await this.clientProvider().saveMcpServer(serverName, server);
     await this.dialogs.showInformationMessage(`CodeGopher MCP server saved: ${serverName}`);
+  }
+
+  private async editMcpServer(snapshot: McpServerSnapshotPayload): Promise<void> {
+    if (hasSecretContainers(snapshot.server)) {
+      await this.dialogs.showErrorMessage(
+        "Editing MCP servers with env, headers, or headers_env is not supported in VS Code."
+      );
+      return;
+    }
+    if (snapshot.source !== "project") {
+      const confirmed = await this.dialogs.showWarningMessage(
+        `Editing ${snapshot.name} will create a project-local override.`,
+        { modal: true },
+        "Create Override"
+      );
+      if (confirmed !== "Create Override") {
+        return;
+      }
+    }
+    if ((snapshot.server.transport ?? "stdio") === "sse") {
+      await this.editSseServer(snapshot);
+      return;
+    }
+    await this.editStdioServer(snapshot);
+  }
+
+  private async editStdioServer(snapshot: McpServerSnapshotPayload): Promise<void> {
+    const command = await this.promptRequiredText(
+      "Command",
+      "Command used to launch the MCP server",
+      "npx",
+      snapshot.server.command ?? ""
+    );
+    if (!command) {
+      return;
+    }
+    const argsText = await this.dialogs.showInputBox({
+      title: "Arguments",
+      prompt: "JSON string array of command arguments",
+      placeHolder: "[\"@modelcontextprotocol/server-filesystem\", \".\"]",
+      value: JSON.stringify(snapshot.server.args ?? []),
+      ignoreFocusOut: true
+    });
+    if (argsText === undefined) {
+      return;
+    }
+    const args = parseJsonStringArray(argsText, "Arguments");
+    const cwd = await this.dialogs.showInputBox({
+      title: "Working directory",
+      prompt: "Optional working directory for the MCP server",
+      placeHolder: "/absolute/path or blank",
+      value: snapshot.server.cwd ?? "",
+      ignoreFocusOut: true
+    });
+    if (cwd === undefined) {
+      return;
+    }
+    const startupTimeoutText = await this.dialogs.showInputBox({
+      title: "Startup timeout",
+      prompt: "Optional positive startup timeout in seconds",
+      placeHolder: "30",
+      value: formatOptionalNumber(snapshot.server.startup_timeout_seconds),
+      ignoreFocusOut: true
+    });
+    if (startupTimeoutText === undefined) {
+      return;
+    }
+    const startupTimeout = parseOptionalPositiveNumber(startupTimeoutText, "Startup timeout");
+    const server: McpServerPayload = {
+      enabled: snapshot.server.enabled !== false,
+      transport: "stdio",
+      command,
+      args
+    };
+    if (cwd.trim()) {
+      server.cwd = cwd.trim();
+    }
+    if (startupTimeout !== undefined) {
+      server.startup_timeout_seconds = startupTimeout;
+    }
+    await this.clientProvider().saveMcpServer(snapshot.name, server);
+    await this.dialogs.showInformationMessage(`CodeGopher MCP server saved: ${snapshot.name}`);
+  }
+
+  private async editSseServer(snapshot: McpServerSnapshotPayload): Promise<void> {
+    const url = await this.promptRequiredText(
+      "URL",
+      "SSE URL for the MCP server",
+      "https://example.test/sse",
+      snapshot.server.url ?? ""
+    );
+    if (!url) {
+      return;
+    }
+    const timeoutText = await this.dialogs.showInputBox({
+      title: "Request timeout",
+      prompt: "Optional positive request timeout in seconds",
+      placeHolder: "5",
+      value: formatOptionalNumber(snapshot.server.timeout_seconds),
+      ignoreFocusOut: true
+    });
+    if (timeoutText === undefined) {
+      return;
+    }
+    const readTimeoutText = await this.dialogs.showInputBox({
+      title: "SSE read timeout",
+      prompt: "Optional positive SSE read timeout in seconds",
+      placeHolder: "300",
+      value: formatOptionalNumber(snapshot.server.sse_read_timeout_seconds),
+      ignoreFocusOut: true
+    });
+    if (readTimeoutText === undefined) {
+      return;
+    }
+    const timeout = parseOptionalPositiveNumber(timeoutText, "Request timeout");
+    const readTimeout = parseOptionalPositiveNumber(readTimeoutText, "SSE read timeout");
+    const server: McpServerPayload = {
+      enabled: snapshot.server.enabled !== false,
+      transport: "sse",
+      url
+    };
+    if (timeout !== undefined) {
+      server.timeout_seconds = timeout;
+    }
+    if (readTimeout !== undefined) {
+      server.sse_read_timeout_seconds = readTimeout;
+    }
+    await this.clientProvider().saveMcpServer(snapshot.name, server);
+    await this.dialogs.showInformationMessage(`CodeGopher MCP server saved: ${snapshot.name}`);
   }
 
   private async createSseServer(): Promise<void> {
@@ -205,12 +364,14 @@ export class CodeGopherConfigUiController {
   private async promptRequiredText(
     title: string,
     prompt: string,
-    placeHolder: string
+    placeHolder: string,
+    initialValue?: string
   ): Promise<string | undefined> {
     const value = await this.dialogs.showInputBox({
       title,
       prompt,
       placeHolder,
+      value: initialValue,
       ignoreFocusOut: true
     });
     if (value === undefined) {
@@ -241,6 +402,7 @@ function defaultDialogs(): CodeGopherConfigDialogs {
   return {
     showInformationMessage: (message, ...items) => vscode.window.showInformationMessage(message, ...items),
     showErrorMessage: (message, ...items) => vscode.window.showErrorMessage(message, ...items),
+    showWarningMessage: (message, options, ...items) => vscode.window.showWarningMessage(message, options, ...items),
     showQuickPick: (items, options) => vscode.window.showQuickPick(items, options),
     showInputBox: (options) => vscode.window.showInputBox(options)
   };
@@ -321,6 +483,30 @@ export function formatMcpServerListItems(snapshot: McpServersEvent): McpServerLi
     },
     ...(snapshot.servers ?? []).map(formatMcpServerListItem)
   ];
+}
+
+export function formatMcpServerActionItems(snapshot: McpServerSnapshotPayload): McpServerActionItem[] {
+  return [
+    {
+      itemType: "edit",
+      server: snapshot,
+      label: "$(edit) Edit server",
+      description: "non-secret fields",
+      detail: "Update project-local settings through Python validation"
+    }
+  ];
+}
+
+export function hasSecretContainers(server: McpServerPayload): boolean {
+  return hasRecordValues(server.env) || hasRecordValues(server.headers) || hasRecordValues(server.headers_env);
+}
+
+function hasRecordValues(value: Record<string, string> | undefined): boolean {
+  return value !== undefined && Object.keys(value).length > 0;
+}
+
+function formatOptionalNumber(value: number | undefined): string {
+  return value === undefined ? "" : String(value);
 }
 
 function formatMcpServerListItem(snapshot: McpServerSnapshotPayload): McpServerListItem {

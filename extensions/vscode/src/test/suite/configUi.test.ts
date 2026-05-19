@@ -3,7 +3,9 @@ import * as assert from "node:assert/strict";
 import {
   CodeGopherConfigUiController,
   formatEndpointDetails,
+  formatMcpServerActionItems,
   formatMcpServerListItems,
+  hasSecretContainers,
   parseJsonStringArray,
   parseOptionalPositiveNumber,
   validateMcpServerName
@@ -271,6 +273,163 @@ suite("CodeGopher config UI", () => {
     assert.match(dialogs.errorMessages[0] ?? "", /Arguments must be a JSON string array/);
   });
 
+  test("edits a project-local stdio MCP server", async () => {
+    const client = new FakeConfigClient();
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(check) playwright", "$(edit) Edit server");
+    dialogs.inputValues.push("pnpm", "[\"exec\", \"playwright-mcp\"]", "/repo/tools", "60");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, [
+      {
+        serverName: "playwright",
+        server: {
+          enabled: true,
+          transport: "stdio",
+          command: "pnpm",
+          args: ["exec", "playwright-mcp"],
+          cwd: "/repo/tools",
+          startup_timeout_seconds: 60
+        }
+      }
+    ]);
+  });
+
+  test("edits an SSE MCP server", async () => {
+    const client = new FakeConfigClient();
+    client.mcpServers = [
+      {
+        name: "docs",
+        source: "project",
+        server: {
+          enabled: false,
+          transport: "sse",
+          url: "https://old.example.test/sse",
+          timeout_seconds: 5,
+          sse_read_timeout_seconds: 300
+        }
+      }
+    ];
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(circle-slash) docs", "$(edit) Edit server");
+    dialogs.inputValues.push("https://new.example.test/sse", "10", "600");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, [
+      {
+        serverName: "docs",
+        server: {
+          enabled: false,
+          transport: "sse",
+          url: "https://new.example.test/sse",
+          timeout_seconds: 10,
+          sse_read_timeout_seconds: 600
+        }
+      }
+    ]);
+  });
+
+  test("blocks editing MCP servers with secret-bearing containers", async () => {
+    const client = new FakeConfigClient();
+    client.mcpServers = [
+      {
+        name: "secure",
+        source: "project",
+        server: {
+          enabled: true,
+          transport: "sse",
+          url: "https://mcp.example.test/sse",
+          headers: { Authorization: "[redacted]" }
+        }
+      }
+    ];
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(check) secure", "$(edit) Edit server");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, []);
+    assert.deepEqual(dialogs.errorMessages, [
+      "Editing MCP servers with env, headers, or headers_env is not supported in VS Code."
+    ]);
+  });
+
+  test("confirms before editing a non-project MCP server", async () => {
+    const client = new FakeConfigClient();
+    client.mcpServers = [
+      {
+        name: "global_docs",
+        source: "user",
+        server: {
+          enabled: true,
+          transport: "sse",
+          url: "https://old.example.test/sse"
+        }
+      }
+    ];
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(check) global_docs", "$(edit) Edit server");
+    dialogs.warningSelections.push("Create Override");
+    dialogs.inputValues.push("https://project.example.test/sse", "", "");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.equal(dialogs.warningMessages[0]?.message, "Editing global_docs will create a project-local override.");
+    assert.deepEqual(client.saveMcpServerCalls, [
+      {
+        serverName: "global_docs",
+        server: {
+          enabled: true,
+          transport: "sse",
+          url: "https://project.example.test/sse"
+        }
+      }
+    ]);
+  });
+
+  test("cancels non-project MCP edit overrides", async () => {
+    const client = new FakeConfigClient();
+    client.mcpServers = [
+      {
+        name: "global_docs",
+        source: "user",
+        server: {
+          enabled: true,
+          transport: "sse",
+          url: "https://old.example.test/sse"
+        }
+      }
+    ];
+    const dialogs = new FakeConfigDialogs();
+    dialogs.quickPickSelectionLabels.push("$(check) global_docs", "$(edit) Edit server");
+    const controller = new CodeGopherConfigUiController({
+      clientProvider: () => client,
+      dialogs
+    });
+
+    await controller.manageMcpServers();
+
+    assert.deepEqual(client.saveMcpServerCalls, []);
+  });
+
   test("parses creation helper values", () => {
     assert.equal(validateMcpServerName("ok-name_1"), undefined);
     assert.equal(validateMcpServerName("bad.name"), "MCP server names may contain only letters, numbers, '_' and '-'.");
@@ -280,6 +439,22 @@ suite("CodeGopher config UI", () => {
     assert.equal(parseOptionalPositiveNumber("", "Timeout"), undefined);
     assert.throws(() => parseJsonStringArray("[1]", "Arguments"), /Arguments must be a JSON string array/);
     assert.throws(() => parseOptionalPositiveNumber("0", "Timeout"), /Timeout must be a positive number/);
+  });
+
+  test("formats MCP action rows and detects secret containers", () => {
+    const [item] = formatMcpServerActionItems({
+      name: "playwright",
+      source: "project",
+      server: { transport: "stdio", command: "npx" }
+    });
+
+    assert.equal(item?.label, "$(edit) Edit server");
+    assert.equal(hasSecretContainers({ transport: "stdio", command: "npx" }), false);
+    assert.equal(hasSecretContainers({ transport: "stdio", command: "npx", env: { TOKEN: "[redacted]" } }), true);
+    assert.equal(
+      hasSecretContainers({ transport: "sse", url: "https://example.test/sse", headers_env: { Auth: "[redacted]" } }),
+      true
+    );
   });
 });
 
@@ -356,6 +531,8 @@ class FakeConfigClient implements CodeGopherConfigClient {
 class FakeConfigDialogs {
   readonly informationMessages: string[] = [];
   readonly errorMessages: string[] = [];
+  readonly warningMessages: Array<{ message: string; options: unknown; items: string[] }> = [];
+  readonly warningSelections: Array<string | undefined> = [];
   readonly quickPickCalls: Array<{ items: readonly CodeGopherQuickPickItem[]; options: unknown }> = [];
   readonly quickPickSelectionLabels: string[] = [];
   readonly inputValues: Array<string | undefined> = [];
@@ -369,6 +546,11 @@ class FakeConfigDialogs {
   showErrorMessage(message: string): PromiseLike<string | undefined> {
     this.errorMessages.push(message);
     return Promise.resolve(undefined);
+  }
+
+  showWarningMessage(message: string, options: unknown, ...items: string[]): PromiseLike<string | undefined> {
+    this.warningMessages.push({ message, options, items });
+    return Promise.resolve(this.warningSelections.shift());
   }
 
   showQuickPick<T extends CodeGopherQuickPickItem>(
