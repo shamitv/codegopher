@@ -91,10 +91,13 @@ async def _run_command_loop(
 ) -> None:
     active_turn_task: asyncio.Task[object] | None = None
 
-    for line in stdin:
-        if active_turn_task is not None and active_turn_task.done():
-            await _await_turn_task(active_turn_task)
-            active_turn_task = None
+    while True:
+        active_turn_task = await _clear_completed_turn_task(active_turn_task)
+        line = await asyncio.to_thread(stdin.readline)
+        active_turn_task = await _clear_completed_turn_task(active_turn_task)
+
+        if line == "":
+            break
 
         if not line.strip():
             continue
@@ -207,6 +210,15 @@ async def _run_command_loop(
 
     if active_turn_task is not None:
         await _await_turn_task(active_turn_task)
+
+
+async def _clear_completed_turn_task(
+    task: asyncio.Task[object] | None,
+) -> asyncio.Task[object] | None:
+    if task is None or not task.done():
+        return task
+    await _await_turn_task(task)
+    return None
 
 
 async def _await_turn_task(task: asyncio.Task[object]) -> None:

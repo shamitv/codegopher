@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import asyncio
+from io import StringIO
 from pathlib import Path
+from queue import Queue
+from typing import TypeVar
 
 from click.testing import CliRunner
 
 import codegopher.cli.main as cli_main
 import codegopher.events.session as events_session_module
 from codegopher.cli.main import app
-from codegopher.events.cli import protocol_error
+from codegopher.config.schema import Settings
+from codegopher.events.cli import protocol_error, run_events_cli
 from codegopher.events.protocol import (
     ApprovalRequestEvent,
     ApprovalResponseCommand,
@@ -38,6 +42,8 @@ from codegopher.events.protocol import (
 from codegopher.events.session import turn_cancelled
 from codegopher.providers.base import ProviderCapabilities
 from codegopher.providers.mock import MockProvider
+
+OutputMessage = TypeVar("OutputMessage")
 
 
 def decode_output(output: str):
@@ -270,6 +276,42 @@ def test_events_cli_long_lived_accepts_start_turn_command(tmp_path: Path) -> Non
     assert messages[3].final_text == "long answer"
 
 
+async def test_events_cli_long_lived_runs_turn_while_waiting_for_more_stdin(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "async answer"}, {"type": "done"}]]
+    )
+    stdin = BlockingStdin()
+    stdout = StringIO()
+    stderr = StringIO()
+    task = asyncio.create_task(
+        run_events_cli(
+            prompt=None,
+            settings=Settings(),
+            cwd=tmp_path,
+            stdin=stdin,
+            stdout=stdout,
+            stderr=stderr,
+            provider_factory=lambda _settings: provider,
+        )
+    )
+
+    await wait_for_output_message(stdout, SessionStartedEvent)
+    stdin.write_line(
+        StartTurnCommand(
+            turn_id="turn-async-stdin",
+            prompt="hello",
+            workspace_root=str(tmp_path),
+        ).model_dump_json()
+    )
+
+    complete = await wait_for_output_message(stdout, TurnCompleteEvent)
+
+    assert complete.turn_id == "turn-async-stdin"
+    assert complete.final_text == "async answer"
+    stdin.write_line(ShutdownCommand().model_dump_json())
+    assert await asyncio.wait_for(task, timeout=2) == 0
+
+
 def test_events_cli_long_lived_accepts_config_and_mcp_commands(tmp_path: Path) -> None:
     runner = CliRunner()
 
@@ -407,3 +449,29 @@ class WaitingProvider:
         _ = (messages, tools, model, temperature, max_output_tokens)
         await asyncio.Event().wait()
         yield {"type": "done"}
+
+
+class BlockingStdin:
+    def __init__(self) -> None:
+        self._lines: Queue[str] = Queue()
+
+    def write_line(self, line: str) -> None:
+        self._lines.put(f"{line}\n")
+
+    def readline(self) -> str:
+        return self._lines.get()
+
+
+async def wait_for_output_message(
+    stdout: StringIO,
+    message_type: type[OutputMessage],
+    *,
+    timeout: float = 2.0,
+) -> OutputMessage:
+    deadline = asyncio.get_running_loop().time() + timeout
+    while asyncio.get_running_loop().time() < deadline:
+        for message in decode_output(stdout.getvalue()):
+            if isinstance(message, message_type):
+                return message
+        await asyncio.sleep(0.01)
+    raise AssertionError(f"Timed out waiting for {message_type.__name__}")
