@@ -22,6 +22,7 @@ export interface CodeGopherChatClient {
   readonly isRunning: boolean;
   readonly sessionStarted?: SessionStartedEvent;
   startTurn(prompt: string, options?: StartTurnOptions): Promise<TurnCompleteEvent>;
+  submitApproval(approvalId: string, approved: boolean, reason?: string | null): void;
   restart(): Promise<SessionStartedEvent>;
   onEvent(listener: (event: ProtocolEvent) => void): Disposable;
 }
@@ -50,6 +51,7 @@ export class CodeGopherChatController {
   private readonly settingsProvider: () => CodeGopherChatSettings;
   private readonly workspaceRootProvider: () => string | undefined;
   private readonly turnIdFactory: () => string;
+  private readonly pendingApprovals = new Map<string, PendingApproval>();
   private client: CodeGopherChatClient | undefined;
 
   constructor(options: CodeGopherChatControllerOptions) {
@@ -66,7 +68,10 @@ export class CodeGopherChatController {
     );
     participant.iconPath = new vscode.ThemeIcon("hubot");
 
-    context.subscriptions.push(participant);
+    context.subscriptions.push(
+      participant,
+      vscode.commands.registerCommand(approvalApproveCommandId, (approvalId: string) => this.approveApproval(approvalId))
+    );
   }
 
   async openChat(): Promise<void> {
@@ -87,6 +92,10 @@ export class CodeGopherChatController {
       this.outputChannel.appendLine(`CodeGopher restart failed: ${message}`);
       void vscode.window.showErrorMessage(`CodeGopher restart failed: ${message}`);
     }
+  }
+
+  approveApproval(approvalId: string): void {
+    this.submitApprovalDecision(approvalId, true);
   }
 
   configClient(): CodeGopherConfigClient {
@@ -141,6 +150,7 @@ export class CodeGopherChatController {
         return;
       }
       if (event.type === "approval_request") {
+        this.pendingApprovals.set(event.approval_id, { client, turnId });
         response.progress(`Approval required for ${event.tool_name}${formatSummary(event.arguments_summary)}`);
         response.button({
           command: approvalApproveCommandId,
@@ -184,6 +194,7 @@ export class CodeGopherChatController {
       };
     } finally {
       subscription.dispose();
+      this.clearTurnApprovals(turnId);
     }
 
     return {
@@ -223,6 +234,29 @@ export class CodeGopherChatController {
 
   private restartAgent(): Promise<SessionStartedEvent> {
     return this.getClient().restart();
+  }
+
+  private submitApprovalDecision(approvalId: string, approved: boolean, reason?: string | null): void {
+    const pending = this.pendingApprovals.get(approvalId);
+    if (!pending) {
+      this.outputChannel.appendLine(`CodeGopher approval ignored; no pending approval for ${approvalId}.`);
+      return;
+    }
+
+    this.pendingApprovals.delete(approvalId);
+    try {
+      pending.client.submitApproval(approvalId, approved, reason);
+    } catch (error) {
+      this.outputChannel.appendLine(`CodeGopher approval failed for ${approvalId}: ${errorMessage(error)}`);
+    }
+  }
+
+  private clearTurnApprovals(turnId: string): void {
+    for (const [approvalId, pending] of this.pendingApprovals) {
+      if (pending.turnId === turnId) {
+        this.pendingApprovals.delete(approvalId);
+      }
+    }
   }
 
   private createClientFromSettings(): CodeGopherClient {
@@ -268,6 +302,11 @@ export class CodeGopherChatController {
       `- Protocol trace: ${settings.traceProtocol ? "enabled" : "disabled"}`
     ].join("\n");
   }
+}
+
+interface PendingApproval {
+  client: CodeGopherChatClient;
+  turnId: string;
 }
 
 function commandResult(command: string): vscode.ChatResult {

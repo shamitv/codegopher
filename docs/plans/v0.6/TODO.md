@@ -173,7 +173,7 @@ Commit rules:
 
 - [x] T065: Render approval requests with Approve and Deny chat buttons.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T066: Route Approve button clicks to `approval_response`.
+- [x] T066: Route Approve button clicks to `approval_response`.
   Verify: `cd extensions/vscode && npm test`
 - [ ] T067: Route Deny button clicks to `approval_response` with a default denial reason.
   Verify: `cd extensions/vscode && npm test`

@@ -184,6 +184,48 @@ suite("CodeGopher chat controller", () => {
     ]);
   });
 
+  test("routes approve decisions to approval_response", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-approve"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("write"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.emit({
+      version: 1,
+      type: "approval_request",
+      turn_id: "turn-approve",
+      approval_id: "approval-approve",
+      tool_name: "write_file"
+    });
+
+    controller.approveApproval("approval-approve");
+
+    assert.deepEqual(fakeClient.approvalCalls, [
+      {
+        approvalId: "approval-approve",
+        approved: true,
+        reason: undefined
+      }
+    ]);
+
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-approve"
+    });
+    await resultPromise;
+  });
+
   test("returns one user-facing error when an error event rejects the turn", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();
@@ -460,10 +502,17 @@ interface StartCall {
   options: unknown;
 }
 
+interface ApprovalCall {
+  approvalId: string;
+  approved: boolean;
+  reason?: string | null;
+}
+
 class FakeChatClient implements CodeGopherChatClient {
   readonly isRunning = true;
   sessionStarted: SessionStartedEvent | undefined = undefined;
   readonly startCalls: StartCall[] = [];
+  readonly approvalCalls: ApprovalCall[] = [];
   restartCalls = 0;
   restartError: Error | undefined;
   private readonly listeners = new Set<(event: ProtocolEvent) => void>();
@@ -476,6 +525,10 @@ class FakeChatClient implements CodeGopherChatClient {
       this.resolveTurn = resolve;
       this.rejectTurn = reject;
     });
+  }
+
+  submitApproval(approvalId: string, approved: boolean, reason?: string | null): void {
+    this.approvalCalls.push({ approvalId, approved, reason });
   }
 
   onEvent(listener: (event: ProtocolEvent) => void): Disposable {
