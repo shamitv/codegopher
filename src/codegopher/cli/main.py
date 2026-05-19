@@ -142,6 +142,11 @@ async def _run_headless_agent(
     help="Choose tool approval behavior.",
 )
 @click.option(
+    "--max-iterations",
+    type=click.IntRange(min=1),
+    help="Maximum agent loop iterations for one turn.",
+)
+@click.option(
     "--no-project-init",
     is_flag=True,
     help="Do not create default project guidance on first use.",
@@ -158,6 +163,7 @@ def app(
     base_url: str | None,
     api_family: str | None,
     approval_mode: str | None,
+    max_iterations: int | None,
     no_project_init: bool,
     debug: bool,
     as_json: bool,
@@ -177,6 +183,7 @@ def app(
                 base_url=base_url,
                 api_family=api_family,
                 approval_mode=approval_mode,
+                max_iterations=max_iterations,
                 debug=debug if debug else None,
             )
         )

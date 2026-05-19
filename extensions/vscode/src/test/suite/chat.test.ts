@@ -766,6 +766,7 @@ suite("CodeGopher chat controller", () => {
         apiFamily: "",
         apiKeyEnv: "HF_TOKEN",
         approvalMode: "",
+        maxIterations: 64,
         traceProtocol: true
       }),
       workspaceRootProvider: () => "/repo",
@@ -808,6 +809,7 @@ suite("CodeGopher chat controller", () => {
     assert.match(stream.markdownParts[0], /Model: gpt-session/);
     assert.match(stream.markdownParts[0], /API key env: HF_TOKEN/);
     assert.match(stream.markdownParts[0], /Approval mode: review/);
+    assert.match(stream.markdownParts[0], /Max iterations: 64/);
     assert.match(stream.markdownParts[0], /Protocol trace: enabled/);
   });
 
@@ -897,6 +899,7 @@ suite("CodeGopher chat controller", () => {
         apiFamily: "",
         apiKeyEnv: "",
         approvalMode: "",
+        maxIterations: 64,
         traceProtocol: false
       }),
       workspaceRootProvider: () => "/repo"

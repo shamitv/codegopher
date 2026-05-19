@@ -13,6 +13,7 @@ def test_load_settings_returns_defaults(tmp_path: Path) -> None:
 
     assert settings.model.provider == "openai"
     assert settings.approval_mode.value == "review"
+    assert settings.agent.max_iterations == 64
 
 
 def test_load_settings_reads_user_toml(tmp_path: Path) -> None:
@@ -101,6 +102,7 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
             base_url="http://localhost:8000/v1",
             api_family="responses",
             approval_mode="auto",
+            max_iterations=24,
             debug=True,
         ),
     )
@@ -108,6 +110,7 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
     assert settings.model.name == "cli-model"
     assert settings.model.provider == "openai"
     assert settings.approval_mode.value == "auto"
+    assert settings.agent.max_iterations == 24
     assert settings.debug is True
     assert settings.providers["openai"][0].base_url == "http://localhost:8000/v1"
     assert settings.providers["openai"][0].api_family.value == "responses"

@@ -70,6 +70,7 @@ The extension contributes these settings:
 - `codegopher.apiFamily`: optional `chat_completions` or `responses` override.
 - `codegopher.apiKeyEnv`: optional environment variable name for the stored provider API key. Leave blank to expose a stored key as `OPENAI_API_KEY`; set it to values such as `HF_TOKEN` for Hugging Face Router.
 - `codegopher.approvalMode`: optional `review`, `auto`, or `yolo` override.
+- `codegopher.maxIterations`: per-turn agent loop limit passed as `--max-iterations`; defaults to `64`.
 - `codegopher.traceProtocol`: enables redacted protocol trace logging when the events client exists.
 
 For Hugging Face Router, configure `codegopher.baseUrl` as `https://router.huggingface.co/v1`, `codegopher.apiFamily` as `chat_completions`, `codegopher.model` with the routed model id, and `codegopher.apiKeyEnv` as `HF_TOKEN`. Then run `CodeGopher: Set API Key`, paste the Hugging Face token, and restart the agent.

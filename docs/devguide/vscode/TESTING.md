@@ -129,7 +129,8 @@ Example Hugging Face Router smoke settings:
   "codegopher.baseUrl": "https://router.huggingface.co/v1",
   "codegopher.model": "Qwen/Qwen3.6-35B-A3B:featherless-ai",
   "codegopher.apiFamily": "chat_completions",
-  "codegopher.apiKeyEnv": "HF_TOKEN"
+  "codegopher.apiKeyEnv": "HF_TOKEN",
+  "codegopher.maxIterations": 64
 }
 ```
 

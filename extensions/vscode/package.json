@@ -148,6 +148,12 @@
           ],
           "description": "Optional approval-mode override passed to the CodeGopher CLI."
         },
+        "codegopher.maxIterations": {
+          "type": "number",
+          "default": 64,
+          "minimum": 1,
+          "description": "Maximum agent loop iterations per CodeGopher turn. Higher values allow longer audit and report-generation workflows before the CLI stops a runaway loop."
+        },
         "codegopher.traceProtocol": {
           "type": "boolean",
           "default": false,

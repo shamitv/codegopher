@@ -37,6 +37,7 @@ export interface CodeGopherClientOptions {
   apiKeyEnv?: string;
   apiKeyProvider?: CodeGopherApiKeyProvider;
   approvalMode?: ApprovalMode | "";
+  maxIterations?: number;
   traceProtocol?: boolean;
   traceSink?: ProtocolTraceSink;
   lifecycleSink?: LifecycleSink;
@@ -744,6 +745,7 @@ export function buildCliArgs(options: CodeGopherClientOptions): string[] {
   pushOptionalArg(args, "--base-url", options.baseUrl);
   pushOptionalArg(args, "--api-family", options.apiFamily);
   pushOptionalArg(args, "--approval-mode", options.approvalMode);
+  pushOptionalNumberArg(args, "--max-iterations", options.maxIterations);
   return args;
 }
 
@@ -812,6 +814,12 @@ export function redactLogText(value: string): string {
 function pushOptionalArg(args: string[], flag: string, value: string | undefined): void {
   if (value && value.length > 0) {
     args.push(flag, value);
+  }
+}
+
+function pushOptionalNumberArg(args: string[], flag: string, value: number | undefined): void {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    args.push(flag, value.toString());
   }
 }
 

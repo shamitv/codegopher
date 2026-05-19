@@ -64,7 +64,8 @@ Use settings only for non-secret configuration:
   "codegopher.baseUrl": "https://router.huggingface.co/v1",
   "codegopher.model": "Qwen/Qwen3.6-35B-A3B:featherless-ai",
   "codegopher.apiFamily": "chat_completions",
-  "codegopher.apiKeyEnv": "HF_TOKEN"
+  "codegopher.apiKeyEnv": "HF_TOKEN",
+  "codegopher.maxIterations": 64
 }
 ```
 
@@ -97,6 +98,7 @@ Expected status line:
 
 ```text
 API key env: HF_TOKEN
+Max iterations: 64
 ```
 
 If `/status` does not show `HF_TOKEN`, do not continue the smoke test. Fix the Extension Development Host/settings issue first.
@@ -153,6 +155,7 @@ Use VS Code Insiders for this test so the normal Stable VS Code session does not
 
     ```text
     API key env: HF_TOKEN
+    Max iterations: 64
     ```
 
 13. Run:
@@ -180,7 +183,7 @@ The model picker in the VS Code Chat input is not used by CodeGopher. The effect
 Mark T086 complete only after these pass in the Extension Development Host:
 
 - `CodeGopher: Open Chat` opens/focuses VS Code Chat with `@codegopher`.
-- `@codegopher /status` shows the expected CLI path, workspace root, provider/model, approval mode, and `API key env: HF_TOKEN`.
+- `@codegopher /status` shows the expected CLI path, workspace root, provider/model, approval mode, `API key env: HF_TOKEN`, and `Max iterations: 64`.
 - `@codegopher /restart` succeeds without `OPENAI_API_KEY` or `HF_TOKEN` missing-key errors.
 - A simple read-only prompt returns a model response.
 - The exact smoke prompt returns `codegopher-smoke-ok`.
@@ -255,6 +258,12 @@ If VS Code gets stuck at `Starting CodeGopher turn ...`:
 - Re-run `.\.venv\Scripts\python.exe -m pytest tests/integration/test_events_cli.py`.
 - Stop and relaunch the Extension Development Host so it uses the updated Python source.
 - Enable `codegopher.traceProtocol`, rerun the smoke prompt, and confirm `start_turn`, `turn_started`, `text_delta`, and `turn_complete` appear in the CodeGopher Output channel.
+
+If a larger audit/report prompt fails with `Agent exceeded max iterations`:
+
+- Confirm the branch includes the `--max-iterations` / `codegopher.maxIterations` change.
+- Keep `codegopher.maxIterations` at the default `64` for manual smoke testing unless a smaller cap is intentionally under test.
+- If the trace shows a blocked write such as `list_dir must inspect parent directory docs/audit first`, ask CodeGopher to list the exact parent directory before retrying the write.
 
 ## Files To Reference
 

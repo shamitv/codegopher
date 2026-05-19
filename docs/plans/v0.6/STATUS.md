@@ -13,6 +13,7 @@ Last reviewed: 2026-05-19
 - Manual VS Code smoke tests T086 and T087 remain pending and should be checked only after a human confirms the Extension Development Host workflows passed.
 - T088 tracks the documented remediation approach for the config precedence and import-order findings that should be resolved before finalizing the manual smoke gates.
 - The VS Code long-lived events chat hang discovered during manual smoke testing is fixed by `6afc1cc`; the smoke prompt now returns `codegopher-smoke-ok`.
+- The per-turn agent loop limit defaults to `64` and is exposed through CLI `--max-iterations` plus VS Code `codegopher.maxIterations` to support longer audit/report workflows without removing runaway-loop protection.
 
 Practical readiness estimate:
 

@@ -42,6 +42,7 @@ export interface CodeGopherChatSettings {
   apiFamily: "" | "chat_completions" | "responses";
   apiKeyEnv: string;
   approvalMode: "" | "review" | "auto" | "yolo";
+  maxIterations: number;
   traceProtocol: boolean;
 }
 
@@ -357,6 +358,7 @@ export class CodeGopherChatController {
       apiKeyEnv: settings.apiKeyEnv,
       apiKeyProvider: this.apiKeyProvider,
       approvalMode: settings.approvalMode,
+      maxIterations: settings.maxIterations,
       traceProtocol: settings.traceProtocol,
       traceSink: (entry) => {
         this.outputChannel.appendLine(JSON.stringify(entry));
@@ -389,6 +391,7 @@ export class CodeGopherChatController {
       `- Model: ${model}`,
       `- API key env: ${settings.apiKeyEnv || "configured default"}`,
       `- Approval mode: ${approvalMode}`,
+      `- Max iterations: ${settings.maxIterations}`,
       `- Protocol trace: ${settings.traceProtocol ? "enabled" : "disabled"}`
     ].join("\n");
   }
@@ -437,6 +440,7 @@ function readSettings(): CodeGopherChatSettings {
     apiFamily: config.get("apiFamily", ""),
     apiKeyEnv: config.get("apiKeyEnv", ""),
     approvalMode: config.get("approvalMode", ""),
+    maxIterations: config.get("maxIterations", 64),
     traceProtocol: config.get("traceProtocol", false)
   };
 }

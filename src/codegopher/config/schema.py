@@ -103,6 +103,10 @@ class TodoConfig(BaseModel):
     max_items: int = Field(default=100, gt=0)
 
 
+class AgentConfig(BaseModel):
+    max_iterations: int = Field(default=64, gt=0)
+
+
 class Settings(BaseModel):
     model: ModelConfig = Field(default_factory=ModelConfig)
     providers: dict[str, list[ProviderEntry]] = Field(default_factory=dict)
@@ -114,3 +118,4 @@ class Settings(BaseModel):
     skills: SkillConfig = Field(default_factory=SkillConfig)
     todo: TodoConfig = Field(default_factory=TodoConfig)
     mcp: McpConfig = Field(default_factory=McpConfig)
+    agent: AgentConfig = Field(default_factory=AgentConfig)

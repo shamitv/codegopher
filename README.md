@@ -28,6 +28,7 @@ Useful flags:
 - `--model`, `--provider`, and `--base-url` override model/provider settings.
 - `--api-family chat_completions|responses` selects the OpenAI-compatible Chat Completions path or OpenAI Responses API path for the run.
 - `--approval-mode review|auto|yolo` controls tool approval behavior.
+- `--max-iterations N` sets the per-turn agent loop limit; the default is `64`.
 - `--no-project-init` disables first-use project guidance creation for the current run.
 - `--json` emits machine-readable headless results.
 - `--debug` shows provider reasoning content in headless text output when available.
@@ -161,6 +162,9 @@ id = "gpt-4o"
 name = "GPT-4o"
 api_key_env = "OPENAI_API_KEY"
 api_family = "chat_completions"
+
+[agent]
+max_iterations = 64
 ```
 
 For OpenAI Responses API, set `api_family = "responses"` or pass `--api-family responses`. Responses calls use `store = false`; CodeGopher keeps the required replay metadata locally.

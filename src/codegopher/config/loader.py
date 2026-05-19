@@ -23,6 +23,7 @@ class CliOverrides:
     base_url: str | None = None
     api_family: str | None = None
     approval_mode: str | None = None
+    max_iterations: int | None = None
     debug: bool | None = None
 
 
@@ -111,6 +112,8 @@ def _cli_overrides(overrides: CliOverrides | None) -> dict[str, Any]:
         data = _merge(data, {"model": {"provider": overrides.provider}})
     if overrides.approval_mode:
         data["approval_mode"] = overrides.approval_mode
+    if overrides.max_iterations is not None:
+        data = _merge(data, {"agent": {"max_iterations": overrides.max_iterations}})
     if overrides.debug is not None:
         data["debug"] = overrides.debug
     if overrides.base_url:

@@ -27,7 +27,8 @@ suite("CodeGopherClient startup", () => {
         model: "gpt-test",
         baseUrl: "https://api.example.test/v1",
         apiFamily: "responses",
-        approvalMode: "review"
+        approvalMode: "review",
+        maxIterations: 24
       }),
       [
         "--events",
@@ -40,7 +41,9 @@ suite("CodeGopherClient startup", () => {
         "--api-family",
         "responses",
         "--approval-mode",
-        "review"
+        "review",
+        "--max-iterations",
+        "24"
       ]
     );
   });
@@ -54,7 +57,8 @@ suite("CodeGopherClient startup", () => {
         model: undefined,
         baseUrl: "",
         apiFamily: "",
-        approvalMode: ""
+        approvalMode: "",
+        maxIterations: undefined
       }),
       ["--events"]
     );
@@ -189,6 +193,7 @@ suite("CodeGopherClient startup", () => {
       baseUrl: "https://api.example.test/v1",
       apiFamily: "responses",
       approvalMode: "review",
+      maxIterations: 24,
       spawnProcess: (command, args, options) => {
         calls.push({ command, args, options });
         return fakeProcess;
@@ -212,7 +217,9 @@ suite("CodeGopherClient startup", () => {
           "--api-family",
           "responses",
           "--approval-mode",
-          "review"
+          "review",
+          "--max-iterations",
+          "24"
         ],
         options: { cwd: "/repo", stdio: ["pipe", "pipe", "pipe"] }
       }

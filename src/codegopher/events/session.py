@@ -106,7 +106,7 @@ class EventsSession:
         environ: Mapping[str, str] | None = None,
         home: Path | None = None,
         session_id: str | None = None,
-        max_iterations: int = 8,
+        max_iterations: int | None = None,
     ) -> None:
         self.settings = settings
         self.cwd = cwd
@@ -114,7 +114,9 @@ class EventsSession:
         self.environ = os.environ if environ is None else environ
         self.home = home
         self.session_id = session_id or f"events-{uuid4().hex[:12]}"
-        self.max_iterations = max_iterations
+        self.max_iterations = (
+            max_iterations if max_iterations is not None else settings.agent.max_iterations
+        )
         self.provider_factory = provider_factory or (
             lambda settings: build_provider(settings, environ=self.environ)
         )
