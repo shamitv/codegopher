@@ -5,6 +5,8 @@ import {
   ProtocolParseError,
   decodeProtocolLine,
   encodeProtocolMessage,
+  redactProtocolValue,
+  redactedProtocolValue,
   type ApprovalResponseCommand,
   type ConfigSnapshotEvent,
   type GetEffectiveConfigCommand,
@@ -167,5 +169,44 @@ suite("protocol JSONL", () => {
 
   test("uses a structured parse error type", () => {
     assert.throws(() => decodeProtocolLine("{"), ProtocolParseError);
+  });
+
+  test("redacts sensitive protocol trace values", () => {
+    assert.deepEqual(
+      redactProtocolValue({
+        api_key: "raw-key",
+        nested: {
+          bearerToken: "raw-token",
+          headers: {
+            Authorization: "Bearer raw",
+            SafeHeader: "also hidden"
+          },
+          env: {
+            CODEGOPHER_TOKEN: "raw-env"
+          },
+          headers_env: {
+            X_API_KEY: "RAW_ENV_NAME"
+          }
+        },
+        list: [{ password: "raw-password" }]
+      }),
+      {
+        api_key: redactedProtocolValue,
+        nested: {
+          bearerToken: redactedProtocolValue,
+          headers: {
+            Authorization: redactedProtocolValue,
+            SafeHeader: redactedProtocolValue
+          },
+          env: {
+            CODEGOPHER_TOKEN: redactedProtocolValue
+          },
+          headers_env: {
+            X_API_KEY: redactedProtocolValue
+          }
+        },
+        list: [{ password: redactedProtocolValue }]
+      }
+    );
   });
 });

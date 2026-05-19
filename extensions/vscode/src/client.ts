@@ -7,6 +7,7 @@ import {
   ProtocolParseError,
   encodeProtocolMessage,
   isProtocolEvent,
+  redactProtocolValue,
   type ApiFamily,
   type ApprovalMode,
   type ApprovalRequestEvent,
@@ -32,8 +33,17 @@ export interface CodeGopherClientOptions {
   baseUrl?: string;
   apiFamily?: ApiFamily | "";
   approvalMode?: ApprovalMode | "";
+  traceProtocol?: boolean;
+  traceSink?: ProtocolTraceSink;
   spawnProcess?: SpawnProcess;
 }
+
+export interface ProtocolTraceEntry {
+  direction: "in" | "out";
+  message: unknown;
+}
+
+export type ProtocolTraceSink = (entry: ProtocolTraceEntry) => void;
 
 export interface SpawnOptions {
   cwd: string;
@@ -385,6 +395,7 @@ export class CodeGopherClient {
     if (!this.process) {
       throw new CodeGopherClientError("CodeGopher subprocess is not running.");
     }
+    this.traceProtocol("out", message);
     this.process.stdin.write(encodeProtocolMessage(message));
   }
 
@@ -437,6 +448,7 @@ export class CodeGopherClient {
   }
 
   private handleMessage(message: ProtocolMessage): void {
+    this.traceProtocol("in", message);
     if (!isProtocolEvent(message)) {
       this.handleClientError(new CodeGopherProtocolError(`Unexpected protocol command on stdout: ${message.type}`));
       return;
@@ -602,6 +614,16 @@ export class CodeGopherClient {
       code,
       signal,
       stderrTail: this.stderrTail
+    });
+  }
+
+  private traceProtocol(direction: ProtocolTraceEntry["direction"], message: ProtocolMessage): void {
+    if (!this.options.traceProtocol) {
+      return;
+    }
+    this.options.traceSink?.({
+      direction,
+      message: redactProtocolValue(message)
     });
   }
 

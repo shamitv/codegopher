@@ -9,6 +9,7 @@ import {
   SubprocessStartError,
   buildCliArgs,
   type CodeGopherProcess,
+  type ProtocolTraceEntry,
   type SpawnOptions
 } from "../../client";
 import { decodeProtocolLine, encodeProtocolMessage, type ProtocolEvent, type SessionStartedEvent } from "../../protocol";
@@ -682,6 +683,79 @@ suite("CodeGopherClient startup", () => {
       [sessionStartedEvent, secondSession]
     );
   });
+
+  test("does not trace protocol traffic when tracing is disabled", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const traces: ProtocolTraceEntry[] = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      traceProtocol: false,
+      traceSink: (entry) => {
+        traces.push(entry);
+      },
+      spawnProcess: () => fakeProcess
+    });
+
+    const started = client.start();
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await started;
+
+    assert.deepEqual(traces, []);
+  });
+
+  test("traces redacted inbound and outbound protocol traffic when enabled", async () => {
+    const fakeProcess = new FakeCodeGopherProcess();
+    const traces: ProtocolTraceEntry[] = [];
+    const client = new CodeGopherClient({
+      cliPath: "cgopher",
+      workspaceRoot: "/repo",
+      traceProtocol: true,
+      traceSink: (entry) => {
+        traces.push(entry);
+      },
+      spawnProcess: () => fakeProcess
+    });
+
+    const saved = client.saveMcpServer("secure", {
+      transport: "sse",
+      url: "https://mcp.example.test/sse",
+      env: { CODEGOPHER_TOKEN: "raw-env" },
+      headers: { Authorization: "Bearer raw" },
+      headers_env: { X_API_KEY: "RAW_ENV_NAME" }
+    });
+    fakeProcess.stdout.write(encodeProtocolMessage(sessionStartedEvent));
+    await Promise.resolve();
+
+    const outbound = traceMessage(traces, "out", "save_mcp_server");
+    const outboundServer = traceRecord(outbound.server);
+    assert.deepEqual(outboundServer.env, { CODEGOPHER_TOKEN: "[redacted]" });
+    assert.deepEqual(outboundServer.headers, { Authorization: "[redacted]" });
+    assert.deepEqual(outboundServer.headers_env, { X_API_KEY: "[redacted]" });
+
+    fakeProcess.stdout.write(
+      encodeProtocolMessage({
+        version: 1,
+        type: "mcp_server_saved",
+        workspace_root: "/repo",
+        server_name: "secure",
+        server: {
+          transport: "sse",
+          url: "https://mcp.example.test/sse",
+          env: { CODEGOPHER_TOKEN: "raw-env" },
+          headers: { Authorization: "Bearer raw" },
+          headers_env: { X_API_KEY: "RAW_ENV_NAME" }
+        }
+      })
+    );
+    await saved;
+
+    const inbound = traceMessage(traces, "in", "mcp_server_saved");
+    const inboundServer = traceRecord(inbound.server);
+    assert.deepEqual(inboundServer.env, { CODEGOPHER_TOKEN: "[redacted]" });
+    assert.deepEqual(inboundServer.headers, { Authorization: "[redacted]" });
+    assert.deepEqual(inboundServer.headers_env, { X_API_KEY: "[redacted]" });
+  });
 });
 
 const sessionStartedEvent: SessionStartedEvent = {
@@ -825,6 +899,26 @@ function collectStdin(fakeProcess: FakeCodeGopherProcess): string[] {
     writes.push(chunk.toString());
   });
   return writes;
+}
+
+function traceMessage(
+  traces: ProtocolTraceEntry[],
+  direction: ProtocolTraceEntry["direction"],
+  type: string
+): Record<string, unknown> {
+  const entry = traces.find((trace) => {
+    const message = traceRecord(trace.message);
+    return trace.direction === direction && message.type === type;
+  });
+  assert.ok(entry, `Expected ${direction} trace for ${type}.`);
+  return traceRecord(entry.message);
+}
+
+function traceRecord(value: unknown): Record<string, unknown> {
+  assert.equal(typeof value, "object");
+  assert.notEqual(value, null);
+  assert.equal(Array.isArray(value), false);
+  return value as Record<string, unknown>;
 }
 
 async function rejectedWith<T extends Error>(

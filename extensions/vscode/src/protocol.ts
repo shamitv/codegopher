@@ -1,4 +1,5 @@
 export const protocolVersion = 1;
+export const redactedProtocolValue = "[redacted]";
 
 export type ProtocolVersion = typeof protocolVersion;
 export type ApprovalMode = "review" | "auto" | "yolo";
@@ -258,6 +259,18 @@ export const protocolEventTypes = [
 
 const protocolTypeSet = new Set<string>(protocolTypes);
 const protocolEventTypeSet = new Set<string>(protocolEventTypes);
+const sensitiveContainerKeys = new Set(["env", "headers", "headers_env"]);
+const sensitiveKeyParts = [
+  "api_key",
+  "apikey",
+  "authorization",
+  "bearer",
+  "credential",
+  "password",
+  "passwd",
+  "secret",
+  "token"
+] as const;
 
 export class ProtocolParseError extends Error {
   constructor(message: string) {
@@ -343,6 +356,38 @@ export class JsonlProtocolParser {
 
 export function isProtocolEvent(message: ProtocolMessage): message is ProtocolEvent {
   return protocolEventTypeSet.has(message.type);
+}
+
+export function redactProtocolValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactProtocolValue(item));
+  }
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  const redacted: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value)) {
+    const normalized = key.toLowerCase().replaceAll("-", "_");
+    if (sensitiveContainerKeys.has(normalized)) {
+      redacted[key] = redactContainerValues(item);
+    } else if (sensitiveKeyParts.some((part) => normalized.includes(part))) {
+      redacted[key] = redactedProtocolValue;
+    } else {
+      redacted[key] = redactProtocolValue(item);
+    }
+  }
+  return redacted;
+}
+
+function redactContainerValues(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactContainerValues(item));
+  }
+  if (!isRecord(value)) {
+    return redactedProtocolValue;
+  }
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, redactContainerValues(item)]));
 }
 
 function validateMessage(type: ProtocolType, message: Record<string, unknown>): void {
@@ -485,10 +530,14 @@ function optionalMcpServerSnapshots(message: Record<string, unknown>, key: strin
 }
 
 function asRecord(value: unknown, message: string): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     throw new ProtocolParseError(message);
   }
-  return value as Record<string, unknown>;
+  return value;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function requireString(message: Record<string, unknown>, key: string): void {

@@ -130,7 +130,7 @@ Commit rules:
   Verify: `cd extensions/vscode && npm test`
 - [x] T048: Add restart and shutdown lifecycle behavior.
   Verify: `cd extensions/vscode && npm test`
-- [ ] T049: Add trace logging with redaction when `codegopher.traceProtocol` is enabled.
+- [x] T049: Add trace logging with redaction when `codegopher.traceProtocol` is enabled.
   Verify: `cd extensions/vscode && npm test`
 
 ## Milestone 7 - Chat Participant
