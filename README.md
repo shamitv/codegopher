@@ -11,12 +11,14 @@ cgopher
 cgopher -p "What does this project do?"
 cgopher --no-project-init -p "What does this project do?"
 cgopher -p "read this test log and summarize it" < test.log
+cgopher --events -p "What does this project do?"
 cgopher init
 cgopher init --skill-pack repo-docs
 cgopher init --skill-pack security
 ```
 
 Run plain `cgopher` in an interactive terminal to open the TUI. Use `-p/--prompt` for the headless one-shot path.
+Use `cgopher --events` for the newline-delimited JSON protocol used by IDE integrations, including the VS Code extension.
 On first use in a project, CodeGopher creates default local project guidance under `.codegopher/skills/project/SKILL.md`; pass `--no-project-init` to disable that for a run.
 Run `cgopher init [PATH]` to create default project-local Markdown skill guidance under `.codegopher/skills`.
 Use `cgopher init [PATH] --skill-pack repo-docs|security|all` to materialize built-in repository documentation and static security review skills into a project.
@@ -29,6 +31,7 @@ Useful flags:
 - `--no-project-init` disables first-use project guidance creation for the current run.
 - `--json` emits machine-readable headless results.
 - `--debug` shows provider reasoning content in headless text output when available.
+- `--events` emits JSONL protocol events for IDE and automation clients.
 
 ## Interactive TUI
 
@@ -72,17 +75,46 @@ MCP tools:
 - MCP tools are exposed as `mcp__SERVER__TOOL`, always require approval, and are cleaned up after headless runs or TUI exit.
 - SSE header values and values resolved from `headers_env` are not printed or persisted.
 
+## VS Code Extension
+
+The v0.6 VS Code extension lives in `extensions/vscode` and exposes CodeGopher through native VS Code Chat as `@codegopher`. The extension launches the local Python CLI with `cgopher --events`, so provider setup, config loading, MCP validation, approvals, tool execution, redaction, and filesystem safety remain owned by Python.
+
+Local setup:
+
+```bash
+cd extensions/vscode
+npm install
+npm run compile
+npm run lint
+npm test
+```
+
+For manual development, open the extension package in VS Code, press `F5` to launch an Extension Development Host, open a disposable workspace, and use VS Code Chat with `@codegopher`.
+
+Useful VS Code surfaces:
+
+- `@codegopher /help`: show chat commands.
+- `@codegopher /status`: show CLI path, workspace root, provider/model overrides, approval mode, and subprocess state.
+- `@codegopher /restart`: restart the local `cgopher --events` subprocess.
+- `CodeGopher: Open Chat`: focus VS Code Chat with `@codegopher`.
+- `CodeGopher: View LLM Endpoint`: display the effective configured provider, model, API family, base URL, and source metadata without secrets.
+- `CodeGopher: Manage MCP Servers`: list, add, edit, enable, disable, and remove configured stdio/SSE MCP servers through Python-side validation.
+- `CodeGopher: Show Protocol Trace`: open redacted protocol trace output when `codegopher.traceProtocol` is enabled.
+
+If `cgopher` is not on the VS Code process `PATH`, set `codegopher.cliPath` to the absolute CLI executable path. See [VS Code Extension Testing](docs/devguide/vscode/TESTING.md) for Stable vs Insiders, Windows/macOS/Linux, headless Linux, and manual smoke-test guidance.
+
 ## Implemented Features
 
 - Headless Click CLI via `codegopher`, `cgopher`, and `python -m codegopher`.
 - Interactive Textual TUI for repeated terminal sessions.
+- VS Code extension package with `@codegopher` Chat integration over `cgopher --events`.
 - Pydantic settings with CLI, environment, project, user, and default precedence.
 - OpenAI-compatible Chat Completions streaming provider with streamed tool-call and reasoning parsing.
 - OpenAI Responses API streaming provider with stateless local replay of required response output items.
 - MCP stdio/SSE tool discovery and approval-gated execution through the official Python MCP SDK.
 - Approval-aware file and shell tools with prior-read and parent-inspection gates.
 - Context-window accounting, manual/automatic compaction, memory, Markdown skills, session TODOs, slash commands, file mentions, shell passthrough, and local session save/resume.
-- JSON output for automation and focused unit/integration test coverage.
+- JSON and JSONL events output for automation, IDE clients, and focused unit/integration test coverage.
 
 ## Development
 

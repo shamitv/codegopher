@@ -201,7 +201,7 @@ Commit rules:
 
 ## Milestone 11 - Docs, Packaging, And Release Readiness
 
-- [ ] T077: Update README with VS Code extension usage and setup.
+- [x] T077: Update README with VS Code extension usage and setup.
   Verify: `rg -n "VS Code|@codegopher|--events" README.md`
 - [ ] T078: Update product intro to mention the v0.6 IDE workflow.
   Verify: `rg -n "VS Code|IDE|@codegopher" docs/product/INTRO.md`
