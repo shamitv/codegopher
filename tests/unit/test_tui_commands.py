@@ -92,9 +92,12 @@ async def test_tui_help_command_lists_available_commands(tmp_path: Path) -> None
         assert "/help - Show available slash commands." in app.chat_messages[0]
         assert "/compact [instructions] - Compact provider context." in app.chat_messages[0]
         assert "/forget ID - Delete a memory after confirmation." in app.chat_messages[0]
+        assert "/last - Jump to the last assistant response." in app.chat_messages[0]
         assert "/memory - List session and project memories." in app.chat_messages[0]
         assert "/skills [load ID] - List or load Markdown skills." in app.chat_messages[0]
         assert "/stats - Show session counters." in app.chat_messages[0]
+        assert "/status - Show session and runtime status." in app.chat_messages[0]
+        assert "/tools - Show tool activity from the last turn." in app.chat_messages[0]
 
 
 @pytest.mark.asyncio
@@ -255,6 +258,107 @@ async def test_tui_stats_command_reports_known_context_budget(tmp_path: Path) ->
 
 
 @pytest.mark.asyncio
+async def test_tui_status_command_reports_runtime_without_secret_values(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = make_settings(approval_mode=ApprovalMode.review)
+    settings.providers = {
+        "openai": [
+            ProviderEntry(
+                id="test-model",
+                name="Test Model",
+                base_url="https://user:raw-secret@example.test/v1?token=raw-secret",
+                api_key_env="SECRET_API_KEY",
+                context_window=10_000,
+            )
+        ]
+    }
+    monkeypatch.setenv("SECRET_API_KEY", "raw-secret")
+    app = make_app(tmp_path, settings=settings)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/status")
+
+        status = app.chat_messages[-1]
+        assert status.startswith("Status:\n")
+        assert f"CWD: {tmp_path}" in status
+        assert "Provider: openai" in status
+        assert "Model: test-model" in status
+        assert "Provider entry: Test Model (test-model)" in status
+        assert "API family: chat_completions" in status
+        assert "Base URL: https://[redacted]@example.test/v1" in status
+        assert "API key env: SECRET_API_KEY" in status
+        assert "Approval mode: review" in status
+        assert "MCP: enabled | configured=0 | enabled=0 | connected_tools=0" in status
+        assert "context=" in status
+        assert "raw-secret" not in status
+        assert "token=" not in status
+        assert app.status_message == "Displayed status"
+
+
+@pytest.mark.asyncio
+async def test_tui_last_command_jumps_to_last_assistant_response(tmp_path: Path) -> None:
+    provider = MockProvider([[{"type": "text_delta", "content": "answer"}, {"type": "done"}]])
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "hello")
+        await wait_for_turn_to_finish(app, pilot)
+        assert app._last_assistant_scroll_y is not None
+
+        await submit(app, pilot, "/last")
+
+        assert app.status_message == "Jumped to last assistant response"
+
+
+@pytest.mark.asyncio
+async def test_tui_last_command_reports_missing_assistant_response(tmp_path: Path) -> None:
+    app = make_app(tmp_path)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/last")
+
+        assert app.chat_messages == ["No assistant response to jump to"]
+        assert app.status_message == "No assistant response"
+
+
+@pytest.mark.asyncio
+async def test_tui_tools_command_reports_last_turn_details(tmp_path: Path) -> None:
+    tool = FakeTool(name="write_file", requires_approval=False)
+    registry = ToolRegistry()
+    registry.register(tool)
+    app = make_app(
+        tmp_path,
+        make_tool_call_provider(),
+        settings=make_settings(approval_mode=ApprovalMode.yolo),
+        registry=registry,
+    )
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "write")
+        await wait_for_turn_to_finish(app, pilot)
+        await submit(app, pilot, "/tools")
+
+        assert app.chat_messages[-1].startswith("Tools from last turn:\n")
+        assert "- write_file [completed]" in app.chat_messages[-1]
+        assert "new.txt" in app.chat_messages[-1]
+        assert "result=ok" in app.chat_messages[-1]
+        assert app.status_message == "Displayed tools"
+
+
+@pytest.mark.asyncio
+async def test_tui_tools_command_reports_no_last_turn_tools(tmp_path: Path) -> None:
+    app = make_app(tmp_path)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/tools")
+
+        assert app.chat_messages == ["Tools: none in the last turn"]
+        assert app.status_message == "Displayed tools"
+
+
+@pytest.mark.asyncio
 async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
     provider = MockProvider([[{"type": "done"}]])
     app = make_app(tmp_path, provider)
@@ -273,6 +377,7 @@ async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
         "/help",
         "/clear",
         "/forget",
+        "/last",
         "/model",
         "/model next-model",
         "/mode",
@@ -281,7 +386,9 @@ async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
         "/skills",
         "/skills load missing",
         "/stats",
+        "/status",
         "/todo",
+        "/tools",
         "/unknown",
     ],
 )

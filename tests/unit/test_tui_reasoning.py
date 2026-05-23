@@ -47,7 +47,6 @@ async def test_tui_renders_reasoning_collapsed_and_separate_from_answer(tmp_path
         assert app.query_one("#reasoning-stream", Static).display is False
         assert app.chat_messages == [
             "You: reason",
-            "Reasoning (collapsed): think",
             "Assistant: answer",
         ]
 
@@ -62,6 +61,41 @@ async def test_tui_reasoning_indicator_is_collapsed_during_turn(tmp_path: Path) 
 
         assert app.query_one("#reasoning-stream", Static).display is True
         assert app._active_reasoning_message == "thinking"
+
+
+@pytest.mark.asyncio
+async def test_tui_debug_mode_keeps_reasoning_visible_in_history(tmp_path: Path) -> None:
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "think"},
+                {"type": "text_delta", "content": "answer"},
+                {"type": "done"},
+            ]
+        ]
+    )
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="test-model"),
+        approval_mode=ApprovalMode.yolo,
+        debug=True,
+    )
+    app = CodeGopherApp(
+        settings=settings,
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+    )
+
+    async with app.run_test() as pilot:
+        app.query_one("#prompt-input").value = "reason"
+
+        await pilot.press("enter")
+        await pilot.pause(0.1)
+
+        assert app.chat_messages == [
+            "You: reason",
+            "Reasoning (debug): think",
+            "Assistant: answer",
+        ]
 
 
 @pytest.mark.asyncio
@@ -104,9 +138,8 @@ async def test_tui_handles_mixed_reasoning_answer_and_tool_call(tmp_path: Path) 
         await pilot.pause(0.1)
 
         assert tool.executed is True
-        assert "Tool requested: inspect_project" in app.chat_messages
-        assert "Tool completed: inspect_project" in app.chat_messages
-        assert "Reasoning (collapsed): inspect first" in app.chat_messages
+        assert "Tools used: 1 (1 completed) - inspect_project. Run /tools for details." in app.chat_messages
+        assert all("Reasoning (collapsed): inspect first" not in message for message in app.chat_messages)
         assert app.chat_messages[-1] == "Assistant: checking done"
 
 

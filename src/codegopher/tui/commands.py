@@ -27,12 +27,15 @@ COMMAND_DEFINITIONS: tuple[SlashCommandDefinition, ...] = (
     SlashCommandDefinition("/clear", "Clear visible chat history."),
     SlashCommandDefinition("/compact [instructions]", "Compact provider context."),
     SlashCommandDefinition("/forget ID", "Delete a memory after confirmation."),
+    SlashCommandDefinition("/last", "Jump to the last assistant response."),
     SlashCommandDefinition("/memory", "List session and project memories."),
     SlashCommandDefinition("/model [NAME]", "Show or update the active model."),
     SlashCommandDefinition("/mode [review|auto|yolo]", "Show or update approval mode."),
     SlashCommandDefinition("/shell COMMAND", "Run a shell command after approval."),
     SlashCommandDefinition("/skills [load ID]", "List or load Markdown skills."),
     SlashCommandDefinition("/stats", "Show session counters."),
+    SlashCommandDefinition("/status", "Show session and runtime status."),
+    SlashCommandDefinition("/tools", "Show tool activity from the last turn."),
     SlashCommandDefinition(
         "/todo [add TEXT|done ID]", "Show or update session TODO state."
     ),
