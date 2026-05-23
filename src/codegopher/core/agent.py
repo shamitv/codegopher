@@ -88,7 +88,7 @@ class AgentSession:
         registry: ToolRegistry,
         settings: Settings,
         cwd: Path,
-        max_iterations: int = 8,
+        max_iterations: int | None = None,
         stdin_is_tty: bool = False,
         callbacks: AgentCallbacks | None = None,
         tool_context: ToolContext | None = None,
@@ -102,7 +102,9 @@ class AgentSession:
         self.registry = registry
         self.settings = settings
         self.cwd = cwd
-        self.max_iterations = max_iterations
+        self.max_iterations = (
+            max_iterations if max_iterations is not None else settings.agent.max_iterations
+        )
         self.stdin_is_tty = stdin_is_tty
         self.callbacks = callbacks
         self.tool_context = tool_context or ToolContext(cwd=cwd, settings=settings)
@@ -201,7 +203,12 @@ class AgentSession:
             )
             for tool_call in tool_calls:
                 tool = self.registry.get(tool_call["name"])
-                request = ApprovalRequest(tool_call["name"], dumps_json(tool_call["arguments"]))
+                request = ApprovalRequest(
+                    tool_name=tool_call["name"],
+                    arguments_preview=dumps_json(tool_call["arguments"]),
+                    tool_call_id=tool_call["id"],
+                    arguments=dict(tool_call["arguments"]),
+                )
                 if (
                     should_prompt(self.settings.approval_mode, tool)
                     and self.callbacks
@@ -363,7 +370,7 @@ async def run_agent(
     registry: ToolRegistry,
     settings: Settings,
     cwd: Path,
-    max_iterations: int = 8,
+    max_iterations: int | None = None,
     stdin_is_tty: bool = False,
     callbacks: AgentCallbacks | None = None,
     tool_context: ToolContext | None = None,

@@ -1,0 +1,51 @@
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+
+import Mocha from "mocha";
+
+async function collectTests(directory: string): Promise<string[]> {
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map(async (entry) => {
+      const resolved = path.resolve(directory, entry.name);
+      if (entry.isDirectory()) {
+        return collectTests(resolved);
+      }
+      if (entry.isFile() && entry.name.endsWith(".test.js")) {
+        return [resolved];
+      }
+      return [];
+    })
+  );
+
+  return files.flat();
+}
+
+export async function run(): Promise<void> {
+  const mocha = new Mocha({
+    color: true,
+    ui: "tdd"
+  });
+
+  const testsRoot = path.resolve(__dirname);
+  const testFiles = await collectTests(testsRoot);
+
+  for (const file of testFiles) {
+    mocha.addFile(file);
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    mocha.run((failures) => {
+      if (failures > 0) {
+        reject(new Error(`${failures} test(s) failed.`));
+        return;
+      }
+      resolve();
+    });
+  });
+
+  const doneFile = process.env.CODEGOPHER_VSCODE_TEST_DONE_FILE;
+  if (doneFile) {
+    await fs.writeFile(doneFile, "ok", "utf8");
+  }
+}

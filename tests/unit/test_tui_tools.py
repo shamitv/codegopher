@@ -26,7 +26,7 @@ def make_registry(tool: FakeTool) -> ToolRegistry:
 
 
 @pytest.mark.asyncio
-async def test_tui_renders_requested_tool_calls_with_argument_summary(tmp_path: Path) -> None:
+async def test_tui_records_requested_tool_calls_for_details(tmp_path: Path) -> None:
     tool = FakeTool(name="inspect_project")
     provider = MockProvider(
         [
@@ -57,15 +57,12 @@ async def test_tui_renders_requested_tool_calls_with_argument_summary(tmp_path: 
         await pilot.press("enter")
         await pilot.pause(0.1)
 
-        assert any(
-            message.startswith("Tool requested: inspect_project")
-            and "README.md" in message
-            for message in app.chat_messages
-        )
+        assert "Tools used: 1 (1 completed) - inspect_project. Run /tools for details." in app.chat_messages
+        assert app._last_tool_activities[0].arguments_summary == "{'path': 'README.md'}"
 
 
 @pytest.mark.asyncio
-async def test_tui_renders_successful_tool_results(tmp_path: Path) -> None:
+async def test_tui_renders_successful_tool_results_as_summary(tmp_path: Path) -> None:
     tool = FakeTool(name="inspect_project")
     provider = MockProvider(
         [
@@ -96,7 +93,8 @@ async def test_tui_renders_successful_tool_results(tmp_path: Path) -> None:
         await pilot.press("enter")
         await pilot.pause(0.1)
 
-        assert "Tool completed: inspect_project" in app.chat_messages
+        assert "Tool completed: inspect_project" not in app.chat_messages
+        assert "Tools used: 1 (1 completed) - inspect_project. Run /tools for details." in app.chat_messages
 
 
 @pytest.mark.asyncio
@@ -132,6 +130,7 @@ async def test_tui_renders_failed_tool_results_with_content(tmp_path: Path) -> N
         await pilot.pause(0.1)
 
         assert "Tool failed: inspect_project: boom" in app.chat_messages
+        assert "Tools used: 1 (1 failed) - inspect_project. Run /tools for details." in app.chat_messages
 
 
 @pytest.mark.asyncio
@@ -169,6 +168,44 @@ async def test_tui_keeps_filesystem_safety_errors_visible(tmp_path: Path) -> Non
             message.startswith("Tool failed: write_file:")
             and "list_dir must inspect parent directory" in message
             for message in app.chat_messages
+        )
+
+
+@pytest.mark.asyncio
+async def test_tui_tools_detail_includes_result_summary(tmp_path: Path) -> None:
+    tool = FakeTool(name="inspect_project")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "inspect_project",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    app = CodeGopherApp(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+        registry_factory=lambda: make_registry(tool),
+    )
+
+    async with app.run_test() as pilot:
+        app.query_one("#prompt-input").value = "inspect"
+
+        await pilot.press("enter")
+        await pilot.pause(0.1)
+
+        assert app._format_last_tools_detail() == (
+            "Tools from last turn:\n"
+            "- inspect_project [completed] args={'path': 'README.md'} result=ok"
         )
 
 

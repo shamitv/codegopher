@@ -36,6 +36,7 @@ def test_settings_defaults() -> None:
     assert settings.todo.max_items == 100
     assert settings.mcp.enabled is True
     assert settings.mcp.servers == {}
+    assert settings.agent.max_iterations == 64
 
 
 def test_settings_rejects_invalid_approval_mode() -> None:
@@ -146,3 +147,8 @@ def test_settings_rejects_empty_skill_paths() -> None:
 def test_settings_rejects_invalid_todo_limits() -> None:
     with pytest.raises(ValidationError):
         Settings.model_validate({"todo": {"max_items": 0}})
+
+
+def test_settings_rejects_invalid_agent_limits() -> None:
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"agent": {"max_iterations": 0}})

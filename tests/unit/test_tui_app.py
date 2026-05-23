@@ -65,6 +65,49 @@ async def test_tui_app_appends_submitted_input(tmp_path: Path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_tui_app_renders_assistant_markdown_without_changing_history(
+    tmp_path: Path,
+) -> None:
+    markdown = "\n".join(
+        [
+            "# Summary",
+            "",
+            "| Area | Result |",
+            "|---|---|",
+            "| TUI | polished |",
+            "",
+            "- bullets render",
+            "",
+            "```python",
+            "print('ok')",
+            "```",
+        ]
+    )
+    app = CodeGopherApp(
+        settings=Settings(
+            model=ModelConfig(provider="openai", name="test-model"),
+            approval_mode=ApprovalMode.auto,
+        ),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: MockProvider(
+            [[{"type": "text_delta", "content": markdown}, {"type": "done"}]]
+        ),
+    )
+
+    async with app.run_test() as pilot:
+        input_widget = app.query_one("#prompt-input", Input)
+        input_widget.focus()
+        input_widget.value = "markdown"
+
+        await pilot.press("enter")
+        await pilot.pause()
+
+        assert app.chat_messages[-1] == f"Assistant: {markdown}"
+        assert app.chat_entries[-1].role == "assistant"
+        assert app._last_assistant_scroll_y is not None
+
+
+@pytest.mark.asyncio
 async def test_tui_app_handles_empty_submit_as_status_message(tmp_path: Path) -> None:
     app = make_app(tmp_path)
 

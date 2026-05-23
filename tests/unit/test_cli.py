@@ -124,6 +124,36 @@ def test_cli_applies_api_family_override(monkeypatch) -> None:
     assert captured["settings"].providers["openai"][0].api_family.value == "responses"
 
 
+def test_cli_applies_max_iterations_override(monkeypatch) -> None:
+    captured: dict[str, Settings] = {}
+
+    async def fake_run_agent(**kwargs):
+        captured["settings"] = kwargs["settings"]
+        return AgentResult(final_text="ok", iterations=1)
+
+    monkeypatch.setattr(cli_main, "run_agent", fake_run_agent)
+
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello", "--max-iterations", "24"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+    )
+
+    assert result.exit_code == 0
+    assert captured["settings"].agent.max_iterations == 24
+
+
+def test_cli_rejects_invalid_max_iterations() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello", "--max-iterations", "0"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+    )
+
+    assert result.exit_code != 0
+    assert "Invalid value for '--max-iterations'" in result.output
+
+
 def test_cli_appends_piped_stdin_to_prompt(monkeypatch) -> None:
     captured: dict[str, str] = {}
 
@@ -161,6 +191,33 @@ def test_cli_json_output_shape_and_implicit_init(tmp_path: Path) -> None:
         "tool_results": [],
         "iterations": 1,
     }
+    assert project_skill.exists()
+
+
+def test_cli_events_prompt_routes_to_events_runner(monkeypatch, tmp_path: Path) -> None:
+    captured: dict[str, object] = {}
+
+    async def fake_run_events_cli(**kwargs) -> int:
+        captured.update(kwargs)
+        kwargs["stdout"].write("events-ok\n")
+        return 0
+
+    monkeypatch.setattr(cli_main, "run_events_cli", fake_run_events_cli)
+    runner = CliRunner()
+
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(
+            app,
+            ["--events", "-p", "hello", "--json"],
+            env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+        )
+        project_skill = Path.cwd() / ".codegopher/skills/project/SKILL.md"
+
+    assert result.exit_code == 0
+    assert result.output == "events-ok\n"
+    assert captured["prompt"] == "hello"
+    assert isinstance(captured["settings"], Settings)
+    assert captured["cwd"] is not None
     assert project_skill.exists()
 
 

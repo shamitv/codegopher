@@ -8,6 +8,7 @@ Earlier roadmap items remain in place:
 - v0.4: OpenAI Responses API And MCP.
 - v0.5: Repository Documentation And Static Security Skill Packs.
 - v0.7: Advanced Coding Workflows.
+- v0.8: Richer IDE UI And Webview Work.
 
 ## Summary
 
@@ -19,9 +20,25 @@ The v0.6 release should make CodeGopher usable from VS Code Chat:
 @codegopher review my current workspace changes
 ```
 
-The VS Code extension will register a native chat participant named `@codegopher`. The extension will launch the local Python CLI as a subprocess and communicate with it through a newline-delimited JSON protocol. The Python agent remains authoritative for configuration loading, provider behavior, approvals, tool execution, prior-read enforcement, `.codegopherignore`, and workspace path safety.
+The VS Code extension will register a native chat participant named `@codegopher`. The extension will launch the local Python CLI as a subprocess and communicate with it through a newline-delimited JSON protocol. The Python agent remains authoritative for configuration loading, provider behavior, MCP server validation, approvals, tool execution, prior-read enforcement, `.codegopherignore`, and workspace path safety.
 
-The first IDE layer is intentionally not an LSP integration and not a webview app. It is a chat surface over the local CodeGopher agent.
+The first IDE layer is intentionally not an LSP integration and not a webview app. It is a chat surface over the local CodeGopher agent plus small VS Code-native controls for inspecting the configured LLM endpoint and managing already-supported MCP server settings.
+
+## IDE Scope And Tradeoffs
+
+The v0.6 extension should be a thin IDE shell around the existing local agent. VS Code owns the user-facing chat participant, commands, progress rendering, approval buttons, and simple command-palette flows. Python owns the agent session, configuration semantics, provider selection, MCP lifecycle, tool execution, approvals, redaction, and workspace safety.
+
+A future custom webview can still keep the same Python engine boundary. In that design, the webview would be the frontend UI, the TypeScript extension host would bridge messages between the webview and subprocess, and `cgopher --events` would continue to own agent execution through the JSONL protocol. A webview would not require moving provider calls, MCP lifecycle, config validation, tool execution, or approval policy into TypeScript.
+
+Tradeoffs of this design:
+
+- Faster first useful IDE release: the extension can reuse the existing CLI, provider, MCP, approval, and tool code instead of rebuilding agent behavior in TypeScript.
+- Smaller correctness surface: terminal, TUI, headless, and VS Code paths share the same Python safety rules, reducing the chance that IDE behavior diverges from the CLI.
+- Less custom UI control: native VS Code Chat and command-palette controls are simpler and more familiar, but they are less flexible than a full custom webview for complex settings screens.
+- Clear webview deferral: richer panels for chat, MCP forms, logs, and visual state can be added later on top of the same Python protocol, but v0.6 avoids the frontend, accessibility, styling, state sync, and webview security work needed to do that well.
+- No editor-native intelligence yet: skipping LSP means v0.6 will not provide diagnostics, hovers, code actions, autocomplete, or inline fixes outside the chat flow.
+- More subprocess/protocol work: the extension needs a robust JSONL protocol, lifecycle handling, cancellation, and error mapping because Python and VS Code are separate processes.
+- Better long-term layering: the protocol creates a stable boundary that can later support richer IDE surfaces, LSP features, or a webview without moving core agent authority out of Python.
 
 ## User-Facing Interfaces
 
@@ -36,6 +53,8 @@ Extension commands:
 
 - `CodeGopher: Open Chat`: focus VS Code Chat with `@codegopher`.
 - `CodeGopher: Restart Agent`: stop and restart the subprocess.
+- `CodeGopher: View LLM Endpoint`: show the effective configured LLM endpoint in VS Code, including `[model]`, selected `[[providers.PROVIDER]]` entry, API family, base URL when present, and configuration source.
+- `CodeGopher: Manage MCP Servers`: open a VS Code-native UI for viewing, adding, editing, enabling, disabling, and removing configured MCP servers under `[mcp.servers.NAME]`.
 - `CodeGopher: Show Protocol Trace`: open recent trace output when tracing is enabled.
 - Internal approval commands used by chat buttons for approve and deny decisions.
 
@@ -45,6 +64,7 @@ Extension settings:
 - `codegopher.provider`: optional provider override passed to the CLI.
 - `codegopher.model`: optional model override passed to the CLI.
 - `codegopher.baseUrl`: optional OpenAI-compatible base URL override passed to the CLI.
+- `codegopher.apiFamily`: optional `chat_completions` or `responses` override passed to the CLI.
 - `codegopher.approvalMode`: optional `review`, `auto`, or `yolo` override.
 - `codegopher.traceProtocol`: when true, write redacted protocol logs to the extension output channel.
 
@@ -68,6 +88,11 @@ Commands from VS Code to Python:
 - `start_turn`: prompt text, workspace root, optional selected file/editor metadata, and optional CLI override metadata.
 - `approval_response`: pending approval id, approved boolean, and optional denial reason.
 - `cancel_turn`: active turn id.
+- `get_effective_config`: request redacted effective model/provider endpoint settings for the active workspace.
+- `list_mcp_servers`: request redacted configured MCP servers for the active workspace.
+- `save_mcp_server`: create or update one MCP server using the existing settings schema.
+- `set_mcp_server_enabled`: enable or disable one configured MCP server.
+- `delete_mcp_server`: remove one configured MCP server.
 - `shutdown`: graceful subprocess stop.
 
 Events from Python to VS Code:
@@ -79,6 +104,10 @@ Events from Python to VS Code:
 - `tool_call`: tool id, tool name, and argument summary.
 - `approval_request`: approval id, tool name, argument summary, and raw argument JSON when safe to display.
 - `tool_result`: tool id, success/error state, and result summary.
+- `config_snapshot`: redacted effective `[model]`, selected provider entry, API family, base URL, and source metadata.
+- `mcp_servers`: redacted configured MCP server list, including enabled state, transport, non-secret fields, and source metadata.
+- `mcp_server_saved`: saved server name and redacted normalized server config.
+- `mcp_server_deleted`: deleted server name.
 - `error`: machine-readable code and user-facing message.
 - `turn_complete`: final text, tool count, approval count, and iteration count.
 
@@ -88,6 +117,8 @@ Protocol constraints:
 - human-readable diagnostics go to stderr or a trace file.
 - malformed input receives a structured `error` event and does not crash the session unless recovery is impossible.
 - secrets such as API keys and raw environment values must never be emitted in events or traces.
+- config inspection must redact API keys, MCP header values, raw `env` values, and values resolved through `headers_env`.
+- VS Code must not parse, validate, or write CodeGopher TOML directly; it requests config reads and writes through the Python side.
 
 ## Implementation Shape
 
@@ -99,6 +130,9 @@ Python runtime:
 4. Implement `--events` as a presentation layer over the session runner.
 5. Support bidirectional approval by pausing the turn until an `approval_response` arrives.
 6. Support cancellation by stopping the active turn, reporting a structured error, and returning the session to an idle state when possible.
+7. Add redacted effective-config inspection using the existing settings loader and selected provider entry logic.
+8. Add MCP server config management for `[mcp.servers.NAME]`, preserving the existing stdio/SSE schema and validation.
+9. Ensure config writes update project-local `.codegopher/settings.toml` only, never user-global settings, secrets, session files, or generated traces.
 
 VS Code extension:
 
@@ -110,10 +144,14 @@ VS Code extension:
 6. Route approval button commands back to the pending subprocess request.
 7. Respect cancellation tokens from VS Code Chat by sending `cancel_turn`.
 8. Surface missing CLI, subprocess exits, malformed JSON, provider errors, and approval timeouts clearly.
+9. Add a VS Code-native LLM endpoint viewer that displays the effective provider, model, base URL, and config source without exposing secrets.
+10. Add a VS Code-native MCP server manager for configured servers, reusing Python configuration loading and validation so the CLI remains authoritative.
+11. Use command palette quick picks, input boxes, and confirmation dialogs for the MCP server manager; do not add a custom webview in v0.6.
 
 Safety boundaries:
 
 - The extension never executes file, shell, git, web, or MCP tools directly.
+- The extension never starts, probes, or executes configured MCP servers from TypeScript; Python remains the only MCP runtime.
 - Python safety checks remain authoritative.
 - Approval mode semantics remain `review`, `auto`, and `yolo`.
 - Workspace root selection must be explicit and visible in `/status`.
@@ -122,8 +160,9 @@ Safety boundaries:
 Out of scope for v0.6:
 
 - LSP diagnostics and code actions.
-- A custom webview chat UI.
+- A custom webview chat or settings UI; future webview work should still use the Python engine through the JSONL protocol.
 - A background daemon or HTTP server.
+- New MCP transports beyond the existing stdio and SSE support.
 - Marketplace publishing automation beyond local VSIX packaging notes.
 - Remote extension host support beyond documenting known limits.
 
@@ -132,6 +171,8 @@ Out of scope for v0.6:
 Python tests:
 
 - Protocol model encode/decode tests.
+- Effective LLM endpoint inspection tests proving `[model]`, selected provider entry, API family, base URL, and sources are reported without secrets.
+- MCP server config management tests for list, add, edit, enable, disable, remove, validation errors, and redaction.
 - CLI routing tests for `--events`, `--events -p`, and existing headless/TUI preservation.
 - Event-stream tests for text, reasoning, tool calls, tool results, approvals, denial, provider errors, malformed input, and cancellation.
 - Session runner tests proving `ToolContext` and prior-read behavior persist across turns.
@@ -139,6 +180,7 @@ Python tests:
 VS Code extension tests:
 
 - TypeScript unit tests for JSONL parsing, subprocess message routing, pending approval state, cancellation, and error mapping.
+- TypeScript unit tests for configured LLM endpoint display data mapping and MCP server management command flows.
 - VS Code integration tests using `@vscode/test-electron` for activation, chat participant registration, commands, and settings.
 - Mock subprocess tests covering streaming, approval request/response, malformed JSON, subprocess crash, and restart.
 
@@ -159,6 +201,8 @@ npm test
 Manual smoke checks:
 
 - Open a workspace in VS Code and ask `@codegopher` a read-only question.
+- View the configured LLM endpoint in VS Code and confirm provider, model, base URL, and config source are correct.
+- Add, edit, disable, and remove a configured MCP server from VS Code, then confirm the CLI observes the same configuration.
 - Run a prompt that requests a tool call and confirm progress appears.
 - Approve one tool call and deny another from VS Code Chat buttons.
 - Cancel a long-running turn and confirm the subprocess returns to a usable state.

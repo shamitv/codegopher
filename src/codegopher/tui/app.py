@@ -6,9 +6,12 @@ import asyncio
 import os
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
+from urllib.parse import urlsplit, urlunsplit
 
+from rich.markdown import Markdown as RichMarkdown
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Button, Footer, Header, Input, RichLog, Static
@@ -17,7 +20,7 @@ from codegopher.config.schema import ApprovalMode, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult, should_prompt
 from codegopher.core.context import build_messages
-from codegopher.core.context_budget import calculate_context_budget
+from codegopher.core.context_budget import calculate_context_budget, selected_provider_entry
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
 from codegopher.core.types import (
@@ -45,6 +48,19 @@ from codegopher.utils.json import dumps_json
 
 if TYPE_CHECKING:
     from textual.binding import BindingType
+
+
+LONG_ASSISTANT_MESSAGE_CHARS = 1200
+LONG_ASSISTANT_MESSAGE_LINES = 18
+
+
+@dataclass
+class ToolActivity:
+    tool_id: str
+    name: str
+    arguments_summary: str = ""
+    state: str = "requested"
+    result_summary: str = ""
 
 
 class CodeGopherApp(App[None]):
@@ -146,11 +162,10 @@ class CodeGopherApp(App[None]):
         self.shell_timeout_seconds = shell_timeout_seconds
         self.monotonic = monotonic
         self.started_at = monotonic()
-        self.chat_messages: list[str] = (
-            [message.content for message in self.session_state.messages]
-            if self.session_state
-            else []
+        self.chat_entries: list[SessionMessage] = (
+            list(self.session_state.messages) if self.session_state else []
         )
+        self.chat_messages: list[str] = [message.content for message in self.chat_entries]
         self.status_message = self._startup_status()
         self.turn_running = False
         self.turn_count = 0
@@ -159,6 +174,10 @@ class CodeGopherApp(App[None]):
         self._active_reasoning_message = ""
         self._active_assistant_message = ""
         self._tool_call_names: dict[str, str] = {}
+        self._active_tool_activities: list[ToolActivity] = []
+        self._last_tool_activities: tuple[ToolActivity, ...] = ()
+        self._tool_call_activity_by_id: dict[str, ToolActivity] = {}
+        self._last_assistant_scroll_y: int | None = None
         self._pending_approval: asyncio.Future[ApprovalResult] | None = None
 
     def compose(self) -> ComposeResult:
@@ -180,9 +199,13 @@ class CodeGopherApp(App[None]):
     async def on_mount(self) -> None:
         self.query_one("#approval-panel", Vertical).display = False
         self.query_one("#reasoning-stream", Static).display = False
-        history = self.query_one("#chat-history", RichLog)
-        for message in self.chat_messages:
-            history.write(message, scroll_end=True)
+        for message in self.chat_entries:
+            self._write_chat_message(
+                message.content,
+                role=message.role,
+                scroll_end=True,
+                review_long=False,
+            )
         if self.session_load_error:
             self.append_system_message(f"Session resume failed: {self.session_load_error}")
         await self._initialize_mcp()
@@ -234,6 +257,8 @@ class CodeGopherApp(App[None]):
         self._active_reasoning_message = ""
         self._active_assistant_message = ""
         self._tool_call_names = {}
+        self._active_tool_activities = []
+        self._tool_call_activity_by_id = {}
         self.query_one("#reasoning-stream", Static).display = False
         self.query_one("#reasoning-stream", Static).update("")
         self.query_one("#assistant-stream", Static).update("")
@@ -317,21 +342,31 @@ class CodeGopherApp(App[None]):
         self.tool_count += 1
         self._tool_call_names[tool_call["id"]] = tool_call["name"]
         arguments = self._summarize_arguments(tool_call["arguments"])
-        suffix = f" {arguments}" if arguments else ""
-        self.append_system_message(f"Tool requested: {tool_call['name']}{suffix}")
+        activity = ToolActivity(
+            tool_id=tool_call["id"],
+            name=tool_call["name"],
+            arguments_summary=arguments,
+        )
+        self._active_tool_activities.append(activity)
+        self._tool_call_activity_by_id[tool_call["id"]] = activity
         self.set_status(f"Tool requested: {tool_call['name']}")
 
     async def _on_agent_tool_result(self, result: ToolResult) -> None:
         tool_name = self._tool_call_names.get(result.tool_call_id, result.tool_call_id)
         state = "failed" if result.is_error else "completed"
+        activity = self._tool_call_activity_by_id.get(result.tool_call_id)
+        if activity is None:
+            activity = ToolActivity(tool_id=result.tool_call_id, name=tool_name)
+            self._active_tool_activities.append(activity)
+            self._tool_call_activity_by_id[result.tool_call_id] = activity
+        activity.state = state
+        activity.result_summary = self._shorten(result.content)
         if result.is_error:
             self.append_system_message(f"Tool failed: {tool_name}: {result.content}")
         elif tool_name == "save_memory":
             self.append_system_message(self._format_memory_save_event(result.content))
         elif tool_name == "update_todo":
             self.append_system_message(self._format_todo_tool_event(result.content))
-        else:
-            self.append_system_message(f"Tool completed: {tool_name}")
         self.set_status(f"Tool {state}: {tool_name}")
 
     async def _on_agent_approval_request(self, request: ApprovalRequest) -> ApprovalResult:
@@ -347,13 +382,15 @@ class CodeGopherApp(App[None]):
 
     async def _on_agent_complete(self, result: AgentResult) -> None:
         if self._active_reasoning_message:
-            self._append_chat_message(
-                f"Reasoning (collapsed): {self._active_reasoning_message}",
-                role="system",
-            )
+            if self.settings.debug:
+                self._append_chat_message(
+                    f"Reasoning (debug): {self._active_reasoning_message}",
+                    role="system",
+                )
             self._active_reasoning_message = ""
             self.query_one("#reasoning-stream", Static).display = False
             self.query_one("#reasoning-stream", Static).update("")
+        self._append_tool_summary()
         if self._active_assistant_message:
             self._append_chat_message(
                 f"Assistant: {self._active_assistant_message}",
@@ -367,10 +404,81 @@ class CodeGopherApp(App[None]):
 
     def _append_chat_message(self, message: str, *, role: MessageRole = "system") -> None:
         self.chat_messages.append(message)
+        self.chat_entries.append(SessionMessage(role=role, content=message))
         if self.session_state is not None:
             self.session_state.messages.append(SessionMessage(role=role, content=message))
             self._persist_session()
-        self.query_one("#chat-history", RichLog).write(message, scroll_end=True)
+        self._write_chat_message(message, role=role, scroll_end=True)
+
+    def _write_chat_message(
+        self,
+        message: str,
+        *,
+        role: MessageRole,
+        scroll_end: bool,
+        review_long: bool = True,
+    ) -> None:
+        history = self.query_one("#chat-history", RichLog)
+        if role != "assistant":
+            history.write(message, scroll_end=scroll_end)
+            return
+
+        body = message.removeprefix("Assistant: ")
+        start_y = len(history.lines)
+        self._last_assistant_scroll_y = start_y
+        long_message = self._is_long_assistant_message(body)
+        history.write("Assistant:", scroll_end=False)
+        history.write(RichMarkdown(body), scroll_end=scroll_end and not long_message)
+        if scroll_end and review_long and long_message:
+            history.scroll_to(y=start_y, immediate=True)
+
+    def _is_long_assistant_message(self, message: str) -> bool:
+        return (
+            len(message) >= LONG_ASSISTANT_MESSAGE_CHARS
+            or message.count("\n") + 1 >= LONG_ASSISTANT_MESSAGE_LINES
+        )
+
+    def _append_tool_summary(self) -> None:
+        if not self._active_tool_activities:
+            self._last_tool_activities = ()
+            return
+        self._last_tool_activities = tuple(self._active_tool_activities)
+        self.append_system_message(self._format_tool_summary(self._last_tool_activities))
+
+    def _format_tool_summary(self, activities: tuple[ToolActivity, ...]) -> str:
+        completed = sum(1 for activity in activities if activity.state == "completed")
+        failed = sum(1 for activity in activities if activity.state == "failed")
+        requested = len(activities) - completed - failed
+        state_parts = []
+        if completed:
+            state_parts.append(f"{completed} completed")
+        if failed:
+            state_parts.append(f"{failed} failed")
+        if requested:
+            state_parts.append(f"{requested} requested")
+        state_summary = ", ".join(state_parts)
+        names = ", ".join(activity.name for activity in activities[:4])
+        if len(activities) > 4:
+            names = f"{names}, ..."
+        return f"Tools used: {len(activities)} ({state_summary}) - {names}. Run /tools for details."
+
+    def _format_last_tools_detail(self) -> str:
+        if not self._last_tool_activities:
+            return "Tools: none in the last turn"
+        lines = ["Tools from last turn:"]
+        for activity in self._last_tool_activities:
+            arguments = (
+                f" args={activity.arguments_summary}"
+                if activity.arguments_summary
+                else ""
+            )
+            result = (
+                f" result={activity.result_summary}"
+                if activity.result_summary
+                else ""
+            )
+            lines.append(f"- {activity.name} [{activity.state}]{arguments}{result}")
+        return "\n".join(lines)
 
     def _persist_session(self) -> None:
         if not self.session_store or not self.session_state:
@@ -403,6 +511,8 @@ class CodeGopherApp(App[None]):
             self._handle_compact_command(command)
         elif command.name == "forget":
             self._handle_forget_command(command)
+        elif command.name == "last":
+            self._handle_last_command(command)
         elif command.name == "memory":
             self._handle_memory_command(command)
         elif command.name == "model":
@@ -415,8 +525,12 @@ class CodeGopherApp(App[None]):
             self._handle_skills_command(command)
         elif command.name == "stats":
             self._handle_stats_command(command)
+        elif command.name == "status":
+            self._handle_status_command(command)
         elif command.name == "todo":
             self._handle_todo_command(command)
+        elif command.name == "tools":
+            self._handle_tools_command(command)
         else:
             unknown = command.raw.split(maxsplit=1)[0]
             self._command_error(f"Unknown slash command: {unknown}")
@@ -438,10 +552,26 @@ class CodeGopherApp(App[None]):
             self._command_error("Usage: /clear")
             return
         self.chat_messages.clear()
+        self.chat_entries.clear()
         self._active_assistant_message = ""
+        self._last_assistant_scroll_y = None
         self.query_one("#chat-history", RichLog).clear()
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Chat history cleared")
+
+    def _handle_last_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /last")
+            return
+        if self._last_assistant_scroll_y is None:
+            self.append_system_message("No assistant response to jump to")
+            self.set_status("No assistant response")
+            return
+        self.query_one("#chat-history", RichLog).scroll_to(
+            y=self._last_assistant_scroll_y,
+            immediate=True,
+        )
+        self.set_status("Jumped to last assistant response")
 
     def _handle_compact_command(self, command: SlashCommand) -> None:
         if self.turn_running:
@@ -741,6 +871,20 @@ class CodeGopherApp(App[None]):
         self.append_system_message(message)
         self.set_status("Displayed stats")
 
+    def _handle_status_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /status")
+            return
+        self.append_system_message(self._format_status())
+        self.set_status("Displayed status")
+
+    def _handle_tools_command(self, command: SlashCommand) -> None:
+        if command.arguments:
+            self._command_error("Usage: /tools")
+            return
+        self.append_system_message(self._format_last_tools_detail())
+        self.set_status("Displayed tools")
+
     def _handle_todo_command(self, command: SlashCommand) -> None:
         if not command.arguments:
             self.append_system_message(self._format_todo_listing())
@@ -848,6 +992,81 @@ class CodeGopherApp(App[None]):
         )
         percent = int((budget.usage_ratio or 0) * 100)
         return f"context={budget.token_count}/{budget.context_window} tokens ({percent}%, {state})"
+
+    def _format_status(self) -> str:
+        entry = selected_provider_entry(self.settings)
+        data_home = (
+            self.session_store.data_home
+            if self.session_store is not None
+            else TuiSessionStore.default().data_home
+        )
+        provider_entry = (
+            f"{entry.name} ({entry.id})"
+            if entry is not None
+            else "not configured"
+        )
+        api_family = entry.api_family.value if entry is not None else "chat_completions"
+        base_url = (
+            self._redact_base_url(entry.base_url)
+            if entry is not None and entry.base_url
+            else "not configured"
+        )
+        api_key_env = (
+            entry.api_key_env
+            if entry is not None and entry.api_key_env
+            else "OPENAI_API_KEY"
+        )
+        elapsed_seconds = max(0, int(self.monotonic() - self.started_at))
+        return "\n".join(
+            [
+                "Status:",
+                f"CWD: {self.cwd}",
+                f"Data home: {data_home}",
+                f"Provider: {self.settings.model.provider}",
+                f"Model: {self.settings.model.name}",
+                f"Provider entry: {provider_entry}",
+                f"API family: {api_family}",
+                f"Base URL: {base_url}",
+                f"API key env: {api_key_env}",
+                f"Approval mode: {self.settings.approval_mode.value}",
+                f"MCP: {self._mcp_status_summary()}",
+                (
+                    f"Session: turns={self.turn_count} | tools={self.tool_count} | "
+                    f"approvals={self.approval_count} | elapsed={elapsed_seconds}s"
+                ),
+                self._memory_count_summary(),
+                self._context_budget_summary(),
+            ]
+        )
+
+    def _mcp_status_summary(self) -> str:
+        configured = len(self.settings.mcp.servers)
+        enabled = sum(1 for server in self.settings.mcp.servers.values() if server.enabled)
+        connected_tools = len(getattr(self.mcp_manager, "tools", ()) or ())
+        state = "enabled" if self.settings.mcp.enabled else "disabled"
+        return (
+            f"{state} | configured={configured} | enabled={enabled} | "
+            f"connected_tools={connected_tools}"
+        )
+
+    def _redact_base_url(self, value: str) -> str:
+        try:
+            parsed = urlsplit(value)
+        except ValueError:
+            return "[invalid URL]"
+        if not parsed.scheme or not parsed.netloc:
+            return value
+        host = parsed.hostname or parsed.netloc
+        netloc = host
+        try:
+            port = parsed.port
+        except ValueError:
+            return "[invalid URL]"
+        if port is not None:
+            netloc = f"{netloc}:{port}"
+        if parsed.username or parsed.password:
+            netloc = f"[redacted]@{netloc}"
+        return urlunsplit((parsed.scheme, netloc, parsed.path, "", ""))
 
     def _provider_conversation_messages(self) -> list[Message]:
         if self._agent_session is not None:

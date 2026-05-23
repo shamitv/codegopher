@@ -14,6 +14,7 @@ from codegopher.config.loader import CliOverrides, load_settings
 from codegopher.config.schema import Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
+from codegopher.events.cli import run_events_cli
 from codegopher.mcp import McpManager
 from codegopher.providers.base import Provider
 from codegopher.runtime import build_provider
@@ -141,12 +142,18 @@ async def _run_headless_agent(
     help="Choose tool approval behavior.",
 )
 @click.option(
+    "--max-iterations",
+    type=click.IntRange(min=1),
+    help="Maximum agent loop iterations for one turn.",
+)
+@click.option(
     "--no-project-init",
     is_flag=True,
     help="Do not create default project guidance on first use.",
 )
 @click.option("--debug", is_flag=True, help="Include debug diagnostics.")
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable output.")
+@click.option("--events", "events_mode", is_flag=True, help="Emit JSONL protocol events.")
 @click.pass_context
 def app(
     ctx: click.Context,
@@ -156,9 +163,11 @@ def app(
     base_url: str | None,
     api_family: str | None,
     approval_mode: str | None,
+    max_iterations: int | None,
     no_project_init: bool,
     debug: bool,
     as_json: bool,
+    events_mode: bool,
 ) -> None:
     """Run CodeGopher."""
     if ctx.invoked_subcommand is not None:
@@ -174,11 +183,29 @@ def app(
                 base_url=base_url,
                 api_family=api_family,
                 approval_mode=approval_mode,
+                max_iterations=max_iterations,
                 debug=debug if debug else None,
             )
         )
     except ConfigurationError as exc:
         raise click.ClickException(str(exc)) from exc
+
+    if events_mode:
+        _ensure_implicit_project_init(cwd=cwd, enabled=not no_project_init)
+        exit_code = asyncio.run(
+            run_events_cli(
+                prompt=prompt,
+                settings=settings,
+                cwd=cwd,
+                stdin=click.get_text_stream("stdin"),
+                stdout=click.get_text_stream("stdout"),
+                stderr=click.get_text_stream("stderr"),
+                provider_factory=_build_provider,
+            )
+        )
+        if exit_code:
+            raise click.exceptions.Exit(exit_code)
+        return
 
     if prompt:
         stdin = click.get_text_stream("stdin")

@@ -70,7 +70,7 @@ async def test_tui_review_mode_prompts_for_required_tools(tmp_path: Path) -> Non
 
         assert tool.executed is True
         assert app.query_one("#approval-panel", Vertical).display is False
-        assert "Tool completed: write_file" in app.chat_messages
+        assert "Tools used: 1 (1 completed) - write_file. Run /tools for details." in app.chat_messages
 
 
 @pytest.mark.asyncio
@@ -164,7 +164,7 @@ async def test_tui_yolo_mode_skips_approval_ui(tmp_path: Path) -> None:
 
         assert app.query_one("#approval-panel", Vertical).display is False
         assert tool.executed is True
-        assert "Tool completed: write_file" in app.chat_messages
+        assert "Tools used: 1 (1 completed) - write_file. Run /tools for details." in app.chat_messages
 
 
 class FakeTool:
