@@ -252,6 +252,9 @@ class CodeGopherApp(App[None]):
             self.set_status("Mention expansion failed")
             return
 
+        self._start_agent_turn(expansion.prompt)
+
+    def _start_agent_turn(self, prompt: str) -> None:
         self.turn_count += 1
         self._set_turn_running(True)
         self._active_reasoning_message = ""
@@ -264,7 +267,7 @@ class CodeGopherApp(App[None]):
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Running agent turn...")
         self.run_worker(
-            self._run_agent_turn(expansion.prompt),
+            self._run_agent_turn(prompt),
             name="agent-turn",
             group="agent",
             exclusive=True,
@@ -505,6 +508,8 @@ class CodeGopherApp(App[None]):
     def _handle_slash_command(self, command: SlashCommand) -> None:
         if command.name == "help":
             self._handle_help_command(command)
+        elif command.name == "audit":
+            self._handle_audit_command(command)
         elif command.name == "clear":
             self._handle_clear_command(command)
         elif command.name == "compact":
@@ -546,6 +551,18 @@ class CodeGopherApp(App[None]):
         )
         self.append_system_message("\n".join(lines))
         self.set_status("Displayed help")
+
+    def _handle_audit_command(self, command: SlashCommand) -> None:
+        if command.arguments != "--chain":
+            self._command_error("Usage: /audit --chain")
+            return
+        prompt = (
+            "use @skill:chained-vulnerability-static-audit to review this repository "
+            "for chained vulnerabilities and write docs/security/"
+            "CHAINED_VULNERABILITIES_REVIEW.md"
+        )
+        self.append_user_message(command.raw)
+        self._start_agent_turn(prompt)
 
     def _handle_clear_command(self, command: SlashCommand) -> None:
         if command.arguments:

@@ -234,6 +234,11 @@ class TuiSessionStore:
                 ):
                     raise ValueError("provider message response_items must be a list of objects")
                 message["response_items"] = response_items
+            if "reasoning_content" in raw_message:
+                reasoning_content = raw_message["reasoning_content"]
+                if not isinstance(reasoning_content, str):
+                    raise ValueError("provider message reasoning_content must be a string")
+                message["reasoning_content"] = reasoning_content
             messages.append(message)
         return messages
 

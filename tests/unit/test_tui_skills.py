@@ -74,7 +74,10 @@ Use pytest.
     assert "- pytest [available] Pytest - Project tests (keywords: pytest, tests)" in (
         app.chat_messages[-1]
     )
-    assert "Builtin (4):" in app.chat_messages[-1]
+    assert "Builtin (5):" in app.chat_messages[-1]
+    assert "- chained-vulnerability-static-audit [available] Chained Vulnerability Static Audit" in (
+        app.chat_messages[-1]
+    )
     assert "- repo-domain-docs [available] Repository Domain Documentation" in (
         app.chat_messages[-1]
     )

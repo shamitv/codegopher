@@ -24,6 +24,7 @@ class SlashCommandDefinition:
 
 COMMAND_DEFINITIONS: tuple[SlashCommandDefinition, ...] = (
     SlashCommandDefinition("/help", "Show available slash commands."),
+    SlashCommandDefinition("/audit --chain", "Run a chained vulnerability static audit."),
     SlashCommandDefinition("/clear", "Clear visible chat history."),
     SlashCommandDefinition("/compact [instructions]", "Compact provider context."),
     SlashCommandDefinition("/forget ID", "Delete a memory after confirmation."),

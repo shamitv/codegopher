@@ -89,6 +89,7 @@ async def test_tui_help_command_lists_available_commands(tmp_path: Path) -> None
         assert len(provider.calls) == 0
         assert app.status_message == "Displayed help"
         assert app.chat_messages[0].startswith("Slash commands:")
+        assert "/audit --chain - Run a chained vulnerability static audit." in app.chat_messages[0]
         assert "/help - Show available slash commands." in app.chat_messages[0]
         assert "/compact [instructions] - Compact provider context." in app.chat_messages[0]
         assert "/forget ID - Delete a memory after confirmation." in app.chat_messages[0]
@@ -111,6 +112,34 @@ async def test_tui_clear_command_clears_visible_chat_history(tmp_path: Path) -> 
 
         assert app.chat_messages == []
         assert app.status_message == "Chat history cleared"
+
+
+@pytest.mark.asyncio
+async def test_tui_audit_chain_command_submits_chained_audit_prompt(tmp_path: Path) -> None:
+    provider = MockProvider([[{"type": "text_delta", "content": "audit started"}, {"type": "done"}]])
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/audit --chain")
+        await wait_for_turn_to_finish(app, pilot)
+
+        assert app.turn_count == 1
+        assert provider.calls
+        prompt = str(provider.calls[0][-1]["content"])
+        assert "@skill:chained-vulnerability-static-audit" in prompt
+        assert "docs/security/CHAINED_VULNERABILITIES_REVIEW.md" in prompt
+
+
+@pytest.mark.asyncio
+async def test_tui_audit_command_rejects_invalid_arguments(tmp_path: Path) -> None:
+    provider = MockProvider([[{"type": "done"}]])
+    app = make_app(tmp_path, provider)
+
+    async with app.run_test() as pilot:
+        await submit(app, pilot, "/audit")
+
+        assert len(provider.calls) == 0
+        assert app.chat_messages == ["Error: Usage: /audit --chain"]
 
 
 @pytest.mark.asyncio
@@ -375,6 +404,7 @@ async def test_tui_unknown_slash_command_renders_error(tmp_path: Path) -> None:
     "command",
     [
         "/help",
+        "/audit",
         "/clear",
         "/forget",
         "/last",

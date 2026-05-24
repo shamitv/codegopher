@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 import codegopher.core.agent as agent_module
-from codegopher.config.schema import ApprovalMode, Settings
+from codegopher.config.schema import ApprovalMode, ProviderApiFamily, ProviderEntry, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, run_agent
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.errors import AgentLoopError, ProviderError
@@ -167,6 +167,132 @@ async def test_agent_loop_handles_mixed_reasoning_text_and_tool_calls(tmp_path: 
     assert text_deltas == ["checking", "done"]
     assert result.final_text == "done"
     assert result.tool_results[0].content == "project notes"
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_replays_reasoning_content_when_enabled(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "need file"},
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    await run_agent(
+        prompt="Inspect",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(
+            approval_mode=ApprovalMode.yolo,
+            providers={
+                "openai": [
+                    ProviderEntry(
+                        id="gpt-4o",
+                        name="GPT-4o",
+                        replay_reasoning_content=True,
+                    )
+                ]
+            },
+        ),
+        cwd=tmp_path,
+    )
+
+    assistant_message = provider.calls[1][2]
+    assert assistant_message["role"] == "assistant"
+    assert assistant_message["reasoning_content"] == "need file"
+    assert assistant_message["content"] is None
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_does_not_replay_reasoning_content_for_responses_api(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "need file"},
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    await run_agent(
+        prompt="Inspect",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(
+            approval_mode=ApprovalMode.yolo,
+            providers={
+                "openai": [
+                    ProviderEntry(
+                        id="gpt-4o",
+                        name="GPT-4o",
+                        api_family=ProviderApiFamily.responses,
+                        replay_reasoning_content=True,
+                    )
+                ]
+            },
+        ),
+        cwd=tmp_path,
+    )
+
+    assistant_message = provider.calls[1][2]
+    assert "reasoning_content" not in assistant_message
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_does_not_replay_reasoning_content_by_default(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "need file"},
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    await run_agent(
+        prompt="Inspect",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+    )
+
+    assistant_message = provider.calls[1][2]
+    assert "reasoning_content" not in assistant_message
 
 
 @pytest.mark.asyncio
