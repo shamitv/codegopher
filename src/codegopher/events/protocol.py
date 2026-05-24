@@ -197,6 +197,7 @@ class ConfigSnapshotEvent(ProtocolEvent):
     model: str = Field(min_length=1)
     api_family: Literal["chat_completions", "responses"]
     base_url: str | None = None
+    replay_reasoning_content: bool = False
     config_sources: list[str] = Field(default_factory=list)
 
 

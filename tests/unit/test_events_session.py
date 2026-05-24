@@ -358,6 +358,7 @@ async def test_events_session_config_helpers_emit_redacted_mcp_events(
 
     assert isinstance(config, ConfigSnapshotEvent)
     assert config.provider == "openai"
+    assert config.replay_reasoning_content is False
     assert config.config_sources == ["defaults"]
     assert isinstance(saved, McpServerSavedEvent)
     assert saved.server.headers == {"Authorization": "[redacted]"}

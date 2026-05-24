@@ -36,15 +36,26 @@ def create_provider_registry(
     base_url: str | None = None,
     api_key_env: str | None = "OPENAI_API_KEY",
     api_family: ProviderApiFamily = ProviderApiFamily.chat_completions,
+    replay_reasoning_content: bool = False,
 ) -> ProviderRegistry:
     registry = ProviderRegistry()
-    provider_class = (
-        OpenAIResponsesProvider
-        if api_family is ProviderApiFamily.responses
-        else OpenAICompatProvider
-    )
+    if api_family is ProviderApiFamily.responses:
+        registry.register(
+            "openai",
+            lambda: OpenAIResponsesProvider(
+                base_url=base_url,
+                api_key_env=api_key_env,
+                environ=environ,
+            ),
+        )
+        return registry
     registry.register(
         "openai",
-        lambda: provider_class(base_url=base_url, api_key_env=api_key_env, environ=environ),
+        lambda: OpenAICompatProvider(
+            base_url=base_url,
+            api_key_env=api_key_env,
+            environ=environ,
+            replay_reasoning_content=replay_reasoning_content,
+        ),
     )
     return registry

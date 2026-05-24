@@ -20,8 +20,14 @@ def _get(value: Any, key: str, default: Any = None) -> Any:
     return getattr(value, key, default)
 
 
-def _chat_messages(messages: list[Message]) -> list[dict[str, Any]]:
+def _chat_messages(
+    messages: list[Message],
+    *,
+    replay_reasoning_content: bool = False,
+) -> list[dict[str, Any]]:
     allowed_keys = {"role", "content", "name", "tool_call_id", "tool_calls"}
+    if replay_reasoning_content:
+        allowed_keys.add("reasoning_content")
     return [
         {key: value for key, value in message.items() if key in allowed_keys}
         for message in messages
@@ -38,6 +44,7 @@ class OpenAICompatProvider:
         api_key_env: str | None = "OPENAI_API_KEY",
         environ: Mapping[str, str] | None = None,
         client: Any | None = None,
+        replay_reasoning_content: bool = False,
     ) -> None:
         env = environ or os.environ
         self.api_key_env = api_key_env or "OPENAI_API_KEY"
@@ -45,6 +52,7 @@ class OpenAICompatProvider:
         if not self.api_key:
             raise ProviderError(f"Missing API key: expected environment variable {self.api_key_env}")
         self.base_url = base_url
+        self.replay_reasoning_content = replay_reasoning_content
         self._client: Any = client or AsyncOpenAI(api_key=self.api_key, base_url=base_url)
 
     async def stream(
@@ -59,7 +67,10 @@ class OpenAICompatProvider:
         try:
             request_args: dict[str, Any] = {
                 "model": model,
-                "messages": _chat_messages(messages),
+                "messages": _chat_messages(
+                    messages,
+                    replay_reasoning_content=self.replay_reasoning_content,
+                ),
                 "temperature": temperature,
                 "max_tokens": max_output_tokens,
                 "stream": True,

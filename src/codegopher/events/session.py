@@ -338,6 +338,7 @@ class EventsSession:
                 snapshot.api_family,
             ),
             base_url=snapshot.base_url,
+            replay_reasoning_content=snapshot.replay_reasoning_content,
             config_sources=list(snapshot.config_sources),
         )
         await self._emit(event)
