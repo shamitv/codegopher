@@ -23,8 +23,11 @@ class Conversation:
         tool_calls: list[ToolCall] | None = None,
         *,
         response_items: list[dict[str, Any]] | None = None,
+        reasoning_content: str | None = None,
     ) -> None:
         message: Message = {"role": "assistant", "content": content}
+        if reasoning_content:
+            message["reasoning_content"] = reasoning_content
         if tool_calls:
             message["tool_calls"] = [
                 {

@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from codegopher.config.schema import Settings
+from codegopher.config.schema import ProviderApiFamily, Settings
 from codegopher.core.approval import (
     ApprovalRequest,
     ApprovalResult,
@@ -23,12 +23,16 @@ from codegopher.core.compaction import (
     split_for_compaction,
 )
 from codegopher.core.context import build_messages
-from codegopher.core.context_budget import calculate_context_budget
+from codegopher.core.context_budget import calculate_context_budget, selected_provider_entry
 from codegopher.core.conversation import Conversation
-from codegopher.core.errors import AgentLoopError, ProviderError
+from codegopher.core.errors import AgentLoopError, ProviderError, ToolExecutionError
 from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
+from codegopher.security.policy import (
+    create_static_audit_registry,
+    uses_chained_vulnerability_skill,
+)
 from codegopher.skills import SkillManager, discover_skills
 from codegopher.todo import TodoState
 from codegopher.tools.base import ToolContext, ToolResult
@@ -128,25 +132,27 @@ class AgentSession:
             raise ProviderError("Provider does not support tool calls")
 
         self._load_skills_for_prompt(prompt)
-        await self._compact_if_needed(prompt)
+        active_registry = self._active_registry_for_turn()
+        await self._compact_if_needed(prompt, registry=active_registry)
         self.conversation.append_user(prompt)
         all_tool_results: list[ToolResult] = []
 
         for iteration in range(1, self.max_iterations + 1):
             text_parts: list[str] = []
+            reasoning_parts: list[str] = []
             tool_calls: list[ToolCall] = []
             response_items: list[dict[str, Any]] = []
             async for event in self.provider.stream(
                 build_messages(
                     self.conversation,
                     cwd=self.cwd,
-                    registry=self.registry,
+                    registry=active_registry,
                     approval_mode=self.settings.approval_mode,
                     memories=self._current_memory_context(),
                     skills=self._current_skill_context(),
                     todo_items=self._current_todo_context(),
                 ),
-                self.registry.schemas(),
+                active_registry.schemas(),
                 model=self.settings.model.name,
                 temperature=self.settings.model.temperature,
                 max_output_tokens=self.settings.model.max_output_tokens,
@@ -159,6 +165,7 @@ class AgentSession:
                         event["content"],
                     )
                 elif event["type"] == "reasoning_delta":
+                    reasoning_parts.append(event["content"])
                     await _emit_callback(
                         "on_reasoning_delta",
                         self.callbacks.on_reasoning_delta if self.callbacks else None,
@@ -182,8 +189,13 @@ class AgentSession:
                     raise ProviderError(event["message"])
 
             final_text = "".join(text_parts)
+            reasoning_content = self._reasoning_content_for_replay(reasoning_parts)
             if not tool_calls:
-                self.conversation.append_assistant(final_text, response_items=response_items)
+                self.conversation.append_assistant(
+                    final_text,
+                    response_items=response_items,
+                    reasoning_content=reasoning_content,
+                )
                 agent_result = AgentResult(
                     final_text=final_text,
                     tool_results=all_tool_results,
@@ -200,9 +212,25 @@ class AgentSession:
                 final_text or None,
                 tool_calls,
                 response_items=response_items,
+                reasoning_content=reasoning_content,
             )
             for tool_call in tool_calls:
-                tool = self.registry.get(tool_call["name"])
+                try:
+                    tool = active_registry.get(tool_call["name"])
+                except ToolExecutionError as exc:
+                    tool_result = ToolResult(
+                        tool_call_id=tool_call["id"],
+                        content=str(exc),
+                        is_error=True,
+                    )
+                    all_tool_results.append(tool_result)
+                    self.conversation.append_tool_result(tool_result)
+                    await _emit_callback(
+                        "on_tool_result",
+                        self.callbacks.on_tool_result if self.callbacks else None,
+                        tool_result,
+                    )
+                    continue
                 request = ApprovalRequest(
                     tool_name=tool_call["name"],
                     arguments_preview=dumps_json(tool_call["arguments"]),
@@ -246,7 +274,7 @@ class AgentSession:
 
         raise AgentLoopError(f"Agent exceeded max iterations: {self.max_iterations}")
 
-    async def _compact_if_needed(self, prompt: str) -> None:
+    async def _compact_if_needed(self, prompt: str, *, registry: ToolRegistry) -> None:
         pending_user_message: Message = {"role": "user", "content": prompt}
         pending_messages: list[Message] = [
             *self.conversation.provider_messages(),
@@ -256,7 +284,7 @@ class AgentSession:
             build_messages(
                 Conversation(messages=pending_messages),
                 cwd=self.cwd,
-                registry=self.registry,
+                registry=registry,
                 approval_mode=self.settings.approval_mode,
                 memories=self._current_memory_context(),
                 skills=self._current_skill_context(),
@@ -346,6 +374,22 @@ class AgentSession:
             return
         self.skill_manager.load_for_prompt(prompt)
         self.skill_context = self.skill_manager.context_items()
+
+    def _active_registry_for_turn(self) -> ToolRegistry:
+        if uses_chained_vulnerability_skill(self.skill_manager.loaded_ids):
+            return create_static_audit_registry(self.registry)
+        return self.registry
+
+    def _reasoning_content_for_replay(self, reasoning_parts: list[str]) -> str | None:
+        entry = selected_provider_entry(self.settings)
+        if (
+            entry is None
+            or entry.api_family is not ProviderApiFamily.chat_completions
+            or not entry.replay_reasoning_content
+        ):
+            return None
+        reasoning_content = "".join(reasoning_parts)
+        return reasoning_content or None
 
     def _current_skill_context(self) -> list[str]:
         if self._skill_context_override:

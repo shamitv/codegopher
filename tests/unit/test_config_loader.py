@@ -78,6 +78,7 @@ def test_load_settings_applies_environment_overrides(tmp_path: Path) -> None:
             "CODEGOPHER_BASE_URL": "http://127.0.0.1:8000/v1",
             "CODEGOPHER_API_KEY_ENV": "LOCAL_API_KEY",
             "CODEGOPHER_API_FAMILY": "responses",
+            "CODEGOPHER_REPLAY_REASONING_CONTENT": "true",
             "CODEGOPHER_DEBUG": "true",
         },
     )
@@ -89,6 +90,7 @@ def test_load_settings_applies_environment_overrides(tmp_path: Path) -> None:
     assert settings.providers["local"][0].base_url == "http://127.0.0.1:8000/v1"
     assert settings.providers["local"][0].api_key_env == "LOCAL_API_KEY"
     assert settings.providers["local"][0].api_family.value == "responses"
+    assert settings.providers["local"][0].replay_reasoning_content is True
 
 
 def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -> None:
@@ -101,6 +103,7 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
             provider="openai",
             base_url="http://localhost:8000/v1",
             api_family="responses",
+            replay_reasoning_content=True,
             approval_mode="auto",
             max_iterations=24,
             debug=True,
@@ -114,6 +117,7 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
     assert settings.debug is True
     assert settings.providers["openai"][0].base_url == "http://localhost:8000/v1"
     assert settings.providers["openai"][0].api_family.value == "responses"
+    assert settings.providers["openai"][0].replay_reasoning_content is True
 
 
 def test_load_settings_preserves_env_api_key_env_with_cli_endpoint_overrides(tmp_path: Path) -> None:

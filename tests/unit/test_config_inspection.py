@@ -29,6 +29,7 @@ def test_inspect_effective_config_reports_defaults(tmp_path: Path) -> None:
     assert snapshot.provider_entry_name is None
     assert snapshot.api_family == "chat_completions"
     assert snapshot.base_url is None
+    assert snapshot.replay_reasoning_content is False
     assert snapshot.config_sources == ("defaults",)
 
 
@@ -55,6 +56,7 @@ id = "gpt-selected"
 name = "Selected"
 api_family = "responses"
 base_url = "https://selected.example.test/v1"
+replay_reasoning_content = true
 """,
         encoding="utf-8",
     )
@@ -67,6 +69,7 @@ base_url = "https://selected.example.test/v1"
     assert snapshot.provider_entry_name == "Selected"
     assert snapshot.api_family == "responses"
     assert snapshot.base_url == "https://selected.example.test/v1"
+    assert snapshot.replay_reasoning_content is True
     assert snapshot.config_sources == ("defaults", "project")
 
 

@@ -48,7 +48,7 @@ def count_message_tokens(
     total = 0
     for message in messages:
         total += 4
-        for key in ("role", "content", "name", "tool_call_id"):
+        for key in ("role", "content", "name", "tool_call_id", "reasoning_content"):
             value = message.get(key)
             if isinstance(value, str):
                 total += count_text_tokens(value, encoding_name=encoding_name)

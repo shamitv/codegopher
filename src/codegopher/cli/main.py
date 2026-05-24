@@ -32,8 +32,17 @@ Use this project skill for repository-specific guidance.
 
 BUILTIN_SKILL_PACKS = {
     "repo-docs": ("repo-domain-docs", "repo-tech-docs"),
-    "security": ("crud-owasp-static-audit",),
-    "all": ("repo-domain-docs", "repo-tech-docs", "crud-owasp-static-audit"),
+    "security": (
+        "crud-owasp-static-audit",
+        "chained-vulnerability-static-audit",
+    ),
+    "chained-vulns": ("chained-vulnerability-static-audit",),
+    "all": (
+        "repo-domain-docs",
+        "repo-tech-docs",
+        "crud-owasp-static-audit",
+        "chained-vulnerability-static-audit",
+    ),
 }
 
 
@@ -137,6 +146,14 @@ async def _run_headless_agent(
     help="Override the provider API family.",
 )
 @click.option(
+    "--replay-reasoning-content/--no-replay-reasoning-content",
+    default=None,
+    help=(
+        "Replay assistant reasoning_content in Chat Completions history for "
+        "upstreams that require it."
+    ),
+)
+@click.option(
     "--approval-mode",
     type=click.Choice(["review", "auto", "yolo"]),
     help="Choose tool approval behavior.",
@@ -162,6 +179,7 @@ def app(
     provider: str | None,
     base_url: str | None,
     api_family: str | None,
+    replay_reasoning_content: bool | None,
     approval_mode: str | None,
     max_iterations: int | None,
     no_project_init: bool,
@@ -182,6 +200,7 @@ def app(
                 provider=provider,
                 base_url=base_url,
                 api_family=api_family,
+                replay_reasoning_content=replay_reasoning_content,
                 approval_mode=approval_mode,
                 max_iterations=max_iterations,
                 debug=debug if debug else None,
@@ -262,7 +281,7 @@ def app(
 @click.option("--force", is_flag=True, help="Overwrite existing project skill files.")
 @click.option(
     "--skill-pack",
-    type=click.Choice(["repo-docs", "security", "all"]),
+    type=click.Choice(["repo-docs", "security", "chained-vulns", "all"]),
     help="Materialize built-in skill pack guidance into the project.",
 )
 def init_project(path: Path | None, *, force: bool, skill_pack: str | None) -> None:

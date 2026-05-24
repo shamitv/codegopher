@@ -38,6 +38,7 @@ class ProviderEntry(BaseModel):
     api_key_env: str | None = None
     api_family: ProviderApiFamily = ProviderApiFamily.chat_completions
     context_window: int | None = Field(default=None, gt=0)
+    replay_reasoning_content: bool = False
 
 
 class McpServerConfig(BaseModel):

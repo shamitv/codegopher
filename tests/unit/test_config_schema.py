@@ -7,6 +7,7 @@ from codegopher.config.schema import (
     ApprovalMode,
     McpTransport,
     ProviderApiFamily,
+    ProviderEntry,
     Settings,
 )
 
@@ -60,6 +61,17 @@ def test_provider_entry_defaults_to_chat_completions() -> None:
     )
 
     assert settings.providers["openai"][0].api_family is ProviderApiFamily.chat_completions
+    assert settings.providers["openai"][0].replay_reasoning_content is False
+
+
+def test_provider_entry_accepts_reasoning_replay_flag() -> None:
+    entry = ProviderEntry(
+        id="deepseek",
+        name="DeepSeek",
+        replay_reasoning_content=True,
+    )
+
+    assert entry.replay_reasoning_content is True
 
 
 def test_provider_entry_rejects_invalid_api_family() -> None:

@@ -124,6 +124,25 @@ def test_cli_applies_api_family_override(monkeypatch) -> None:
     assert captured["settings"].providers["openai"][0].api_family.value == "responses"
 
 
+def test_cli_applies_reasoning_replay_override(monkeypatch) -> None:
+    captured: dict[str, Settings] = {}
+
+    async def fake_run_agent(**kwargs):
+        captured["settings"] = kwargs["settings"]
+        return AgentResult(final_text="ok", iterations=1)
+
+    monkeypatch.setattr(cli_main, "run_agent", fake_run_agent)
+
+    result = CliRunner().invoke(
+        app,
+        ["--no-project-init", "-p", "hello", "--replay-reasoning-content"],
+        env={"CODEGOPHER_TEST_MOCK_RESPONSE": "unused"},
+    )
+
+    assert result.exit_code == 0
+    assert captured["settings"].providers["openai"][0].replay_reasoning_content is True
+
+
 def test_cli_applies_max_iterations_override(monkeypatch) -> None:
     captured: dict[str, Settings] = {}
 
@@ -424,6 +443,7 @@ def test_cli_builds_real_openai_compatible_provider(monkeypatch) -> None:
                         name="Local",
                         base_url="http://127.0.0.1:8000/v1",
                         api_key_env="LOCAL_API_KEY",
+                        replay_reasoning_content=True,
                     )
                 ]
             },
@@ -433,6 +453,7 @@ def test_cli_builds_real_openai_compatible_provider(monkeypatch) -> None:
     assert isinstance(provider, OpenAICompatProvider)
     assert provider.base_url == "http://127.0.0.1:8000/v1"
     assert provider.api_key == "sk-local"
+    assert provider.replay_reasoning_content is True
 
 
 def test_cli_builds_real_openai_responses_provider(monkeypatch) -> None:
@@ -553,11 +574,28 @@ def test_cli_init_security_skill_pack_materializes_static_audit_skill(
     )
 
     skill_path = tmp_path / ".codegopher/skills/crud-owasp-static-audit/SKILL.md"
+    chained_path = tmp_path / ".codegopher/skills/chained-vulnerability-static-audit/SKILL.md"
     assert result.exit_code == 0
     assert skill_path.exists()
+    assert chained_path.exists()
     raw = skill_path.read_text(encoding="utf-8")
     assert "static-only" in raw.lower()
     assert "OWASP Top 10:2025" in raw
+    assert "attack graph" in chained_path.read_text(encoding="utf-8").lower()
+
+
+def test_cli_init_chained_vulns_skill_pack_materializes_only_chained_audit_skill(
+    tmp_path: Path,
+) -> None:
+    result = CliRunner().invoke(
+        app,
+        ["init", str(tmp_path), "--skill-pack", "chained-vulns"],
+    )
+
+    assert result.exit_code == 0
+    assert (tmp_path / ".codegopher/skills/chained-vulnerability-static-audit/SKILL.md").exists()
+    assert not (tmp_path / ".codegopher/skills/crud-owasp-static-audit/SKILL.md").exists()
+    assert not (tmp_path / ".codegopher/skills/repo-domain-docs/SKILL.md").exists()
 
 
 def test_cli_init_all_skill_pack_materializes_all_v0_5_skills(tmp_path: Path) -> None:
@@ -568,6 +606,7 @@ def test_cli_init_all_skill_pack_materializes_all_v0_5_skills(tmp_path: Path) ->
         "repo-domain-docs",
         "repo-tech-docs",
         "crud-owasp-static-audit",
+        "chained-vulnerability-static-audit",
     ):
         assert (tmp_path / ".codegopher" / "skills" / skill_id / "SKILL.md").exists()
 

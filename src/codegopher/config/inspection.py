@@ -25,6 +25,7 @@ class EffectiveConfigSnapshot:
     provider_entry_name: str | None
     api_family: str
     base_url: str | None
+    replay_reasoning_content: bool
     config_sources: tuple[str, ...]
 
 
@@ -62,6 +63,9 @@ def inspect_effective_config(
             else "chat_completions"
         ),
         base_url=selected_entry.base_url if selected_entry else None,
+        replay_reasoning_content=(
+            selected_entry.replay_reasoning_content if selected_entry else False
+        ),
         config_sources=loaded.metadata.source_labels,
     )
 
