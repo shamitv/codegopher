@@ -55,3 +55,7 @@ extensions/vscode/out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Planning and reports
+docs/plans/v0.7/report/
+
