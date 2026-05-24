@@ -27,6 +27,7 @@ Useful flags:
 
 - `--model`, `--provider`, and `--base-url` override model/provider settings.
 - `--api-family chat_completions|responses` selects the OpenAI-compatible Chat Completions path or OpenAI Responses API path for the run.
+- `--replay-reasoning-content` replays Chat Completions `reasoning_content` for upstreams that require it after tool calls; it is off by default.
 - `--approval-mode review|auto|yolo` controls tool approval behavior.
 - `--max-iterations N` sets the per-turn agent loop limit; the default is `64`.
 - `--no-project-init` disables first-use project guidance creation for the current run.
@@ -162,6 +163,7 @@ id = "gpt-4o"
 name = "GPT-4o"
 api_key_env = "OPENAI_API_KEY"
 api_family = "chat_completions"
+replay_reasoning_content = false
 
 [agent]
 max_iterations = 64
@@ -169,7 +171,7 @@ max_iterations = 64
 
 For OpenAI Responses API, set `api_family = "responses"` or pass `--api-family responses`. Responses calls use `store = false`; CodeGopher keeps the required replay metadata locally.
 
-For OpenAI-compatible local endpoints, set `base_url` on the provider entry and export a key through the configured `api_key_env`.
+For OpenAI-compatible local endpoints, set `base_url` on the provider entry and export a key through the configured `api_key_env`. If an upstream requires streamed assistant `reasoning_content` to be sent back in later Chat Completions tool-loop requests, set `replay_reasoning_content = true` or pass `--replay-reasoning-content` for that run.
 
 ```toml
 [mcp.servers.playwright]

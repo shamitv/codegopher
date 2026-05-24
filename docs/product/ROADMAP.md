@@ -11,8 +11,8 @@ This roadmap separates completed release slices from planned work. Dates are int
 | v0.3 - Context, Memory, And Skills | Done | Implemented; TODO checklist is complete. |
 | v0.4 - OpenAI Responses API And MCP | Done locally | Implemented and locally verified with full tests, lint, typecheck, build, Playwright MCP stdio, and controlled MCP SSE checks. |
 | v0.5 - Repository Documentation And Static Security Skill Packs | Done locally | Implemented and locally verified; CI/release review still required. |
-| v0.6 - VS Code Extension Layer | TODO | Planned; implementation has not started. |
-| v0.7 - Advanced Coding Workflows | TODO | Planned future slice. |
+| v0.6 - VS Code Extension Layer | Done locally | Implemented and locally verified; manual/release review remains tracked in the v0.6 plan. |
+| v0.7 - Chained Vulnerability Detection | Done locally | Built-in chained-vulnerability skill, static audit policy, attack graph/report scaffolding, docs, and tests are implemented; CI/release review remains. |
 | v0.8 - Richer IDE UI And Webview Work | TODO | Future slice for custom VS Code panels that still rely on the Python engine. |
 
 ## v0.1 - Headless Agent Loop
@@ -122,20 +122,24 @@ TODO:
 - Subprocess lifecycle management, cancellation, restart, and clear user-facing errors.
 - Configured LLM endpoint viewing and MCP server management through VS Code-native controls, not a custom webview.
 
-## v0.7 - Advanced Coding Workflows
+## v0.7 - Chained Vulnerability Detection
 
-Status: TODO.
+Status: Done locally.
 
-Goal: support larger changes and safer multi-step execution.
+Goal: detect source-to-sink exploit chains where multiple modest weaknesses combine into high-impact security outcomes.
+
+Done locally:
+
+- Built-in `chained-vulnerability-static-audit` Markdown skill for static-only attack-graph review.
+- `cgopher init --skill-pack chained-vulns`, with `security` and `all` packs updated to include the chained audit skill.
+- TUI `/audit --chain` entry point that submits a normal skill-backed audit prompt.
+- Static audit tool policy that restricts chained-audit turns to read/list/search, TODO updates, and the dedicated chained report writer.
+- Attack graph models, Mermaid rendering, report writing, scan coordinator scaffolding, and chain linker scaffolding.
+- Unit and integration tests for skill materialization, static policy, graph/report generation, coordinator/linker behavior, TUI routing, and VS Code prompt forwarding.
 
 TODO:
 
-- Planning mode with read-only analysis before execution.
-- Sub-agent dispatch for bounded parallel tasks.
-- Git diff and worktree helpers.
-- Optional Docker-based sandboxing.
-- More complete web fetch/search tooling.
-- Documentation, examples, and release automation for PyPI.
+- Run CI and release review.
 
 ## v0.8 - Richer IDE UI And Webview Work
 

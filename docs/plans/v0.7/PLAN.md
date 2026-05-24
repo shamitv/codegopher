@@ -1,129 +1,165 @@
 # CodeGopher v0.7 Chained Vulnerability Detection Implementation Plan
 
-This plan covers the implementation details for detecting "chained" security issues in CodeGopher v0.7. Chained issues are combinations of minor, low-severity bugs or misconfigurations that individually seem harmless, but when linked together by a bad actor, enable high-impact exploits (such as account takeover, lateral movement, database exfiltration, or remote code execution).
+This plan covers the v0.7 implementation slice: static-only chained vulnerability detection using attack-graph reasoning, a dedicated built-in skill, constrained audit tooling, and deterministic report scaffolding.
 
-The detection of chained vulnerabilities will leverage v0.7's core architectural additions: multi-step planning and sub-agent dispatch for parallel analysis.
+Chained issues are combinations of individually modest bugs or misconfigurations that become high-impact when connected by an attacker, such as account takeover, lateral movement, database exfiltration, unauthorized state modification, or remote code execution.
 
 ---
 
 ## Summary
 
-Static analysis tools (SAST) excel at identifying individual isolated vulnerabilities (e.g., a missing security header or a potential SQL injection). However, they generally fail to detect when an attacker can chain multiple individually low-risk issues together.
+CodeGopher v0.7 introduces a static chained-vulnerability audit workflow:
 
-CodeGopher v0.7 will introduce a structured, static-only analysis framework that models a codebase as an **Attack Graph** to discover exploit chains.
-
-### Target User Experience
-
-Users can initialize the chained vulnerability detection skill and run the audit:
-
-```bash
-# Materialize the new security/chaining skill into the project
-cgopher init --skill-pack security
-
-# Run a dedicated chained vulnerability audit on the current workspace
-cgopher -p "use @skill:chained-vulnerability-static-audit to review this repository"
-```
-
-The output is written to a structured report: `docs/security/CHAINED_VULNERABILITIES_REVIEW.md` (with ASCII/Mermaid-based attack graphs).
+- A built-in `chained-vulnerability-static-audit` skill.
+- Skill-pack materialization through `cgopher init --skill-pack chained-vulns`, plus inclusion in `security` and `all`.
+- TUI `/audit --chain`, which submits a normal agent turn using the chained audit skill.
+- VS Code support through natural chat prompts such as `@codegopher scan for chained vulnerabilities`.
+- A restricted static audit tool policy that removes shell, MCP, memory-write, edit, and arbitrary write tools from chained-audit turns.
+- Internal attack graph, Mermaid, report, coordinator, and linker scaffolding.
+- Required local OpenAI-compatible verification against `http://192.168.96.5:8080/v1` using model `Qwen/Qwen3.6-35B-A3B`.
 
 ---
 
 ## User-Facing Interfaces
 
-### Skill Materialization
-We will update `cgopher init` to include the new skill in the `security` pack, and support an optional explicit pack name:
-- `cgopher init [PATH] --skill-pack security`: materializes both `crud-owasp-static-audit` and the new `chained-vulnerability-static-audit`.
-- `cgopher init [PATH] --skill-pack chained-vulns`: materializes only `chained-vulnerability-static-audit`.
+Users can materialize and invoke the new audit guidance:
 
-### TUI and VS Code Chat Integration
-Users can invoke the analysis using `@skill:chained-vulnerability-static-audit` or directly ask:
-- TUI command: `/audit --chain`
-- VS Code Chat: `@codegopher scan for chained vulnerabilities`
+```bash
+cgopher init --skill-pack chained-vulns
+cgopher init --skill-pack security
+cgopher init --skill-pack all
+cgopher -p "use @skill:chained-vulnerability-static-audit to review this repository"
+```
+
+The TUI adds:
+
+```text
+/audit --chain
+```
+
+The VS Code extension keeps its thin-chat boundary. The prompt `@codegopher scan for chained vulnerabilities` is forwarded as a normal agent prompt and relies on the Python skill system and static audit policy.
+
+The default report path is:
+
+```text
+docs/security/CHAINED_VULNERABILITIES_REVIEW.md
+```
 
 ---
 
-## Analysis Methodology (The Attack Graph Approach)
+## Analysis Methodology
 
-Chained vulnerability detection relies on constructing an Attack Graph from static source code. The analysis is structured into four distinct phases:
+The audit models the repository as an attack graph:
 
 ```mermaid
 graph TD
     A[Phase 1: Attack Surface Mapping] --> B[Phase 2: Weakness Inventory]
-    B --> C[Phase 3: Attack Graph & Chain Synthesis]
-    C --> D[Phase 4: Impact Assessment & Report]
+    B --> C[Phase 3: Attack Graph And Chain Synthesis]
+    C --> D[Phase 4: Impact Assessment And Report]
 ```
 
-### Phase 1: Attack Surface Mapping (Sources)
-Identify all potential entry points where user-controlled input enters the application. Examples:
-- Public web routes, API endpoints, and webhook controllers.
-- Parameter validation layers, HTTP headers, cookies, and file upload forms.
-- Message queue consumers and background job inputs.
+1. Attack surface mapping identifies public web routes, API endpoints, webhook handlers, file uploads, message consumers, background jobs, headers, cookies, and request parameters.
+2. Weakness inventory captures low-to-medium weaknesses such as open redirects, SSRF-prone fetches, permissive CORS, missing CSRF, verbose errors, hardcoded debug credentials, weak validation, and loose authorization or tenant scoping.
+3. Chain synthesis connects sources to hops, hops to sinks, and sinks to impact using static evidence.
+4. Impact assessment rates severity and confidence and recommends the easiest link to break.
 
-### Phase 2: Weakness Inventory (Hops)
-Discover low-severity bugs, configuration oversights, or informational leaks across the codebase:
-- **Informational leaks**: File path disclosures in error messages, verbose debug logging, or exposed metadata.
-- **Access control issues**: Permissive CORS configurations, loose endpoint authorization checks, or lack of CSRF tokens on state-modifying actions.
-- **Input handling issues**: Loose regex validations, open redirects, or SSRF-susceptible functions (e.g., uncontrolled `requests.get` or URL parsing).
-- **Secrets & Credentials**: Weak cryptography, hardcoded API keys/passwords in test files, or debug accounts.
-
-### Phase 3: Attack Graph & Chain Synthesis (Hops to Sinks)
-Correlate the mapped entry points and inventory of weaknesses with critical sinks:
-- **Sinks**: Database queries (SQL/ORM), OS shell command execution, file system read/write operations, process creation, or administrative functions.
-- **Linker Logic**: Trace whether user input from a Source can flow to a Weakness, and whether that Weakness enables access to or exploitation of a Sink.
-  - *Example 1*: Input (Source) -> Open Redirect (Weakness) -> Stealing Auth Code (Sink) -> Account Takeover (Impact).
-  - *Example 2*: Input (Source) -> SSRF (Weakness) -> Unauthenticated Internal Admin Endpoint (Sink) -> Remote Code Execution (Impact).
-
-### Phase 4: Exploitability and Impact Assessment
-Evaluate the resulting chains and categorize them by impact:
-- **Takeover**: Account takeover, administrative privilege escalation.
-- **Lateral Movement**: Moving from a public-facing component to internal services or cloud metadata APIs.
-- **Database Exfiltration**: Bypassing ORM scoping to dump database tables.
-- **Data Modification**: Unauthorized state modification or state poisoning.
+Confirmed chains must cite source evidence. Plausible but unproven links must be marked lower confidence rather than reported as certain.
 
 ---
 
 ## Implementation Shape
 
-### 1. Markdown Skill
-We will add `chained-vulnerability-static-audit` to `src/codegopher/skills/builtins/`:
-- `src/codegopher/skills/builtins/chained-vulnerability-static-audit/SKILL.md`: Instructs the agent on the 4-phase analysis methodology, attack graph design, and reporting format.
+### Built-In Skill And Skill Packs
 
-### 2. Multi-Agent Scan Orchestration (v0.7 Capability)
-Finding chains is computationally intensive and context-heavy. A single prompt cannot scan a large repository. We will utilize v0.7 sub-agents:
-- **Coordinator Agent**: Receives the user request, maps the workspace structure, and allocates sub-tasks.
-- **Scanner Sub-Agents**: Run concurrent, focused scans on specific modules (e.g., `routing`, `auth`, `database/ORM`, `config/dependencies`).
-- **Chain-Linker Sub-Agent**: Aggregates the findings from the Scanner agents, draws connection graphs, and validates path reachability.
+The built-in skill lives at `src/codegopher/skills/builtins/chained-vulnerability-static-audit/SKILL.md`.
 
-### 3. Report Output Template
-The analysis outputs a Markdown report to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md` featuring:
-- **Summary Dashboard**: Number of chains found, maximum impact level.
-- **Attack Graph Diagrams**: Visualizing the chains using Mermaid.js flowcharts.
-- **Detailed Chain Breakdowns**:
-  - Step 1: Entry Point (Source) + Code Reference.
-  - Step 2: Intermediate Weakness (Hop) + Code Reference.
-  - Step 3: Target/Impact (Sink) + Code Reference.
-- **Remediation Plan**: Code suggestions to break the chain at the easiest/most effective link.
+Skill-pack behavior:
+
+- `repo-docs`: unchanged.
+- `chained-vulns`: materializes only `chained-vulnerability-static-audit`.
+- `security`: materializes `crud-owasp-static-audit` and `chained-vulnerability-static-audit`.
+- `all`: materializes repository documentation skills, CRUD OWASP audit, and chained vulnerability audit.
+
+### Static Audit Tool Policy
+
+When the chained audit skill is explicitly mentioned or auto-loaded by keywords such as "chained vulnerabilities" or "attack graph", the agent turn uses a filtered registry.
+
+Allowed tools:
+
+- `read_file`
+- `read_many_files`
+- `list_dir`
+- `glob_search`
+- `grep_search`
+- `update_todo`
+- `write_chained_vulnerability_report`
+
+Denied by absence from the active registry:
+
+- `write_file`
+- `edit_file`
+- `run_shell_command`
+- `save_memory`
+- MCP-derived tools
+- Any dynamic scanner or network probing path exposed through future tools
+
+The report writer is scoped to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
+
+### Attack Graph And Reporting
+
+Internal security modules define:
+
+- Source, hop, sink, edge, chain, confidence, severity, reference, remediation, and report models.
+- Deterministic Mermaid flowchart rendering.
+- Markdown report rendering and writing.
+- Coordinator scaffolding that partitions repository paths into routing, auth, data, config, and jobs targets.
+- Linker scaffolding that validates scanner JSON and assembles source-hop-sink chains.
+
+The coordinator/linker are deliberately static and deterministic in v0.7. Production-grade sub-agent scheduling can evolve later without changing the audit model or report format.
 
 ---
 
-## Safety and Scope Boundaries
+## Safety Boundaries
 
-Like all CodeGopher security tools, the chained vulnerability skill adheres to strict safety boundaries:
-- **Static-only**: Do not run live network probes, fuzzer tools, SQL injection payloads, or port scans.
-- **No weaponized exploit scripts**: The output must only describe the attack sequence conceptually and theoretically to help the developer remediate it. No executable Python/Shell exploit payloads should be generated.
-- **No external tools/dependencies**: Do not add runtime dependencies for vulnerability scanning (e.g., bandit, semgrep) to CodeGopher's core package.
+The chained audit is source-only:
+
+- Do not run live HTTP probes, fuzzers, SQL injection payloads, credential attacks, dynamic scanners, exploit scripts, port scans, or external network tests.
+- Do not generate executable exploit payloads or operational abuse instructions.
+- Do not add runtime scanner dependencies such as Bandit or Semgrep to the core package.
+- Do not expose shell, MCP, arbitrary write, edit, or memory-write tools during chained-audit turns.
+
+Static-only still permits writing the final Markdown report through the dedicated report tool.
 
 ---
 
 ## Testing Plan
 
-1. **Skill Discovery and CLI tests**:
-   - Verify `cgopher init --skill-pack security` and `cgopher init --skill-pack chained-vulns` correctly copy the new skill folder.
-   - Verify that the skill is discovered and loaded by `SkillCatalog`.
-2. **Deterministic Graph Builder Tests**:
-   - Unit tests to verify the sub-agent interface outputs clean, structured JSON data that can be parsed into attack chains.
-3. **Integration Mock Scan**:
-   - Run a simulated audit on a test fixture repository containing a pre-arranged chain (e.g., an open redirect that exposes a session token, which is then used in a loose API endpoint to read a configuration file).
-   - Assert that the agent discovers the chain, constructs the correct Mermaid graph, and recommends a valid mitigation.
-4. **Safety Regression Tests**:
-   - Assert that the skill does not attempt to execute dynamic network calls or generate weaponized exploits.
+Unit tests cover:
+
+- CLI skill-pack materialization for `security`, `chained-vulns`, and `all`.
+- Built-in skill discovery, front matter, autoload, and static-only language.
+- TUI `/audit --chain` routing and invalid argument handling.
+- Static audit registry contents and denial of unsafe tool calls.
+- Attack graph validation, Mermaid rendering, report rendering, coordinator partitioning, and linker assembly.
+
+Integration tests cover:
+
+- A fixture repository with an open redirect plus weak internal admin export chain.
+- Mock scanner/linker/report flow that writes a Mermaid report.
+- Malicious model attempts to call `write_file` and `run_shell_command` during chained audit and receives tool errors while the dedicated report writer still works.
+- VS Code chat controller forwarding of `scan for chained vulnerabilities` as a normal prompt.
+
+Required real-LLM verification:
+
+```bash
+python -m pytest tests/integration/test_real_llm_endpoint.py
+```
+
+The test uses:
+
+- Base URL: `http://192.168.96.5:8080/v1`
+- API family: `chat_completions`
+- Model: `Qwen/Qwen3.6-35B-A3B`
+- API key: `OPENAI_API_KEY=dummy-key`
+
+The test asserts the stripped final text equals `codegopher-smoke-ok`, no tools were used, and the turn completed in one iteration. It does not depend on `/v1/models`, which timed out during planning.
