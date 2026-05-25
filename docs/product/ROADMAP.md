@@ -13,7 +13,7 @@ This roadmap separates completed release slices from planned work. Dates are int
 | v0.5 - Repository Documentation And Static Security Skill Packs | Done locally | Implemented and locally verified; CI/release review still required. |
 | v0.6 - VS Code Extension Layer | Done locally | Implemented and locally verified; manual/release review remains tracked in the v0.6 plan. |
 | v0.7 - Chained Vulnerability Detection | Done locally | Built-in chained-vulnerability skill, static audit policy, attack graph/report scaffolding, docs, and tests are implemented; CI/release review remains. |
-| v0.8 - Richer IDE UI And Webview Work | TODO | Future slice for custom VS Code panels that still rely on the Python engine. |
+| v0.8 - Audit Quality And Development Benchmark Infrastructure | TODO | Internal chained-audit benchmark tooling, report-quality improvements, and real-LLM measurement; no public benchmark CLI. |
 
 ## v0.1 - Headless Agent Loop
 
@@ -141,15 +141,16 @@ TODO:
 
 - Run CI and release review.
 
-## v0.8 - Richer IDE UI And Webview Work
+## v0.8 - Audit Quality And Development Benchmark Infrastructure
 
 Status: TODO.
 
-Goal: add richer VS Code UI surfaces after the first chat-based extension is stable, while continuing to keep the Python engine authoritative.
+Goal: improve chained-vulnerability audit quality and add internal development-only benchmark automation while keeping user-facing audit interfaces unchanged.
 
 TODO:
 
-- Custom VS Code webview panels for richer chat, MCP server management, endpoint inspection, logs, and visual state where native chat and command-palette flows are too limited.
-- Webview-to-extension message bridge that forwards actions to `cgopher --events` instead of reimplementing agent logic in TypeScript.
-- Frontend state, accessibility, keyboard navigation, theming, and VS Code webview security hardening.
-- Tests for webview message passing, state synchronization, redaction, and subprocess error recovery.
+- Internal `codegopher.devtools.benchmark` runner for isolated code-only chained-audit benchmark scans.
+- Ground-truth recall, safety/isolation, source-reference quality, and unmatched candidate-chain reporting.
+- Chained-audit skill guidance for line-level evidence, no-chain report writing, confidence calibration, and cross-cutting weaknesses.
+- Real-LLM measurement against the secure-code-hunt benchmark apps.
+- No public `cgopher benchmark` command or compatibility guarantee.
