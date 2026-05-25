@@ -5,7 +5,7 @@ Date: 2026-05-19
 Target workspace:
 
 ```text
-/Users/shamit/work/owasp-test/apps/java/app-06-hr-management
+<sample-app-root>/apps/java/app-06-hr-management
 ```
 
 ## Summary
@@ -13,7 +13,7 @@ Target workspace:
 This report documents the v0.6 VS Code smoke path using the local OpenAI-compatible LLM endpoint:
 
 ```text
-http://192.168.96.26:8080/v1
+http://LOCAL_LLM_HOST:8080/v1
 ```
 
 The endpoint was reachable from Codex after switching from port `8090` to `8080`. The advertised model was:
@@ -67,8 +67,8 @@ VS Code smoke settings:
 
 ```json
 {
-  "codegopher.cliPath": "/Users/shamit/work/codegopher/.venv/bin/cgopher",
-  "codegopher.baseUrl": "http://192.168.96.26:8080/v1",
+  "codegopher.cliPath": "<repo>/.venv/bin/cgopher",
+  "codegopher.baseUrl": "http://LOCAL_LLM_HOST:8080/v1",
   "codegopher.model": "Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf",
   "codegopher.apiFamily": "chat_completions",
   "codegopher.apiKeyEnv": "LOCAL_LLM_API_KEY",
@@ -84,9 +84,9 @@ The local LLM accepts any API key value; the smoke run used `dummy-key` exposed 
 ```bash
 CODEGOPHER_API_KEY_ENV=LOCAL_LLM_API_KEY \
 LOCAL_LLM_API_KEY=dummy-key \
-/Users/shamit/work/codegopher/.venv/bin/cgopher \
+<repo>/.venv/bin/cgopher \
   --no-project-init \
-  --base-url http://192.168.96.26:8080/v1 \
+  --base-url http://LOCAL_LLM_HOST:8080/v1 \
   --api-family chat_completions \
   --model Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf \
   -p 'Reply with exactly: codegopher-smoke-ok' \

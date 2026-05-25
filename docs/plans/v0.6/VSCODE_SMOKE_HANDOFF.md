@@ -32,7 +32,7 @@ Recent commits relevant to this handoff:
 Latest extension verification after the VS Code extension commits:
 
 ```powershell
-cd D:\work\codegopher\extensions\vscode
+cd <repo>\extensions\vscode
 npm run compile
 npm run lint
 npm test
@@ -60,7 +60,7 @@ Use settings only for non-secret configuration:
 
 ```json
 {
-  "codegopher.cliPath": "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+  "codegopher.cliPath": "<repo>\\.venv\\Scripts\\cgopher.exe",
   "codegopher.baseUrl": "https://router.huggingface.co/v1",
   "codegopher.model": "Qwen/Qwen3.6-35B-A3B:featherless-ai",
   "codegopher.apiFamily": "chat_completions",
@@ -125,7 +125,7 @@ The trace output showed `start_turn`, `turn_started`, `text_delta`, and `turn_co
 
 Use VS Code Insiders for this test so the normal Stable VS Code session does not collide with the extension test/debug host.
 
-1. In the outer VS Code window, open `D:\work\codegopher\extensions\vscode`.
+1. In the outer VS Code window, open `<repo>\extensions\vscode`.
 2. Run:
 
    ```powershell
@@ -138,7 +138,7 @@ Use VS Code Insiders for this test so the normal Stable VS Code session does not
 6. In the new Extension Development Host, open the disposable workspace:
 
    ```text
-   D:\work\secure-code-hunt\apps\java\app-06-hr-management
+   <secure-code-hunt>\apps\java\app-06-hr-management
    ```
 
 7. In the Extension Development Host settings, set the CodeGopher settings from the JSON block above.
@@ -244,7 +244,7 @@ If `cgopher` is not found:
 - Set `codegopher.cliPath` to the absolute venv executable:
 
   ```text
-  D:\work\codegopher\.venv\Scripts\cgopher.exe
+  <repo>\.venv\Scripts\cgopher.exe
   ```
 
 If the CLI path works in a terminal but not in the extension:

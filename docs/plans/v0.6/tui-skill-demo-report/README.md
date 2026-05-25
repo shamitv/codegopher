@@ -5,7 +5,7 @@ Date: 2026-05-19
 Target workspace:
 
 ```text
-/Users/shamit/work/owasp-test/apps/java/app-06-hr-management
+<sample-app-root>/apps/java/app-06-hr-management
 ```
 
 ## Summary
@@ -13,7 +13,7 @@ Target workspace:
 This walkthrough documents the CodeGopher Textual TUI path against the local OpenAI-compatible LLM endpoint:
 
 ```text
-http://192.168.96.26:8080/v1
+http://LOCAL_LLM_HOST:8080/v1
 ```
 
 The endpoint was reachable, and the advertised model was:
@@ -71,14 +71,14 @@ The screenshots below are live Textual TUI screenshots, not transcript-rendered 
 TUI launch configuration:
 
 ```bash
-cd /Users/shamit/work/owasp-test/apps/java/app-06-hr-management
+cd <sample-app-root>/apps/java/app-06-hr-management
 
-CODEGOPHER_DATA_HOME=/Users/shamit/work/codegopher/extensions/vscode/.vscode-test/smoke-artifacts/tui-data \
+CODEGOPHER_DATA_HOME=<repo>/extensions/vscode/.vscode-test/smoke-artifacts/tui-data \
 CODEGOPHER_API_KEY_ENV=LOCAL_LLM_API_KEY \
 LOCAL_LLM_API_KEY=dummy-key \
-/Users/shamit/work/codegopher/.venv/bin/cgopher \
+<repo>/.venv/bin/cgopher \
   --no-project-init \
-  --base-url http://192.168.96.26:8080/v1 \
+  --base-url http://LOCAL_LLM_HOST:8080/v1 \
   --api-family chat_completions \
   --model Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf \
   --approval-mode review
@@ -91,9 +91,9 @@ The local LLM accepts any API key value; the run used `dummy-key` exposed throug
 ```bash
 CODEGOPHER_API_KEY_ENV=LOCAL_LLM_API_KEY \
 LOCAL_LLM_API_KEY=dummy-key \
-/Users/shamit/work/codegopher/.venv/bin/cgopher \
+<repo>/.venv/bin/cgopher \
   --no-project-init \
-  --base-url http://192.168.96.26:8080/v1 \
+  --base-url http://LOCAL_LLM_HOST:8080/v1 \
   --api-family chat_completions \
   --model Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf \
   -p 'Reply with exactly: codegopher-smoke-ok' \

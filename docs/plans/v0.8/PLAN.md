@@ -24,7 +24,7 @@ python -m codegopher.devtools.benchmark \
   --output-dir docs/plans/v0.8/report/<yyyyMMdd-HHmmss> \
   --cgopher .venv/Scripts/cgopher.exe \
   --model Qwen/Qwen3.6-35B-A3B \
-  --base-url http://192.168.96.5:8080/v1 \
+  --base-url http://LOCAL_LLM_HOST:8080/v1 \
   --api-family chat_completions \
   --replay-reasoning-content
 ```
@@ -103,7 +103,7 @@ npm test
 
 Real-LLM verification:
 
-- Run the internal benchmark against the three secure-code-hunt apps with `OPENAI_API_KEY=dummy-key`, `http://192.168.96.5:8080/v1`, `chat_completions`, `Qwen/Qwen3.6-35B-A3B`, and reasoning replay enabled.
+- Run the internal benchmark against the three secure-code-hunt apps with `OPENAI_API_KEY=dummy-key`, `http://LOCAL_LLM_HOST:8080/v1`, `chat_completions`, `Qwen/Qwen3.6-35B-A3B`, and reasoning replay enabled.
 - Archive results under `docs/plans/v0.8/report/<yyyyMMdd-HHmmss>`.
 
 ## Out Of Scope

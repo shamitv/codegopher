@@ -16,7 +16,7 @@ CodeGopher v0.7 introduces a static chained-vulnerability audit workflow:
 - VS Code support through natural chat prompts such as `@codegopher scan for chained vulnerabilities`.
 - A restricted static audit tool policy that removes shell, MCP, memory-write, edit, and arbitrary write tools from chained-audit turns.
 - Internal attack graph, Mermaid, report, coordinator, and linker scaffolding.
-- Required local OpenAI-compatible verification against `http://192.168.96.5:8080/v1` using model `Qwen/Qwen3.6-35B-A3B`.
+- Required local OpenAI-compatible verification against `http://LOCAL_LLM_HOST:8080/v1` using model `Qwen/Qwen3.6-35B-A3B`.
 
 ---
 
@@ -157,7 +157,7 @@ python -m pytest tests/integration/test_real_llm_endpoint.py
 
 The test uses:
 
-- Base URL: `http://192.168.96.5:8080/v1`
+- Base URL: `http://LOCAL_LLM_HOST:8080/v1`
 - API family: `chat_completions`
 - Model: `Qwen/Qwen3.6-35B-A3B`
 - API key: `OPENAI_API_KEY=dummy-key`

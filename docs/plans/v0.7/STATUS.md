@@ -10,7 +10,7 @@ Last reviewed: 2026-05-24
   - Sub-agent work is defined as deterministic coordinator/linker scaffolding for v0.7, with production scheduling deferred.
   - Static-only safety is enforced through a filtered per-turn tool registry.
   - TUI and VS Code verification are covered by tests.
-- Required local LLM verification targets `http://192.168.96.5:8080/v1` with model `Qwen/Qwen3.6-35B-A3B`.
+- Required local LLM verification targets `http://LOCAL_LLM_HOST:8080/v1` with model `Qwen/Qwen3.6-35B-A3B`.
 
 ---
 
