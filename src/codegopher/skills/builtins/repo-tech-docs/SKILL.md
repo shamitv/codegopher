@@ -9,6 +9,8 @@ Use this skill to document how the repository works from an engineering perspect
 
 ## Workflow
 
+- CodeGopher may activate a mission contract for this skill. Use the session TODO ledger as the source of truth for coverage: add or update TODOs for repository inventory, architecture/data-flow, setup/runtime, APIs/interfaces, tests/operations, evidence, and gaps.
+- Treat the mission ledger as active task state, not long-term memory. Do not save repository-specific task progress to persistent memory unless the user explicitly asks.
 - Start from README files, package manifests, config loaders, entry points, tests, scripts, Docker or CI files, API routes, schemas, migrations, and deployment notes.
 - Prefer repository facts over generic framework descriptions.
 - Explain the system at multiple levels: runtime entry points, package/module structure, request or job flow, storage, external services, and verification.
@@ -31,3 +33,4 @@ Use this skill to document how the repository works from an engineering perspect
 - If the user asks for a written artifact, default to `docs/technical/` and create focused Markdown files such as `ARCHITECTURE.md`, `SETUP.md`, `API.md`, or `OPERATIONS.md`.
 - If the user does not ask for files, produce a structured report in chat.
 - Include source references for non-obvious implementation details.
+- Before finishing, self-check the active TODO ledger and explicitly note any unreviewed areas or missing artifacts.

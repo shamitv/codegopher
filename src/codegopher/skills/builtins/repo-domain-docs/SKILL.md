@@ -9,6 +9,8 @@ Use this skill to document what the repository does from a business and function
 
 ## Workflow
 
+- CodeGopher may activate a mission contract for this skill. Use the session TODO ledger as the source of truth for coverage: add or update TODOs for capability inventory, actors/workflows, entities/lifecycle states, business rules, glossary, source evidence, and open questions.
+- Treat the mission ledger as active task state, not long-term memory. Do not save repository-specific task progress to persistent memory unless the user explicitly asks.
 - Start from product docs, README files, route maps, schemas, migrations, tests, fixtures, seed data, user-facing strings, and service boundaries.
 - Extract domain facts from code and tests; do not invent business behavior that is not evidenced by the repository.
 - Separate confirmed behavior from inferred behavior and open questions.
@@ -31,3 +33,4 @@ Use this skill to document what the repository does from a business and function
 - If the user asks for a written artifact, default to `docs/domain/` and create focused Markdown files such as `OVERVIEW.md`, `WORKFLOWS.md`, `GLOSSARY.md`, or `OPEN_QUESTIONS.md`.
 - If the user does not ask for files, produce a structured report in chat.
 - Include a short evidence note for important claims, using file paths or test names where useful.
+- Before finishing, self-check the active TODO ledger and explicitly note confirmed behavior, inferred behavior, unknowns, and unreviewed areas.
