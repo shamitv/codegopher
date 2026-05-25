@@ -66,7 +66,7 @@ Command Palette -> Shell Command: Install 'code-insiders' command in PATH
 Open the repo in Insiders:
 
 ```bash
-code-insiders /Users/username/path-to/codegopher
+code-insiders <repo>
 ```
 
 Manual Extension Development Host workflow:
@@ -115,7 +115,7 @@ npm test
 When testing `codegopher.cliPath`, include cases for:
 
 - `cgopher` resolved from `PATH`.
-- An absolute path such as `C:\Users\NAME\AppData\Local\Programs\Python\Python312\Scripts\cgopher.exe`.
+- An absolute path such as `%USERPROFILE%\AppData\Local\Programs\Python\Python312\Scripts\cgopher.exe`.
 - Paths containing spaces.
 - Missing executable errors.
 
@@ -125,7 +125,7 @@ Example Hugging Face Router smoke settings:
 
 ```json
 {
-  "codegopher.cliPath": "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+  "codegopher.cliPath": "<repo>\\.venv\\Scripts\\cgopher.exe",
   "codegopher.baseUrl": "https://router.huggingface.co/v1",
   "codegopher.model": "Qwen/Qwen3.6-35B-A3B:featherless-ai",
   "codegopher.apiFamily": "chat_completions",
