@@ -71,6 +71,7 @@ Issues        = "https://github.com/shamitv/codegopher/issues"
 [tool.hatch.build.targets.sdist]
 exclude = [
     "/docs/plans/**",
+    "/docs/release/examples/**",
 ]
 
 [tool.hatch.build.targets.wheel]
