@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "removed_files": [
+    ".vulns",
+    "README.md",
+    "scenarios.md"
+  ],
+  "sanitized_locations": [],
+  "residual_hints": []
+}

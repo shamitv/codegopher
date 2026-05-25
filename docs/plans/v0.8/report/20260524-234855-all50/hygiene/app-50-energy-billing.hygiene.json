@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "removed_files": [
+    ".vulns",
+    "README.md",
+    "scenarios.md"
+  ],
+  "sanitized_locations": [
+    {
+      "path": "src/main/java/com/energy/billing/controller/BillingController.java",
+      "line": 18,
+      "action": "removed-line",
+      "snippet": "// IDOR: directly return the invoice by ID without checking if it belongs to the current user"
+    }
+  ],
+  "residual_hints": []
+}

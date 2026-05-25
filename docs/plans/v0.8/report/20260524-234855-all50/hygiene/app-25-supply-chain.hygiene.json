@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "removed_files": [
+    ".vulns",
+    "README.md",
+    "scenarios.md"
+  ],
+  "sanitized_locations": [
+    {
+      "path": "app.py",
+      "line": 16,
+      "action": "removed-line",
+      "snippet": "# Unsafe yaml deserialization using vulnerable PyYAML"
+    }
+  ],
+  "residual_hints": []
+}

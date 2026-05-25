@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "removed_files": [
+    ".vulns",
+    "README.md",
+    "scenarios.md"
+  ],
+  "sanitized_locations": [
+    {
+      "path": "src/main/java/com/legal/config/SecurityConfig.java",
+      "line": 87,
+      "action": "stripped-inline-comment",
+      "snippet": "return new BCryptPasswordEncoder(); // Secure hashing decoy"
+    },
+    {
+      "path": "src/main/java/com/legal/controller/DocumentController.java",
+      "line": 54,
+      "action": "removed-line",
+      "snippet": "// Retrieves the document directly solely by document id parameter, enabling IDOR."
+    },
+    {
+      "path": "src/main/java/com/legal/controller/DocumentController.java",
+      "line": 69,
+      "action": "removed-line",
+      "snippet": "// Vulnerable: no canonicalization \u2014 ../../ traversal can escape basePath"
+    },
+    {
+      "path": "src/main/java/com/legal/model/Document.java",
+      "line": 1,
+      "action": "removed-line",
+      "snippet": "A02: Storing highly sensitive legal documents in cleartext"
+    },
+    {
+      "path": "src/main/resources/static/index.html",
+      "line": 298,
+      "action": "removed-visible-hint-line",
+      "snippet": "<label class=\"form-label\" for=\"addDocContent\">Plaintext File Content (A02 target)</label>"
+    },
+    {
+      "path": "src/main/resources/static/js/app.js",
+      "line": 307,
+      "action": "removed-line",
+      "snippet": "// Send requests to doc download endpoint (contains the vulnerable Log4j call)"
+    }
+  ],
+  "residual_hints": []
+}

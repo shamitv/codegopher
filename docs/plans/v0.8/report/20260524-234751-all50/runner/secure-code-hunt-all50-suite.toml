@@ -1,0 +1,300 @@
+﻿[[apps]]
+key = "app-01-ecommerce-catalog"
+display_name = "app-01-ecommerce-catalog"
+source = "D:\work\secure-code-hunt\apps\python\app-01-ecommerce-catalog"
+manifest = "D:\work\secure-code-hunt\apps\python\app-01-ecommerce-catalog\.vulns"
+
+[[apps]]
+key = "app-02-patient-portal"
+display_name = "app-02-patient-portal"
+source = "D:\work\secure-code-hunt\apps\python\app-02-patient-portal"
+manifest = "D:\work\secure-code-hunt\apps\python\app-02-patient-portal\.vulns"
+
+[[apps]]
+key = "app-03-banking-service"
+display_name = "app-03-banking-service"
+source = "D:\work\secure-code-hunt\apps\python\app-03-banking-service"
+manifest = "D:\work\secure-code-hunt\apps\python\app-03-banking-service\.vulns"
+
+[[apps]]
+key = "app-04-real-estate"
+display_name = "app-04-real-estate"
+source = "D:\work\secure-code-hunt\apps\python\app-04-real-estate"
+manifest = "D:\work\secure-code-hunt\apps\python\app-04-real-estate\.vulns"
+
+[[apps]]
+key = "app-05-learning-mgmt"
+display_name = "app-05-learning-mgmt"
+source = "D:\work\secure-code-hunt\apps\python\app-05-learning-mgmt"
+manifest = "D:\work\secure-code-hunt\apps\python\app-05-learning-mgmt\.vulns"
+
+[[apps]]
+key = "app-06-hr-management"
+display_name = "app-06-hr-management"
+source = "D:\work\secure-code-hunt\apps\java\app-06-hr-management"
+manifest = "D:\work\secure-code-hunt\apps\java\app-06-hr-management\.vulns"
+
+[[apps]]
+key = "app-07-airline-booking"
+display_name = "app-07-airline-booking"
+source = "D:\work\secure-code-hunt\apps\java\app-07-airline-booking"
+manifest = "D:\work\secure-code-hunt\apps\java\app-07-airline-booking\.vulns"
+
+[[apps]]
+key = "app-08-warehouse-mgmt"
+display_name = "app-08-warehouse-mgmt"
+source = "D:\work\secure-code-hunt\apps\java\app-08-warehouse-mgmt"
+manifest = "D:\work\secure-code-hunt\apps\java\app-08-warehouse-mgmt\.vulns"
+
+[[apps]]
+key = "app-09-legal-documents"
+display_name = "app-09-legal-documents"
+source = "D:\work\secure-code-hunt\apps\java\app-09-legal-documents"
+manifest = "D:\work\secure-code-hunt\apps\java\app-09-legal-documents\.vulns"
+
+[[apps]]
+key = "app-10-telecom-billing"
+display_name = "app-10-telecom-billing"
+source = "D:\work\secure-code-hunt\apps\java\app-10-telecom-billing"
+manifest = "D:\work\secure-code-hunt\apps\java\app-10-telecom-billing\.vulns"
+
+[[apps]]
+key = "app-11-social-analytics"
+display_name = "app-11-social-analytics"
+source = "D:\work\secure-code-hunt\apps\typescript\app-11-social-analytics"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-11-social-analytics\.vulns"
+
+[[apps]]
+key = "app-12-crypto-wallet"
+display_name = "app-12-crypto-wallet"
+source = "D:\work\secure-code-hunt\apps\typescript\app-12-crypto-wallet"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-12-crypto-wallet\.vulns"
+
+[[apps]]
+key = "app-13-project-mgmt"
+display_name = "app-13-project-mgmt"
+source = "D:\work\secure-code-hunt\apps\typescript\app-13-project-mgmt"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-13-project-mgmt\.vulns"
+
+[[apps]]
+key = "app-14-telemedicine"
+display_name = "app-14-telemedicine"
+source = "D:\work\secure-code-hunt\apps\typescript\app-14-telemedicine"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-14-telemedicine\.vulns"
+
+[[apps]]
+key = "app-15-digital-assets"
+display_name = "app-15-digital-assets"
+source = "D:\work\secure-code-hunt\apps\typescript\app-15-digital-assets"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-15-digital-assets\.vulns"
+
+[[apps]]
+key = "app-16-restaurant-reviews"
+display_name = "app-16-restaurant-reviews"
+source = "D:\work\secure-code-hunt\apps\javascript\app-16-restaurant-reviews"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-16-restaurant-reviews\.vulns"
+
+[[apps]]
+key = "app-17-iot-dashboard"
+display_name = "app-17-iot-dashboard"
+source = "D:\work\secure-code-hunt\apps\javascript\app-17-iot-dashboard"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-17-iot-dashboard\.vulns"
+
+[[apps]]
+key = "app-18-p2p-lending"
+display_name = "app-18-p2p-lending"
+source = "D:\work\secure-code-hunt\apps\javascript\app-18-p2p-lending"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-18-p2p-lending\.vulns"
+
+[[apps]]
+key = "app-19-cms"
+display_name = "app-19-cms"
+source = "D:\work\secure-code-hunt\apps\javascript\app-19-cms"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-19-cms\.vulns"
+
+[[apps]]
+key = "app-20-fitness-tracker"
+display_name = "app-20-fitness-tracker"
+source = "D:\work\secure-code-hunt\apps\javascript\app-20-fitness-tracker"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-20-fitness-tracker\.vulns"
+
+[[apps]]
+key = "app-21-insurance-claims"
+display_name = "app-21-insurance-claims"
+source = "D:\work\secure-code-hunt\apps\python\app-21-insurance-claims"
+manifest = "D:\work\secure-code-hunt\apps\python\app-21-insurance-claims\.vulns"
+
+[[apps]]
+key = "app-22-food-delivery"
+display_name = "app-22-food-delivery"
+source = "D:\work\secure-code-hunt\apps\python\app-22-food-delivery"
+manifest = "D:\work\secure-code-hunt\apps\python\app-22-food-delivery\.vulns"
+
+[[apps]]
+key = "app-23-govt-permits"
+display_name = "app-23-govt-permits"
+source = "D:\work\secure-code-hunt\apps\python\app-23-govt-permits"
+manifest = "D:\work\secure-code-hunt\apps\python\app-23-govt-permits\.vulns"
+
+[[apps]]
+key = "app-24-vet-clinic"
+display_name = "app-24-vet-clinic"
+source = "D:\work\secure-code-hunt\apps\python\app-24-vet-clinic"
+manifest = "D:\work\secure-code-hunt\apps\python\app-24-vet-clinic\.vulns"
+
+[[apps]]
+key = "app-25-supply-chain"
+display_name = "app-25-supply-chain"
+source = "D:\work\secure-code-hunt\apps\python\app-25-supply-chain"
+manifest = "D:\work\secure-code-hunt\apps\python\app-25-supply-chain\.vulns"
+
+[[apps]]
+key = "app-26-pharma-tracking"
+display_name = "app-26-pharma-tracking"
+source = "D:\work\secure-code-hunt\apps\java\app-26-pharma-tracking"
+manifest = "D:\work\secure-code-hunt\apps\java\app-26-pharma-tracking\.vulns"
+
+[[apps]]
+key = "app-27-hotel-reservation"
+display_name = "app-27-hotel-reservation"
+source = "D:\work\secure-code-hunt\apps\java\app-27-hotel-reservation"
+manifest = "D:\work\secure-code-hunt\apps\java\app-27-hotel-reservation\.vulns"
+
+[[apps]]
+key = "app-28-mfg-quality"
+display_name = "app-28-mfg-quality"
+source = "D:\work\secure-code-hunt\apps\java\app-28-mfg-quality"
+manifest = "D:\work\secure-code-hunt\apps\java\app-28-mfg-quality\.vulns"
+
+[[apps]]
+key = "app-29-fleet-management"
+display_name = "app-29-fleet-management"
+source = "D:\work\secure-code-hunt\apps\java\app-29-fleet-management"
+manifest = "D:\work\secure-code-hunt\apps\java\app-29-fleet-management\.vulns"
+
+[[apps]]
+key = "app-30-auction-platform"
+display_name = "app-30-auction-platform"
+source = "D:\work\secure-code-hunt\apps\java\app-30-auction-platform"
+manifest = "D:\work\secure-code-hunt\apps\java\app-30-auction-platform\.vulns"
+
+[[apps]]
+key = "app-31-event-ticketing"
+display_name = "app-31-event-ticketing"
+source = "D:\work\secure-code-hunt\apps\typescript\app-31-event-ticketing"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-31-event-ticketing\.vulns"
+
+[[apps]]
+key = "app-32-support-tickets"
+display_name = "app-32-support-tickets"
+source = "D:\work\secure-code-hunt\apps\typescript\app-32-support-tickets"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-32-support-tickets\.vulns"
+
+[[apps]]
+key = "app-33-recruitment-ats"
+display_name = "app-33-recruitment-ats"
+source = "D:\work\secure-code-hunt\apps\typescript\app-33-recruitment-ats"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-33-recruitment-ats\.vulns"
+
+[[apps]]
+key = "app-34-subscription-box"
+display_name = "app-34-subscription-box"
+source = "D:\work\secure-code-hunt\apps\typescript\app-34-subscription-box"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-34-subscription-box\.vulns"
+
+[[apps]]
+key = "app-35-compliance-tracker"
+display_name = "app-35-compliance-tracker"
+source = "D:\work\secure-code-hunt\apps\typescript\app-35-compliance-tracker"
+manifest = "D:\work\secure-code-hunt\apps\typescript\app-35-compliance-tracker\.vulns"
+
+[[apps]]
+key = "app-36-parking-mgmt"
+display_name = "app-36-parking-mgmt"
+source = "D:\work\secure-code-hunt\apps\javascript\app-36-parking-mgmt"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-36-parking-mgmt\.vulns"
+
+[[apps]]
+key = "app-37-crop-planner"
+display_name = "app-37-crop-planner"
+source = "D:\work\secure-code-hunt\apps\javascript\app-37-crop-planner"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-37-crop-planner\.vulns"
+
+[[apps]]
+key = "app-38-museum-catalog"
+display_name = "app-38-museum-catalog"
+source = "D:\work\secure-code-hunt\apps\javascript\app-38-museum-catalog"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-38-museum-catalog\.vulns"
+
+[[apps]]
+key = "app-39-wedding-planner"
+display_name = "app-39-wedding-planner"
+source = "D:\work\secure-code-hunt\apps\javascript\app-39-wedding-planner"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-39-wedding-planner\.vulns"
+
+[[apps]]
+key = "app-40-pet-adoption"
+display_name = "app-40-pet-adoption"
+source = "D:\work\secure-code-hunt\apps\javascript\app-40-pet-adoption"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-40-pet-adoption\.vulns"
+
+[[apps]]
+key = "app-41-library-reservation"
+display_name = "app-41-library-reservation"
+source = "D:\work\secure-code-hunt\apps\javascript\app-41-library-reservation"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-41-library-reservation\.vulns"
+
+[[apps]]
+key = "app-42-construction-tracker"
+display_name = "app-42-construction-tracker"
+source = "D:\work\secure-code-hunt\apps\javascript\app-42-construction-tracker"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-42-construction-tracker\.vulns"
+
+[[apps]]
+key = "app-43-music-streaming"
+display_name = "app-43-music-streaming"
+source = "D:\work\secure-code-hunt\apps\javascript\app-43-music-streaming"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-43-music-streaming\.vulns"
+
+[[apps]]
+key = "app-44-election-polling"
+display_name = "app-44-election-polling"
+source = "D:\work\secure-code-hunt\apps\javascript\app-44-election-polling"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-44-election-polling\.vulns"
+
+[[apps]]
+key = "app-45-travel-expense"
+display_name = "app-45-travel-expense"
+source = "D:\work\secure-code-hunt\apps\javascript\app-45-travel-expense"
+manifest = "D:\work\secure-code-hunt\apps\javascript\app-45-travel-expense\.vulns"
+
+[[apps]]
+key = "app-46-charity-donations"
+display_name = "app-46-charity-donations"
+source = "D:\work\secure-code-hunt\apps\python\app-46-charity-donations"
+manifest = "D:\work\secure-code-hunt\apps\python\app-46-charity-donations\.vulns"
+
+[[apps]]
+key = "app-47-smart-home"
+display_name = "app-47-smart-home"
+source = "D:\work\secure-code-hunt\apps\python\app-47-smart-home"
+manifest = "D:\work\secure-code-hunt\apps\python\app-47-smart-home\.vulns"
+
+[[apps]]
+key = "app-48-freelancer-market"
+display_name = "app-48-freelancer-market"
+source = "D:\work\secure-code-hunt\apps\python\app-48-freelancer-market"
+manifest = "D:\work\secure-code-hunt\apps\python\app-48-freelancer-market\.vulns"
+
+[[apps]]
+key = "app-49-sports-league"
+display_name = "app-49-sports-league"
+source = "D:\work\secure-code-hunt\apps\python\app-49-sports-league"
+manifest = "D:\work\secure-code-hunt\apps\python\app-49-sports-league\.vulns"
+
+[[apps]]
+key = "app-50-energy-billing"
+display_name = "app-50-energy-billing"
+source = "D:\work\secure-code-hunt\apps\java\app-50-energy-billing"
+manifest = "D:\work\secure-code-hunt\apps\java\app-50-energy-billing\.vulns"
+

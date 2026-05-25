@@ -1,0 +1,17 @@
+﻿[[apps]]
+key = "app-02-patient-portal"
+display_name = "Patient Portal"
+source = "D:/work/secure-code-hunt/apps/python/app-02-patient-portal"
+manifest = "D:/work/secure-code-hunt/apps/python/app-02-patient-portal/.vulns"
+
+[[apps]]
+key = "app-07-airline-booking"
+display_name = "Airline Booking"
+source = "D:/work/secure-code-hunt/apps/java/app-07-airline-booking"
+manifest = "D:/work/secure-code-hunt/apps/java/app-07-airline-booking/.vulns"
+
+[[apps]]
+key = "app-12-crypto-wallet"
+display_name = "Crypto Wallet"
+source = "D:/work/secure-code-hunt/apps/typescript/app-12-crypto-wallet"
+manifest = "D:/work/secure-code-hunt/apps/typescript/app-12-crypto-wallet/.vulns"

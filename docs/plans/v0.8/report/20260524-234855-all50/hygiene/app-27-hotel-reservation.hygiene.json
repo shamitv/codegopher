@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "removed_files": [
+    ".vulns",
+    "README.md",
+    "scenarios.md"
+  ],
+  "sanitized_locations": [
+    {
+      "path": "src/main/java/com/hotel/reservation/model/User.java",
+      "line": 18,
+      "action": "stripped-inline-comment",
+      "snippet": "private String password; // Store hashed password (or plaintext if vulnerable, but we hash for decoy here)"
+    }
+  ],
+  "residual_hints": []
+}

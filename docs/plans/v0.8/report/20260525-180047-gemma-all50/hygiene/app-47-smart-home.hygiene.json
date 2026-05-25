@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "removed_files": [
+    ".vulns",
+    "README.md",
+    "scenarios.md"
+  ],
+  "sanitized_locations": [
+    {
+      "path": "app.py",
+      "line": 113,
+      "action": "removed-line",
+      "snippet": "# Fetches the remote binary (vulnerable to SSRF as well, but primarily integrity fail)"
+    }
+  ],
+  "residual_hints": []
+}

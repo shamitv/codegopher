@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "removed_files": [
+    ".vulns",
+    "README.md",
+    "scenarios.md"
+  ],
+  "sanitized_locations": [
+    {
+      "path": "app.py",
+      "line": 1,
+      "action": "removed-line",
+      "snippet": "A10: Server-Side Request Forgery (SSRF) ---"
+    },
+    {
+      "path": "static/css/main.css",
+      "line": 237,
+      "action": "removed-line",
+      "snippet": "/* Cyber Sandbox Panels */"
+    },
+    {
+      "path": "static/index.html",
+      "line": 86,
+      "action": "removed-visible-hint-line",
+      "snippet": "<h2 style=\"font-family: var(--font-luxury); font-size: 14px; color: var(--primary); margin-bottom: 12px;\">Holographic Layout Remote Downloader (A10)</h2>"
+    },
+    {
+      "path": "static/index.html",
+      "line": 92,
+      "action": "removed-visible-hint-line",
+      "snippet": "<div id=\"ssrfConsoleFeed\" class=\"terminal-feed\">SSRF Sandbox Idle. Enter a layout URL above...</div>"
+    },
+    {
+      "path": "static/index.html",
+      "line": 94,
+      "action": "removed-visible-hint-line",
+      "snippet": "\ud83d\udca1 <span style=\"color: var(--primary);\">A10 SSRF target:</span> Try probing internal subnets or local interfaces like <code>http://127.0.0.1:8084/api/properties</code>!"
+    },
+    {
+      "path": "static/index.html",
+      "line": 100,
+      "action": "removed-visible-hint-line",
+      "snippet": "<h2 style=\"font-family: var(--font-luxury); font-size: 14px; color: var(--primary); margin-bottom: 12px;\">Property Description Subprocess Analyzer (A03)</h2>"
+    },
+    {
+      "path": "static/index.html",
+      "line": 106,
+      "action": "removed-visible-hint-line",
+      "snippet": "<div id=\"osConsoleFeed\" class=\"terminal-feed\">OS Shell Sandbox Idle. Enter property file name...</div>"
+    },
+    {
+      "path": "static/index.html",
+      "line": 108,
+      "action": "removed-visible-hint-line",
+      "snippet": "\ud83d\udca1 <span style=\"color: var(--primary);\">A03 shell exploit payload:</span> Try injecting shell operators like <code>realty_vault.txt; whoami</code>!"
+    }
+  ],
+  "residual_hints": []
+}

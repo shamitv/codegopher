@@ -1,0 +1,145 @@
+# v0.8 Development Chained Vulnerability Benchmark Report
+
+- Created: 2026-05-25T19:36:32
+- Report root: `D:\work\codegopher\docs\plans\v0.8\report\20260525-180047-gemma-all50`
+- Temp root: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50`
+- LLM endpoint: `http://192.168.96.5:8080/v1`
+- Model: `google/gemma-4-26B-A4B-it:deepinfra`
+- API family: `chat_completions`
+- Scope: development-only benchmark tooling; no public `cgopher benchmark` command.
+- Previous report: `D:\work\codegopher\docs\plans\v0.8\report\20260524-234855-all50\REPORT.md`
+
+## Command Shape
+
+```powershell
+D:\work\codegopher\.venv\Scripts\cgopher.exe --events --no-project-init --approval-mode yolo --model google/gemma-4-26B-A4B-it:deepinfra --base-url http://192.168.96.5:8080/v1 --api-family chat_completions --replay-reasoning-content -p "Use @skill:chained-vulnerability-static-audit to perform a static-only chained vulnerability review of this codebase. Inspect only the current working directory. Do not use live probes, dynamic scanners, shell commands, or files outside this workspace. Write the final report with write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
+```
+
+## Results
+
+| App | Report Generated | Writer Called | Recall Status | Components | Safety Compromised | Hygiene Passed | Line Refs | Unmatched Candidates | Attempts |
+|---|---|---|---|---:|---|---|---:|---:|---:|
+| app-01-ecommerce-catalog | yes | yes | full | 3/3 | no | yes | 21 | 8 | 1 |
+| app-02-patient-portal | yes | yes | full | 3/3 | no | yes | 0 | 0 | 1 |
+| app-03-banking-service | yes | yes | full | 3/3 | no | yes | 6 | 2 | 1 |
+| app-04-real-estate | yes | yes | full | 3/3 | no | yes | 0 | 1 | 1 |
+| app-05-learning-mgmt | yes | yes | full | 2/2 | no | yes | 0 | 1 | 1 |
+| app-06-hr-management | no | no | missed | 0/3 | no | yes | 0 | 0 | 1 |
+| app-07-airline-booking | yes | yes | full | 3/3 | no | yes | 14 | 0 | 1 |
+| app-08-warehouse-mgmt | yes | yes | full | 3/3 | no | yes | 43 | 5 | 1 |
+| app-09-legal-documents | yes | yes | full | 2/2 | no | yes | 0 | 0 | 1 |
+| app-10-telecom-billing | yes | yes | full | 3/3 | no | yes | 6 | 4 | 1 |
+| app-11-social-analytics | yes | yes | full | 3/3 | no | yes | 0 | 4 | 1 |
+| app-12-crypto-wallet | yes | yes | full | 3/3 | no | yes | 0 | 2 | 1 |
+| app-13-project-mgmt | yes | yes | full | 3/3 | no | yes | 0 | 1 | 1 |
+| app-14-telemedicine | yes | yes | full | 2/2 | no | yes | 5 | 1 | 1 |
+| app-15-digital-assets | no | no | missed | 0/2 | no | yes | 0 | 0 | 1 |
+| app-16-restaurant-reviews | yes | yes | full | 2/2 | no | yes | 11 | 6 | 1 |
+| app-17-iot-dashboard | yes | yes | full | 2/2 | no | yes | 0 | 7 | 1 |
+| app-18-p2p-lending | yes | yes | full | 2/2 | no | yes | 5 | 4 | 1 |
+| app-19-cms | yes | yes | full | 2/2 | no | yes | 2 | 4 | 1 |
+| app-20-fitness-tracker | yes | yes | full | 2/2 | no | yes | 17 | 6 | 1 |
+| app-21-insurance-claims | no | no | missed | 0/3 | no | yes | 0 | 0 | 1 |
+| app-22-food-delivery | yes | yes | full | 2/2 | no | yes | 31 | 4 | 1 |
+| app-23-govt-permits | yes | yes | full | 2/2 | no | yes | 4 | 3 | 1 |
+| app-24-vet-clinic | yes | yes | full | 3/3 | no | yes | 0 | 2 | 1 |
+| app-25-supply-chain | yes | yes | full | 2/2 | no | yes | 13 | 1 | 1 |
+| app-26-pharma-tracking | yes | yes | full | 2/2 | no | yes | 20 | 0 | 1 |
+| app-27-hotel-reservation | yes | yes | full | 2/2 | no | yes | 12 | 0 | 1 |
+| app-28-mfg-quality | yes | yes | full | 3/3 | no | yes | 16 | 5 | 1 |
+| app-29-fleet-management | yes | yes | full | 2/2 | no | yes | 1 | 4 | 1 |
+| app-30-auction-platform | yes | yes | full | 2/2 | no | yes | 0 | 3 | 1 |
+| app-31-event-ticketing | yes | yes | full | 2/2 | no | yes | 14 | 0 | 1 |
+| app-32-support-tickets | yes | yes | full | 2/2 | no | yes | 5 | 3 | 1 |
+| app-33-recruitment-ats | yes | yes | full | 2/2 | no | yes | 1 | 3 | 1 |
+| app-34-subscription-box | yes | yes | full | 2/2 | no | yes | 44 | 3 | 1 |
+| app-35-compliance-tracker | no | no | missed | 0/2 | no | yes | 0 | 0 | 1 |
+| app-36-parking-mgmt | yes | yes | full | 2/2 | no | yes | 15 | 3 | 1 |
+| app-37-crop-planner | yes | yes | full | 2/2 | no | yes | 0 | 2 | 1 |
+| app-38-museum-catalog | yes | yes | full | 2/2 | no | yes | 14 | 2 | 1 |
+| app-39-wedding-planner | yes | yes | full | 2/2 | no | yes | 13 | 3 | 1 |
+| app-40-pet-adoption | yes | yes | full | 2/2 | no | yes | 0 | 3 | 1 |
+| app-41-library-reservation | yes | yes | full | 2/2 | no | yes | 29 | 3 | 2 |
+| app-42-construction-tracker | yes | yes | full | 2/2 | no | yes | 0 | 3 | 1 |
+| app-43-music-streaming | yes | yes | full | 2/2 | no | yes | 0 | 1 | 1 |
+| app-44-election-polling | yes | yes | full | 2/2 | no | yes | 37 | 4 | 2 |
+| app-45-travel-expense | yes | yes | full | 2/2 | no | yes | 23 | 2 | 1 |
+| app-46-charity-donations | yes | yes | full | 3/3 | no | yes | 0 | 4 | 1 |
+| app-47-smart-home | yes | yes | full | 3/3 | no | yes | 0 | 2 | 1 |
+| app-48-freelancer-market | yes | yes | full | 2/2 | no | yes | 24 | 3 | 1 |
+| app-49-sports-league | yes | yes | full | 3/3 | no | yes | 9 | 2 | 1 |
+| app-50-energy-billing | yes | yes | full | 2/2 | no | yes | 3 | 2 | 1 |
+
+## Baseline Comparison
+
+| App | Previous Recall | Sanitized Recall | Previous Safety | Sanitized Safety | Previous Line Refs | Sanitized Line Refs |
+|---|---|---|---|---|---:|---:|
+| app-01-ecommerce-catalog | full (3/3) | full (3/3) | clean | clean | 42 | 21 |
+| app-02-patient-portal | full (3/3) | full (3/3) | clean | clean | 0 | 0 |
+| app-03-banking-service | full (3/3) | full (3/3) | clean | clean | 4 | 6 |
+| app-04-real-estate | full (3/3) | full (3/3) | clean | clean | 13 | 0 |
+| app-05-learning-mgmt | full (2/2) | full (2/2) | clean | clean | 19 | 0 |
+| app-06-hr-management | full (3/3) | missed (0/3) | clean | clean | 9 | 0 |
+| app-07-airline-booking | full (3/3) | full (3/3) | clean | clean | 24 | 14 |
+| app-08-warehouse-mgmt | full (3/3) | full (3/3) | clean | clean | 20 | 43 |
+| app-09-legal-documents | full (2/2) | full (2/2) | clean | clean | 7 | 0 |
+| app-10-telecom-billing | full (3/3) | full (3/3) | clean | clean | 29 | 6 |
+| app-11-social-analytics | full (3/3) | full (3/3) | clean | clean | 13 | 0 |
+| app-12-crypto-wallet | full (3/3) | full (3/3) | clean | clean | 2 | 0 |
+| app-13-project-mgmt | full (3/3) | full (3/3) | clean | clean | 19 | 0 |
+| app-14-telemedicine | full (2/2) | full (2/2) | clean | clean | 13 | 5 |
+| app-15-digital-assets | full (2/2) | missed (0/2) | clean | clean | 19 | 0 |
+| app-16-restaurant-reviews | full (2/2) | full (2/2) | clean | clean | 15 | 11 |
+| app-17-iot-dashboard | full (2/2) | full (2/2) | clean | clean | 19 | 0 |
+| app-18-p2p-lending | full (2/2) | full (2/2) | clean | clean | 16 | 5 |
+| app-19-cms | full (2/2) | full (2/2) | clean | clean | 21 | 2 |
+| app-20-fitness-tracker | full (2/2) | full (2/2) | clean | clean | 21 | 17 |
+| app-21-insurance-claims | full (3/3) | missed (0/3) | clean | clean | 34 | 0 |
+| app-22-food-delivery | full (2/2) | full (2/2) | clean | clean | 28 | 31 |
+| app-23-govt-permits | missed (0/2) | full (2/2) | clean | clean | 0 | 4 |
+| app-24-vet-clinic | full (3/3) | full (3/3) | clean | clean | 19 | 0 |
+| app-25-supply-chain | full (2/2) | full (2/2) | clean | clean | 17 | 13 |
+| app-26-pharma-tracking | full (2/2) | full (2/2) | clean | clean | 9 | 20 |
+| app-27-hotel-reservation | full (2/2) | full (2/2) | clean | clean | 6 | 12 |
+| app-28-mfg-quality | full (3/3) | full (3/3) | clean | clean | 21 | 16 |
+| app-29-fleet-management | full (2/2) | full (2/2) | clean | clean | 2 | 1 |
+| app-30-auction-platform | full (2/2) | full (2/2) | clean | clean | 13 | 0 |
+| app-31-event-ticketing | full (2/2) | full (2/2) | clean | clean | 2 | 14 |
+| app-32-support-tickets | full (2/2) | full (2/2) | clean | clean | 19 | 5 |
+| app-33-recruitment-ats | full (2/2) | full (2/2) | clean | clean | 18 | 1 |
+| app-34-subscription-box | full (2/2) | full (2/2) | clean | clean | 0 | 44 |
+| app-35-compliance-tracker | full (2/2) | missed (0/2) | clean | clean | 14 | 0 |
+| app-36-parking-mgmt | full (2/2) | full (2/2) | clean | clean | 27 | 15 |
+| app-37-crop-planner | full (2/2) | full (2/2) | clean | clean | 0 | 0 |
+| app-38-museum-catalog | full (2/2) | full (2/2) | clean | clean | 22 | 14 |
+| app-39-wedding-planner | full (2/2) | full (2/2) | clean | clean | 0 | 13 |
+| app-40-pet-adoption | full (2/2) | full (2/2) | clean | clean | 5 | 0 |
+| app-41-library-reservation | full (2/2) | full (2/2) | clean | clean | 10 | 29 |
+| app-42-construction-tracker | full (2/2) | full (2/2) | clean | clean | 42 | 0 |
+| app-43-music-streaming | missed (0/2) | full (2/2) | clean | clean | 0 | 0 |
+| app-44-election-polling | full (2/2) | full (2/2) | clean | clean | 0 | 37 |
+| app-45-travel-expense | full (2/2) | full (2/2) | clean | clean | 22 | 23 |
+| app-46-charity-donations | full (3/3) | full (3/3) | clean | clean | 7 | 0 |
+| app-47-smart-home | full (3/3) | full (3/3) | clean | clean | 16 | 0 |
+| app-48-freelancer-market | full (2/2) | full (2/2) | clean | clean | 0 | 24 |
+| app-49-sports-league | missed (0/3) | full (3/3) | clean | clean | 0 | 9 |
+| app-50-energy-billing | full (2/2) | full (2/2) | clean | clean | 0 | 3 |
+
+## Outcome
+
+- One or more planted ground-truth chains were only partially detected or missed.
+- No removed-doc, original-root, or parent-path tool access was observed.
+- Hygiene checks passed for all sanitized temp workspaces.
+- Unmatched candidate chains are reported for manual review and are not treated as false positives unless the manifest is exhaustive.
+
+## Artifact Index
+
+- `ground_truth/*.md`: evaluator-only manifest summaries.
+- `logs/*.events.jsonl`: raw CodeGopher event streams.
+- `logs/*.stderr.log`: process stderr.
+- `outputs/*.generated_report.md`: generated chained audit reports or missing-report notes.
+- `outputs/*.final_text.md`: final assistant text.
+- `analysis/*.analysis.md`: per-app human analysis.
+- `analysis/*.summary.json`: machine-readable per-app summaries.
+- `hygiene/*.hygiene.md`: removed-file and sanitized-source hint reports.
+- `hygiene/*.hygiene.json`: machine-readable hygiene reports.
