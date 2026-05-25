@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-db76d1062590","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-25-supply-chain\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-25-supply-chain\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-db76d1062590","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-25-supply-chain\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-25-supply-chain\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","content":" wants"}
@@ -102,7 +102,7 @@
 {"version":1,"type":"tool_call","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","tool_id":"call_031520abf71d4c3fba6c2fe6","tool_name":"list_dir","arguments_summary":"{\"path\": \".\"}"}
 {"version":1,"type":"tool_call","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","tool_id":"call_dd78501fe51642fab9262be2","tool_name":"list_dir","arguments_summary":"{\"path\": \"docs\"}"}
 {"version":1,"type":"tool_result","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","tool_id":"call_031520abf71d4c3fba6c2fe6","is_error":false,"result_summary":"__pycache__/\napp.py\nDockerfile\nreference_guards.py\nrequirements.txt"}
-{"version":1,"type":"tool_result","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","tool_id":"call_dd78501fe51642fab9262be2","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-25-supply-chain\\\\workspace\\\\docs'"}
+{"version":1,"type":"tool_result","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","tool_id":"call_dd78501fe51642fab9262be2","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-25-supply-chain\\\\workspace\\\\docs'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","content":" `"}
 {"version":1,"type":"reasoning_delta","session_id":"events-db76d1062590","turn_id":"turn-ed277a194c08","content":"docs"}

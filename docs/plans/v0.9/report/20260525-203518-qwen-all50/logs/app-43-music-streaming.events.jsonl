@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-d214456d4ced","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-d214456d4ced","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":" wants"}
@@ -84,7 +84,7 @@
 {"version":1,"type":"text_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":" Surface"}
 {"version":1,"type":"text_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":" Mapping"}
 {"version":1,"type":"text_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"\n\n"}
-{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_3beef4cc3345443c907489b6","tool_name":"list_dir","arguments_summary":"{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\"}"}
+{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_3beef4cc3345443c907489b6","tool_name":"list_dir","arguments_summary":"{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\"}"}
 {"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_c4257040615c47c1a1572d82","tool_name":"glob_search","arguments_summary":"{\"pattern\": \"**/*.{js,ts,jsx,tsx,py,java,go,rb,php,cpp,c,h,hpp}\"}"}
 {"version":1,"type":"tool_result","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_3beef4cc3345443c907489b6","is_error":false,"result_summary":"Dockerfile\nnode_modules/\npackage-lock.json\npackage.json\nsrc/"}
 {"version":1,"type":"tool_result","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_c4257040615c47c1a1572d82","is_error":false,"result_summary":""}
@@ -105,8 +105,8 @@
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"."}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"\n"}
 {"version":1,"type":"text_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"\n\n"}
-{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_7213a9fada6d4ee680bf4f61","tool_name":"list_dir","arguments_summary":"{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\\\\src\"}"}
-{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_39cd7a6e5bd844a1942c2f0d","tool_name":"list_dir","arguments_summary":"{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\"}"}
+{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_7213a9fada6d4ee680bf4f61","tool_name":"list_dir","arguments_summary":"{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\\\\src\"}"}
+{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_39cd7a6e5bd844a1942c2f0d","tool_name":"list_dir","arguments_summary":"{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\"}"}
 {"version":1,"type":"tool_result","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_7213a9fada6d4ee680bf4f61","is_error":false,"result_summary":"index.js\nreferenceGuards.js"}
 {"version":1,"type":"tool_result","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_39cd7a6e5bd844a1942c2f0d","is_error":false,"result_summary":"Dockerfile\nnode_modules/\npackage-lock.json\npackage.json\nsrc/"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"The"}
@@ -235,8 +235,8 @@
 {"version":1,"type":"text_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":" chains"}
 {"version":1,"type":"text_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"."}
 {"version":1,"type":"text_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"\n\n"}
-{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_d43a929d382244e4a9cf2ce1","tool_name":"list_dir","arguments_summary":"{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\\\\docs\"}"}
-{"version":1,"type":"tool_result","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_d43a929d382244e4a9cf2ce1","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\\\\docs'"}
+{"version":1,"type":"tool_call","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_d43a929d382244e4a9cf2ce1","tool_name":"list_dir","arguments_summary":"{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\\\\docs\"}"}
+{"version":1,"type":"tool_result","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","tool_id":"call_d43a929d382244e4a9cf2ce1","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-43-music-streaming\\\\workspace\\\\docs'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":" `docs"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d214456d4ced","turn_id":"turn-2d218692280b","content":"`"}

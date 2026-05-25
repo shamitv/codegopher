@@ -1,7 +1,7 @@
 # Analysis - app-21-insurance-claims
 
 - App key: `app-21-insurance-claims`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-21-insurance-claims\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-21-insurance-claims\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -88,11 +88,11 @@
 
 ## Tool Calls
 
-- `list_dir` `call_0563531042604fdd955078b9` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace"}
-- `read_file` `call_97f370938a584b98a8d7a7dd` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\app.py"}
-- `read_file` `call_9141d4e4b8f64c8296b0c0fa` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\reference_guards.py"}
-- `read_file` `call_ebbb066c6be543ec9d4dd7f5` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\requirements.txt"}
-- `read_file` `call_c5285bb1509c40268744edd9` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\Dockerfile"}
+- `list_dir` `call_0563531042604fdd955078b9` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace"}
+- `read_file` `call_97f370938a584b98a8d7a7dd` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\app.py"}
+- `read_file` `call_9141d4e4b8f64c8296b0c0fa` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\reference_guards.py"}
+- `read_file` `call_ebbb066c6be543ec9d4dd7f5` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\requirements.txt"}
+- `read_file` `call_c5285bb1509c40268744edd9` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\Dockerfile"}
 - `grep_search` `call_f558371e9de34330be41a195` {"query": "SECRET_KEY"}
 - `grep_search` `call_01f6f17d40554c679e78b271` {"query": "csrf"}
 - `grep_search` `call_ad4798992a6b4c66be8ce3a5` {"query": "debug"}
@@ -106,5 +106,5 @@
 - `update_todo` `call_4ba2bcf129b4487ba9b13107` {"action": "start", "text": "Chain A: Session Forgery → Admin Escalation → Data Exfil + Payout Manipulation"}
 - `update_todo` `call_1af137b25eca41bca6d7f738` {"action": "start", "id": "todo-c9605aff", "text": "Chain A: Session Forgery → Admin Escalation → Data Exfil + Payout Manipulation"}
 - `write_chained_vulnerability_report` `call_aebf683ea31e49c3a0f0a2a4` {"content": "# Chained Vulnerability Static Audit Report\n\n**Application:** App 21 — Insurance Claims Management System\n**Audit Type:** Static-only source code review (no live probes, scanners, or shell commands)\n**Files Reviewed:**\n- `app.py` (264 lines) — Main Flask application with all routes, models, and database seeds\n- `reference_guards.py` (13 lines) — Reference utility functions (not imported by `app.py`)\n- `requirements.txt` (1 line) — Dependency manifest\n- `Dockerfile` (8 lin...
-- `read_file` `call_fd6bdf3fdd844305a7d89800` {"end_line": 50, "path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\docs\\security\\CHAINED_VULNERABILITIES_REVIEW.md", "start_line": 1}
+- `read_file` `call_fd6bdf3fdd844305a7d89800` {"end_line": 50, "path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-21-insurance-claims\\workspace\\docs\\security\\CHAINED_VULNERABILITIES_REVIEW.md", "start_line": 1}
 - `update_todo` `call_9ec434c6c7b14f1682b13215` {"action": "done", "id": "todo-c9605aff", "text": "Chain A: Session Forgery → Admin Escalation → Data Exfil + Payout Manipulation"}

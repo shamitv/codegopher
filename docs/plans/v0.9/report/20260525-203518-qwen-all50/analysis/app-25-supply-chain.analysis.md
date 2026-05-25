@@ -1,7 +1,7 @@
 # Analysis - app-25-supply-chain
 
 - App key: `app-25-supply-chain`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-25-supply-chain\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-25-supply-chain\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

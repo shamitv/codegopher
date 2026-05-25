@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-b614fa5e70b1","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-46-charity-donations\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-b614fa5e70b1","turn_id":"turn-bc3758d89a56","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-46-charity-donations\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-b614fa5e70b1","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-46-charity-donations\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-b614fa5e70b1","turn_id":"turn-bc3758d89a56","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-46-charity-donations\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-b614fa5e70b1","turn_id":"turn-bc3758d89a56","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-b614fa5e70b1","turn_id":"turn-bc3758d89a56","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-b614fa5e70b1","turn_id":"turn-bc3758d89a56","content":" wants"}

@@ -1,7 +1,7 @@
 # Ground Truth - app-24-vet-clinic
 
 - App key: `app-24-vet-clinic`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-24-vet-clinic`
+- Source path: `<secure-code-hunt>\apps\python\app-24-vet-clinic`
 - Language/framework: python / fastapi
 
 ## Expected Chained Attacks

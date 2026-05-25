@@ -1,7 +1,7 @@
 # Analysis - app-50-energy-billing
 
 - App key: `app-50-energy-billing`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-50-energy-billing\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-50-energy-billing\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -118,5 +118,5 @@
 - `update_todo` `call_46b1fd16a0184c77b4cf445e` {"action": "done", "id": "todo-d680034b", "text": "Phase 2: Weakness inventory - identified SQLi, SSRF, IDOR, H2 exposure, CSRF, seed passwords"}
 - `update_todo` `call_382e8646a17d45c09d5334ef` {"action": "done", "id": "todo-dd3332fb", "text": "Phase 3: Attack graph synthesis - building chains from sources to sinks"}
 - `update_todo` `call_73adfc829e57495b874b7033` {"action": "done", "id": "todo-c04f7dc0", "text": "Phase 4: Impact assessment & report writing"}
-- `write_chained_vulnerability_report` `call_3d330885ff024b79bdc268d8` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project:** app-50-energy-billing (Energy Utility Billing System)\n**Date:** 2026-05-25\n**Auditor:** CodeGopher (Chained Vulnerability Static Audit)\n**Scope:** `C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-50-energy-billing\\workspace`\n\n---\n\n## Executive Summary\n\n| Metric | Value |\n|--------|-------|\n| Total chains detected | **4** |\n| Highest chain severity | **CRITICAL** ...
+- `write_chained_vulnerability_report` `call_3d330885ff024b79bdc268d8` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project:** app-50-energy-billing (Energy Utility Billing System)\n**Date:** 2026-05-25\n**Auditor:** CodeGopher (Chained Vulnerability Static Audit)\n**Scope:** `%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-50-energy-billing\\workspace`\n\n---\n\n## Executive Summary\n\n| Metric | Value |\n|--------|-------|\n| Total chains detected | **4** |\n| Highest chain severity | **CRITICAL** ...
 - `read_file` `call_2f17f806db8945c2ba9dcc5d` {"end_line": 50, "path": "docs/security/CHAINED_VULNERABILITIES_REVIEW.md", "start_line": 1}

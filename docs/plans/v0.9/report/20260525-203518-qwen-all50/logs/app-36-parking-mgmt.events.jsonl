@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-d69b9fa70394","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-36-parking-mgmt\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-36-parking-mgmt\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-d69b9fa70394","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-36-parking-mgmt\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-36-parking-mgmt\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":" wants"}
@@ -2887,7 +2887,7 @@
 {"version":1,"type":"text_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":"."}
 {"version":1,"type":"text_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":"\n\n"}
 {"version":1,"type":"tool_call","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","tool_id":"call_ecf2a48a7c394952b826f4a5","tool_name":"list_dir","arguments_summary":"{\"path\": \"docs/security\"}"}
-{"version":1,"type":"tool_result","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","tool_id":"call_ecf2a48a7c394952b826f4a5","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-36-parking-mgmt\\\\workspace\\\\docs\\\\security'"}
+{"version":1,"type":"tool_result","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","tool_id":"call_ecf2a48a7c394952b826f4a5","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-36-parking-mgmt\\\\workspace\\\\docs\\\\security'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":"I"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":" can"}
 {"version":1,"type":"reasoning_delta","session_id":"events-d69b9fa70394","turn_id":"turn-82cd2334c287","content":" see"}

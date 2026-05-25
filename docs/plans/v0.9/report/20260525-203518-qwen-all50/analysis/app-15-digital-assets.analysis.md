@@ -1,7 +1,7 @@
 # Analysis - app-15-digital-assets
 
 - App key: `app-15-digital-assets`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-15-digital-assets\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-15-digital-assets\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

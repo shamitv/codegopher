@@ -1,7 +1,7 @@
 # Ground Truth - app-49-sports-league
 
 - App key: `app-49-sports-league`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-49-sports-league`
+- Source path: `<secure-code-hunt>\apps\python\app-49-sports-league`
 - Language/framework: python / flask
 
 ## Expected Chained Attacks

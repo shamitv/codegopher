@@ -1,7 +1,7 @@
 # Ground Truth - app-34-subscription-box
 
 - App key: `app-34-subscription-box`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-34-subscription-box`
+- Source path: `<secure-code-hunt>\apps\typescript\app-34-subscription-box`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

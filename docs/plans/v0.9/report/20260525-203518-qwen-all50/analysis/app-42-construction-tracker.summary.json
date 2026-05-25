@@ -1,7 +1,7 @@
 {
   "app": "app-42-construction-tracker",
   "display_name": "app-42-construction-tracker",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-42-construction-tracker\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-42-construction-tracker\\workspace",
   "returncode": 0,
   "command": [
     ".venv\\Scripts\\cgopher.exe",
@@ -12,7 +12,7 @@
     "--model",
     "Qwen/Qwen3.6-35B-A3B",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -138,7 +138,7 @@
       "turn_id": "turn-10507f3c8fe5",
       "tool_id": "call_fa2cb6c8b87d498b9f1f678f",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-42-construction-tracker\\\\workspace\\\\src\\\\api'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-42-construction-tracker\\\\workspace\\\\src\\\\api'"
     },
     {
       "version": 1,

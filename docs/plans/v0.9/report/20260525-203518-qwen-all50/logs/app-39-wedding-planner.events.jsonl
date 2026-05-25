@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-50e9e48bde5d","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-39-wedding-planner\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-50e9e48bde5d","turn_id":"turn-ba880bb18a5b","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-39-wedding-planner\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-50e9e48bde5d","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-39-wedding-planner\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-50e9e48bde5d","turn_id":"turn-ba880bb18a5b","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-39-wedding-planner\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-50e9e48bde5d","turn_id":"turn-ba880bb18a5b","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-50e9e48bde5d","turn_id":"turn-ba880bb18a5b","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-50e9e48bde5d","turn_id":"turn-ba880bb18a5b","content":" wants"}

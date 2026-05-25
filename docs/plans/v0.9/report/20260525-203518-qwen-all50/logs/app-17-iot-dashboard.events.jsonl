@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-69b8f496eb4c","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-17-iot-dashboard\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-69b8f496eb4c","turn_id":"turn-05adbb50dea5","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-17-iot-dashboard\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-69b8f496eb4c","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-17-iot-dashboard\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-69b8f496eb4c","turn_id":"turn-05adbb50dea5","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-17-iot-dashboard\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-69b8f496eb4c","turn_id":"turn-05adbb50dea5","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-69b8f496eb4c","turn_id":"turn-05adbb50dea5","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-69b8f496eb4c","turn_id":"turn-05adbb50dea5","content":" wants"}

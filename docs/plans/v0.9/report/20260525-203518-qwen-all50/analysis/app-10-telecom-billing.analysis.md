@@ -1,7 +1,7 @@
 # Analysis - app-10-telecom-billing
 
 - App key: `app-10-telecom-billing`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-10-telecom-billing\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-10-telecom-billing\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -89,12 +89,12 @@
 
 ## Tool Calls
 
-- `list_dir` `call_9642779384a74d16add4f103` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace"}
+- `list_dir` `call_9642779384a74d16add4f103` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace"}
 - `glob_search` `call_4383c6eefa4a491db680a2b3` {"pattern": "**/*.{py,js,ts,java,go,rb,php,cs,html,ejs,pug,jinja,j2}"}
 - `glob_search` `call_53fb5c3773c241b7898946a8` {"pattern": "**/*.{yml,yaml,toml,json,env}"}
-- `list_dir` `call_f65d26c6539b481aa8e1a6e0` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace\\src"}
-- `list_dir` `call_06a04e22db99407e8c86e183` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace"}
+- `list_dir` `call_f65d26c6539b481aa8e1a6e0` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace\\src"}
+- `list_dir` `call_06a04e22db99407e8c86e183` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace"}
 - `glob_search` `call_4bd7a1f1269943d89b01f9d2` {"pattern": "**/*"}
 - `read_many_files` `call_e6edc43b47364b759d67da9e` {"max_files": 30, "paths": ["src/main/java/com/telecom/billing/App10Application.java", "src/main/java/com/telecom/billing/config/DataInitializer.java", "src/main/java/com/telecom/billing/config/SecurityConfig.java", "src/main/java/com/telecom/billing/controller/AdminController.java", "src/main/java/com/telecom/billing/controller/AuthController.java", "src/main/java/com/telecom/billing/controller/BillingController.java", "src/main/java/com/telecom/billing/controller/CustomerController.java", "...
-- `list_dir` `call_f75d16b811f94b8085435c0e` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace\\docs"}
+- `list_dir` `call_f75d16b811f94b8085435c0e` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-10-telecom-billing\\workspace\\docs"}
 - `write_chained_vulnerability_report` `call_0155f28cf55d4f86beefb931` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project:** Telecom Billing Platform (app-10-telecom-billing)\n**Tech Stack:** Java 17, Spring Boot 3.2.5, Spring Security, H2 Database, JPA/Hibernate, Lombok\n**Audit Type:** Static-only source code review (no live probes, dynamic scans, or shell commands)\n**Date:** 2026-05-25\n\n---\n\n## Summary Dashboard\n\n| Metric                     | Value                              |\n|-----------------------------|----------------------...

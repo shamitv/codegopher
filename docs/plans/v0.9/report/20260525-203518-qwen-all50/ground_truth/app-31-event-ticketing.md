@@ -1,7 +1,7 @@
 # Ground Truth - app-31-event-ticketing
 
 - App key: `app-31-event-ticketing`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-31-event-ticketing`
+- Source path: `<secure-code-hunt>\apps\typescript\app-31-event-ticketing`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

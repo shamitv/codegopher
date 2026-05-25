@@ -1,7 +1,7 @@
 # Ground Truth - app-33-recruitment-ats
 
 - App key: `app-33-recruitment-ats`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-33-recruitment-ats`
+- Source path: `<secure-code-hunt>\apps\typescript\app-33-recruitment-ats`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

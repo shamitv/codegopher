@@ -1,7 +1,7 @@
 # Ground Truth - app-35-compliance-tracker
 
 - App key: `app-35-compliance-tracker`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-35-compliance-tracker`
+- Source path: `<secure-code-hunt>\apps\typescript\app-35-compliance-tracker`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

@@ -3,7 +3,7 @@
 **Project**: Manufacturing Quality Control System (`app-28-mfg-quality`)
 **Audit Date**: 2026-05-25
 **Auditor**: CodeGopher (Static-Only Review)
-**Scope**: `C:\workspace` — full Java/Spring Boot 3.2.5 codebase
+**Scope**: `<workspace>` — full Java/Spring Boot 3.2.5 codebase
 
 ---
 

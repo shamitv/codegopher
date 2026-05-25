@@ -1,7 +1,7 @@
 # Analysis - app-44-election-polling
 
 - App key: `app-44-election-polling`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-44-election-polling\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-44-election-polling\workspace`
 - Return code: 0
 - Attempts: 2
 - Generated report: yes

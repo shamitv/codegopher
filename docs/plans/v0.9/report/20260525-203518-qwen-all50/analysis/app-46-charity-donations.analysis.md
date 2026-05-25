@@ -1,7 +1,7 @@
 # Analysis - app-46-charity-donations
 
 - App key: `app-46-charity-donations`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-46-charity-donations\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-46-charity-donations\workspace`
 - Return code: 1
 - Attempts: 1
 - Generated report: no

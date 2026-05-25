@@ -1,7 +1,7 @@
 # Ground Truth - app-18-p2p-lending
 
 - App key: `app-18-p2p-lending`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-18-p2p-lending`
+- Source path: `<secure-code-hunt>\apps\javascript\app-18-p2p-lending`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

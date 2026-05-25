@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-97c1636afc88","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-48-freelancer-market\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-97c1636afc88","turn_id":"turn-727726b448b7","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-48-freelancer-market\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-97c1636afc88","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-48-freelancer-market\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-97c1636afc88","turn_id":"turn-727726b448b7","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-48-freelancer-market\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-97c1636afc88","turn_id":"turn-727726b448b7","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-97c1636afc88","turn_id":"turn-727726b448b7","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-97c1636afc88","turn_id":"turn-727726b448b7","content":" wants"}

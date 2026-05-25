@@ -1,7 +1,7 @@
 {
   "app": "app-03-banking-service",
   "display_name": "app-03-banking-service",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-03-banking-service\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-03-banking-service\\workspace",
   "returncode": 0,
   "command": [
     ".venv\\Scripts\\cgopher.exe",
@@ -12,7 +12,7 @@
     "--model",
     "Qwen/Qwen3.6-35B-A3B",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_c1561c41119045cdbcff57a7",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -46,7 +46,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_9cc6b7403743475fa1216556",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\tests\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\tests\"}"
     },
     {
       "version": 1,
@@ -55,7 +55,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_f7a519d9feb14fd9a1d1b9ad",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\"}"
     },
     {
       "version": 1,
@@ -73,7 +73,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_519191c384a14160ba9511ec",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 150, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\"}"
+      "arguments_summary": "{\"end_line\": 150, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\"}"
     },
     {
       "version": 1,
@@ -82,7 +82,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_8b7afda620744232b254f5a9",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\js\\\\app.js\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\js\\\\app.js\"}"
     },
     {
       "version": 1,
@@ -91,7 +91,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_850247f43f9d4cf7bd4f2928",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\tests\\\\test_app.py\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\tests\\\\test_app.py\"}"
     },
     {
       "version": 1,
@@ -100,7 +100,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_4fe9da9c118a4ab3854f6ddf",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\reference_guards.py\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\reference_guards.py\"}"
     },
     {
       "version": 1,
@@ -109,7 +109,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_ca1e0e2e8a2c42f99928a53c",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 100, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\"}"
+      "arguments_summary": "{\"end_line\": 100, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\"}"
     },
     {
       "version": 1,
@@ -118,7 +118,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_1c239ee1000342d599a2da59",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\css\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\css\"}"
     },
     {
       "version": 1,
@@ -127,7 +127,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_ed7a0223092e4c68b5617260",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\js\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\js\"}"
     },
     {
       "version": 1,
@@ -136,7 +136,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_da76c592fb244d5a94993511",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 50, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\"}"
+      "arguments_summary": "{\"end_line\": 50, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\"}"
     },
     {
       "version": 1,
@@ -145,7 +145,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_3571d2da1c944cf28cfab6fa",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app\"}"
     },
     {
       "version": 1,
@@ -154,7 +154,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_463092d09af04c40ac0184a1",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"def \"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"def \"}"
     },
     {
       "version": 1,
@@ -163,7 +163,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_6739c89697a04036950a86d7",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app.post\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app.post\"}"
     },
     {
       "version": 1,
@@ -172,7 +172,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_528605a16b9a475c824b458f",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app.get\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app.get\"}"
     },
     {
       "version": 1,
@@ -181,7 +181,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_52658e9890df4a3b81af1061",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app.route\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"@app.route\"}"
     },
     {
       "version": 1,
@@ -190,7 +190,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_4e07e86aff814b6a8d328326",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\css\\\\main.css\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\static\\\\css\\\\main.css\"}"
     },
     {
       "version": 1,
@@ -199,7 +199,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_5840ebd891ad45d5bedf8430",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"from\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"from\"}"
     },
     {
       "version": 1,
@@ -208,7 +208,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_e0dbe19c5dfb40bfb65dc82a",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"import\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"import\"}"
     },
     {
       "version": 1,
@@ -217,7 +217,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_286884d666d3469c82760b9c",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"login\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"login\"}"
     },
     {
       "version": 1,
@@ -226,7 +226,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_43339f12f0914371ba4b3f59",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"sessions\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"sessions\"}"
     },
     {
       "version": 1,
@@ -235,7 +235,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_947ceaef8f07404a8f9e2bb5",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"transfers\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"transfers\"}"
     },
     {
       "version": 1,
@@ -244,7 +244,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_da60b558379a4ad89b2e8e60",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"transactions\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"transactions\"}"
     },
     {
       "version": 1,
@@ -253,7 +253,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_8acfb2a3f57b44dd86c39294",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"NoSQL\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"NoSQL\"}"
     },
     {
       "version": 1,
@@ -262,7 +262,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_70dad0b6eb7d4f3b8c49b4cc",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"cookie\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"cookie\"}"
     },
     {
       "version": 1,
@@ -271,7 +271,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_a115cb9c0d0e451185d09a88",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"json.loads\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"json.loads\"}"
     },
     {
       "version": 1,
@@ -280,7 +280,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_734590dbfecd44139def0b0e",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"session\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"session\"}"
     },
     {
       "version": 1,
@@ -289,7 +289,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_b28306128eab467ab6f75009",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"Cookie\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"Cookie\"}"
     },
     {
       "version": 1,
@@ -298,7 +298,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_55b9188f7aea4c229b85b2e8",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"JSON\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"JSON\"}"
     },
     {
       "version": 1,
@@ -307,7 +307,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_73707f51e6cb444fbac7088d",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"filter\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"filter\"}"
     },
     {
       "version": 1,
@@ -316,7 +316,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_e69bdfc92c89479f9cc00e31",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"balance\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"balance\"}"
     },
     {
       "version": 1,
@@ -325,7 +325,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_bc775c68d110474695462a8c",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"eval\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"eval\"}"
     },
     {
       "version": 1,
@@ -334,7 +334,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_e0d7094dfe22490f88c9d41b",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"query\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"query\"}"
     },
     {
       "version": 1,
@@ -343,7 +343,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_1829504b169849019c36b91e",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"debug\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"debug\"}"
     },
     {
       "version": 1,
@@ -352,7 +352,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_ac7b2765e0914c938c37684b",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"me\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"me\"}"
     },
     {
       "version": 1,
@@ -361,7 +361,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_3b449e1058f945e0ac60e4d6",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"csrf\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"csrf\"}"
     },
     {
       "version": 1,
@@ -370,7 +370,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_172de9c4035d482f80e046d9",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"/api\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"/api\"}"
     },
     {
       "version": 1,
@@ -379,7 +379,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_ac42edb8db404e5694aec30d",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"api/auth\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"api/auth\"}"
     },
     {
       "version": 1,
@@ -388,7 +388,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_eb0af510468e43149702fe62",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"api/accounts\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"api/accounts\"}"
     },
     {
       "version": 1,
@@ -397,7 +397,7 @@
       "turn_id": "turn-fe6d0e572168",
       "tool_id": "call_0f0a0078305e4568981eac51",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"Users\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-03-banking-service\\\\workspace\\\\app.py\", \"query\": \"Users\"}"
     }
   ],
   "tool_results": [

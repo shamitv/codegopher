@@ -2,8 +2,8 @@
 
 - Created: 2026-05-25T21:51:02
 - Report root: `docs\plans\v0.9\report\20260525-203518-qwen-all50`
-- Temp root: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50`
-- LLM endpoint: `http://192.168.96.5:8080/v1`
+- Temp root: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50`
+- LLM endpoint: `http://LOCAL_LLM_HOST:8080/v1`
 - Model: `Qwen/Qwen3.6-35B-A3B`
 - API family: `chat_completions`
 - Scope: development-only benchmark tooling; no public `cgopher benchmark` command.
@@ -12,7 +12,7 @@
 ## Command Shape
 
 ```powershell
-.venv\Scripts\cgopher.exe --events --no-project-init --approval-mode yolo --model Qwen/Qwen3.6-35B-A3B --base-url http://192.168.96.5:8080/v1 --api-family chat_completions --replay-reasoning-content -p "Use @skill:chained-vulnerability-static-audit to perform a static-only chained vulnerability review of this codebase. Inspect only the current working directory. Do not use live probes, dynamic scanners, shell commands, or files outside this workspace. Write the final report with write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
+.venv\Scripts\cgopher.exe --events --no-project-init --approval-mode yolo --model Qwen/Qwen3.6-35B-A3B --base-url http://LOCAL_LLM_HOST:8080/v1 --api-family chat_completions --replay-reasoning-content -p "Use @skill:chained-vulnerability-static-audit to perform a static-only chained vulnerability review of this codebase. Inspect only the current working directory. Do not use live probes, dynamic scanners, shell commands, or files outside this workspace. Write the final report with write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
 ```
 
 ## Results

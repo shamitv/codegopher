@@ -1,7 +1,7 @@
 # Analysis - app-07-airline-booking
 
 - App key: `app-07-airline-booking`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-07-airline-booking\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-07-airline-booking\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -90,11 +90,11 @@
 
 ## Tool Calls
 
-- `list_dir` `call_63fdd5f3f70243d3902c584b` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace"}
-- `list_dir` `call_48b01dbd9b8a458ea0ae7ea0` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\src"}
-- `list_dir` `call_8662999fbcb14c97b0e500ff` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\src\\main"}
-- `read_file` `call_501d6d7149ca4413939c3e87` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\pom.xml"}
-- `read_file` `call_ae95e45e935447b7b16e4143` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\Dockerfile"}
+- `list_dir` `call_63fdd5f3f70243d3902c584b` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace"}
+- `list_dir` `call_48b01dbd9b8a458ea0ae7ea0` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\src"}
+- `list_dir` `call_8662999fbcb14c97b0e500ff` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\src\\main"}
+- `read_file` `call_501d6d7149ca4413939c3e87` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\pom.xml"}
+- `read_file` `call_ae95e45e935447b7b16e4143` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\Dockerfile"}
 - `glob_search` `call_dbe1167faf26426992bbe1c5` {"pattern": "src/**/*.java"}
 - `glob_search` `call_4246623b512a40398379c8c4` {"pattern": "src/**/*.yml"}
 - `glob_search` `call_cb2ad3c48d2c42b0a70f3f55` {"pattern": "src/**/*.yaml"}
@@ -107,5 +107,5 @@
 - `glob_search` `call_2a3b9ccfaa4f4c2080734d96` {"pattern": "src/**/*.css"}
 - `glob_search` `call_f9b3313552b54c9583c9df0b` {"pattern": "src/**/static/**"}
 - `read_many_files` `call_7a09f20891114c7db1e845eb` {"paths": ["src/main/resources/static/js/flight-search.js", "src/main/resources/static/js/seat-map.js", "src/main/resources/static/css/main.css"]}
-- `read_file` `call_c77e5d7a351046f58057906b` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\src\\main\\resources\\application.properties"}
+- `read_file` `call_c77e5d7a351046f58057906b` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-07-airline-booking\\workspace\\src\\main\\resources\\application.properties"}
 - `write_chained_vulnerability_report` `call_017be41fea98469caf20e04c` {"content": "# Chained Vulnerability Audit Report — Airline Booking System (app-07)\n\n**Date:** 2026-05-25  \n**Project:** app-07-airline-booking (Spring Boot 3.2.5, Java 17, H2, JPA, Thymeleaf)  \n**Reviewer:** CodeGopher (static-only chained vulnerability audit)  \n**Scope:** All files under `src/`, `Dockerfile`, `pom.xml`  \n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| Total chained vulnerabilities detected | **4** |\n| Maximum severity | **CRITICAL** |\n| Medium-seve...

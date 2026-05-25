@@ -1,7 +1,7 @@
 # Ground Truth - app-17-iot-dashboard
 
 - App key: `app-17-iot-dashboard`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-17-iot-dashboard`
+- Source path: `<secure-code-hunt>\apps\javascript\app-17-iot-dashboard`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

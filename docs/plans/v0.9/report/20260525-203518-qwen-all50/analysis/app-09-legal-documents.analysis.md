@@ -1,7 +1,7 @@
 # Analysis - app-09-legal-documents
 
 - App key: `app-09-legal-documents`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-09-legal-documents\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-09-legal-documents\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -107,4 +107,4 @@
 - `read_file` `call_9dbe2f5ec6df4def9e7357d4` {"path": "src/main/java/com/legal/controller/CaseController.java"}
 - `list_dir` `call_66719c3cce6f42d6994f4c54` {"path": "src/main/java/com/legal/model"}
 - `read_file` `call_116c835639514d37804a4dcf` {"path": "src/main/java/com/legal/model/Document.java"}
-- `write_chained_vulnerability_report` `call_4f78481749034d8d8fe759cd` {"content": "# Chained Vulnerability Static Audit Report\n\n**Application:** Legal Document Management System (`app-09-legal-documents`)\n**Date:** 2026-05-25\n**Scope:** `C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-09-legal-documents\\workspace`\n**Method:** Static-only source analysis (no live probes, no dynamic testing)\n\n---\n\n## Summary Dashboard\n\n| Metric              | Value |\n|---------------------|-------|\n| Chains Found        ...
+- `write_chained_vulnerability_report` `call_4f78481749034d8d8fe759cd` {"content": "# Chained Vulnerability Static Audit Report\n\n**Application:** Legal Document Management System (`app-09-legal-documents`)\n**Date:** 2026-05-25\n**Scope:** `%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-09-legal-documents\\workspace`\n**Method:** Static-only source analysis (no live probes, no dynamic testing)\n\n---\n\n## Summary Dashboard\n\n| Metric              | Value |\n|---------------------|-------|\n| Chains Found        ...

@@ -1,7 +1,7 @@
 # Ground Truth - app-42-construction-tracker
 
 - App key: `app-42-construction-tracker`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-42-construction-tracker`
+- Source path: `<secure-code-hunt>\apps\javascript\app-42-construction-tracker`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

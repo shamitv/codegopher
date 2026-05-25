@@ -1,7 +1,7 @@
 # Ground Truth - app-13-project-mgmt
 
 - App key: `app-13-project-mgmt`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-13-project-mgmt`
+- Source path: `<secure-code-hunt>\apps\typescript\app-13-project-mgmt`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

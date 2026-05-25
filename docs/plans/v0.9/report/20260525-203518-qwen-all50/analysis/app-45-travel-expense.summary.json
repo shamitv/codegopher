@@ -1,7 +1,7 @@
 {
   "app": "app-45-travel-expense",
   "display_name": "app-45-travel-expense",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-45-travel-expense\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-45-travel-expense\\workspace",
   "returncode": 0,
   "command": [
     ".venv\\Scripts\\cgopher.exe",
@@ -12,7 +12,7 @@
     "--model",
     "Qwen/Qwen3.6-35B-A3B",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -165,7 +165,7 @@
       "turn_id": "turn-34ecf73ee775",
       "tool_id": "call_d479a47000064a6b94572818",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-45-travel-expense\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-45-travel-expense\\\\workspace\\\\docs'"
     },
     {
       "version": 1,

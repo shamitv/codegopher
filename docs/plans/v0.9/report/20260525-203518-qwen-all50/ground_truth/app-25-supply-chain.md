@@ -1,7 +1,7 @@
 # Ground Truth - app-25-supply-chain
 
 - App key: `app-25-supply-chain`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-25-supply-chain`
+- Source path: `<secure-code-hunt>\apps\python\app-25-supply-chain`
 - Language/framework: python / flask
 
 ## Expected Chained Attacks

@@ -1,7 +1,7 @@
 # Ground Truth - app-37-crop-planner
 
 - App key: `app-37-crop-planner`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-37-crop-planner`
+- Source path: `<secure-code-hunt>\apps\javascript\app-37-crop-planner`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

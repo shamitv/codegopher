@@ -3,7 +3,7 @@
 **Project:** app-50-energy-billing (Energy Utility Billing System)
 **Date:** 2026-05-25
 **Auditor:** CodeGopher (Chained Vulnerability Static Audit)
-**Scope:** `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-50-energy-billing\workspace`
+**Scope:** `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-50-energy-billing\workspace`
 
 ---
 

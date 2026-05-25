@@ -2,7 +2,7 @@
 
 **Application:** Legal Document Management System (`app-09-legal-documents`)
 **Date:** 2026-05-25
-**Scope:** `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-09-legal-documents\workspace`
+**Scope:** `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-09-legal-documents\workspace`
 **Method:** Static-only source analysis (no live probes, no dynamic testing)
 
 ---

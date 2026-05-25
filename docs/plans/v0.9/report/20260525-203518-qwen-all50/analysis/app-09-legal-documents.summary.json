@@ -1,7 +1,7 @@
 {
   "app": "app-09-legal-documents",
   "display_name": "app-09-legal-documents",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-09-legal-documents\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-09-legal-documents\\workspace",
   "returncode": 0,
   "command": [
     ".venv\\Scripts\\cgopher.exe",
@@ -12,7 +12,7 @@
     "--model",
     "Qwen/Qwen3.6-35B-A3B",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -199,7 +199,7 @@
       "turn_id": "turn-f0eeab5cb0e8",
       "tool_id": "call_4f78481749034d8d8fe759cd",
       "tool_name": "write_chained_vulnerability_report",
-      "arguments_summary": "{\"content\": \"# Chained Vulnerability Static Audit Report\\n\\n**Application:** Legal Document Management System (`app-09-legal-documents`)\\n**Date:** 2026-05-25\\n**Scope:** `C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-09-legal-documents\\\\workspace`\\n**Method:** Static-only source analysis (no live probes, no dynamic testing)\\n\\n---\\n\\n## Summary Dashboard\\n\\n| Metric              | Value |\\n|---------------------|-------|\\n| Chains Found        ..."
+      "arguments_summary": "{\"content\": \"# Chained Vulnerability Static Audit Report\\n\\n**Application:** Legal Document Management System (`app-09-legal-documents`)\\n**Date:** 2026-05-25\\n**Scope:** `%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-09-legal-documents\\\\workspace`\\n**Method:** Static-only source analysis (no live probes, no dynamic testing)\\n\\n---\\n\\n## Summary Dashboard\\n\\n| Metric              | Value |\\n|---------------------|-------|\\n| Chains Found        ..."
     }
   ],
   "tool_results": [
@@ -219,7 +219,7 @@
       "turn_id": "turn-f0eeab5cb0e8",
       "tool_id": "call_3b1150c2efe94824b32fb3f2",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-09-legal-documents\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-09-legal-documents\\\\workspace\\\\docs'"
     },
     {
       "version": 1,

@@ -1,7 +1,7 @@
 # Ground Truth - app-16-restaurant-reviews
 
 - App key: `app-16-restaurant-reviews`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-16-restaurant-reviews`
+- Source path: `<secure-code-hunt>\apps\javascript\app-16-restaurant-reviews`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

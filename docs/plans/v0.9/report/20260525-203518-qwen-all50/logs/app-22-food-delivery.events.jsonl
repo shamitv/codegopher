@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-f84f74948776","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-22-food-delivery\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-f84f74948776","turn_id":"turn-73337a7ff7c1","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-22-food-delivery\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-f84f74948776","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-22-food-delivery\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-f84f74948776","turn_id":"turn-73337a7ff7c1","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-22-food-delivery\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-f84f74948776","turn_id":"turn-73337a7ff7c1","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-f84f74948776","turn_id":"turn-73337a7ff7c1","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-f84f74948776","turn_id":"turn-73337a7ff7c1","content":" wants"}

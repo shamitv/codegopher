@@ -1,7 +1,7 @@
 # Ground Truth - app-02-patient-portal
 
 - App key: `app-02-patient-portal`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-02-patient-portal`
+- Source path: `<secure-code-hunt>\apps\python\app-02-patient-portal`
 - Language/framework: python / django
 
 ## Expected Chained Attacks

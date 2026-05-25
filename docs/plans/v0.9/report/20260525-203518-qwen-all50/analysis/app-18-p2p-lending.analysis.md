@@ -1,7 +1,7 @@
 # Analysis - app-18-p2p-lending
 
 - App key: `app-18-p2p-lending`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-18-p2p-lending\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-18-p2p-lending\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -88,15 +88,15 @@
 
 ## Tool Calls
 
-- `list_dir` `call_6e541d588177463399d9afa4` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace"}
+- `list_dir` `call_6e541d588177463399d9afa4` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace"}
 - `glob_search` `call_3a03e4ef16fa46fc99a3fb92` {"pattern": "**/*.py"}
 - `glob_search` `call_da88cf240ef64296b6b95e32` {"pattern": "**/*.{js,ts,jsx,tsx}"}
 - `glob_search` `call_9c2e9e89ca3543fcb44a5057` {"pattern": "src/**/*"}
-- `read_file` `call_69303e0bec4141b2a2fbc17b` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\package.json"}
-- `read_file` `call_f199c518a96a4d94ad0e890c` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\Dockerfile"}
-- `read_file` `call_04e45b854ff546518a68406a` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\src\\index.js"}
-- `read_file` `call_8212445aafe34735bdeb7779` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\src\\referenceGuards.js"}
-- `list_dir` `call_271017e5ef5b48bda9e6d56d` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\src"}
+- `read_file` `call_69303e0bec4141b2a2fbc17b` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\package.json"}
+- `read_file` `call_f199c518a96a4d94ad0e890c` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\Dockerfile"}
+- `read_file` `call_04e45b854ff546518a68406a` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\src\\index.js"}
+- `read_file` `call_8212445aafe34735bdeb7779` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\src\\referenceGuards.js"}
+- `list_dir` `call_271017e5ef5b48bda9e6d56d` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\src"}
 - `glob_search` `call_c98838add25040eda14bccbe` {"pattern": "docs/**/*"}
 - `write_chained_vulnerability_report` `call_f8d25fae57c14860b8dc75ba` {"content": "# Chained Vulnerability Audit Report\n\n**Project**: app-18-p2p-lending (P2P Lending Platform)  \n**Date**: 2026-05-25  \n**Reviewer**: CodeGopher (Static-Only Audit)  \n**Scope**: Entire codebase under `workspace/` — `src/index.js`, `src/referenceGuards.js`\n\n---\n\n## Summary Dashboard\n\n| Metric                        | Value                               |\n|-------------------------------|-------------------------------------|\n| Total source files reviewed   | 2 (`src/ind...
-- `read_file` `call_1fa6d42287244626924e2824` {"end_line": 50, "path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\docs\\security\\CHAINED_VULNERABILITIES_REVIEW.md", "start_line": 1}
+- `read_file` `call_1fa6d42287244626924e2824` {"end_line": 50, "path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-18-p2p-lending\\workspace\\docs\\security\\CHAINED_VULNERABILITIES_REVIEW.md", "start_line": 1}

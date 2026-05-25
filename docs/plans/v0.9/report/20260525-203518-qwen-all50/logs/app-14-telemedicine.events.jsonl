@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-71a5226bcb36","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-14-telemedicine\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-14-telemedicine\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-71a5226bcb36","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-14-telemedicine\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-14-telemedicine\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":" wants"}
@@ -2159,7 +2159,7 @@
 {"version":1,"type":"text_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":":"}
 {"version":1,"type":"text_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":"\n\n"}
 {"version":1,"type":"tool_call","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","tool_id":"call_0e468ebab13a4b418632d201","tool_name":"list_dir","arguments_summary":"{\"path\": \"docs\"}"}
-{"version":1,"type":"tool_result","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","tool_id":"call_0e468ebab13a4b418632d201","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-14-telemedicine\\\\workspace\\\\docs'"}
+{"version":1,"type":"tool_result","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","tool_id":"call_0e468ebab13a4b418632d201","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-14-telemedicine\\\\workspace\\\\docs'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":" docs"}
 {"version":1,"type":"reasoning_delta","session_id":"events-71a5226bcb36","turn_id":"turn-8a8c57e16e16","content":" directory"}

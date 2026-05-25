@@ -1,7 +1,7 @@
 # Ground Truth - app-01-ecommerce-catalog
 
 - App key: `app-01-ecommerce-catalog`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-01-ecommerce-catalog`
+- Source path: `<secure-code-hunt>\apps\python\app-01-ecommerce-catalog`
 - Language/framework: python / flask
 
 ## Expected Chained Attacks

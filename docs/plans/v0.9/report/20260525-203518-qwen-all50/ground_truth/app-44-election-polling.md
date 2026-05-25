@@ -1,7 +1,7 @@
 # Ground Truth - app-44-election-polling
 
 - App key: `app-44-election-polling`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-44-election-polling`
+- Source path: `<secure-code-hunt>\apps\javascript\app-44-election-polling`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

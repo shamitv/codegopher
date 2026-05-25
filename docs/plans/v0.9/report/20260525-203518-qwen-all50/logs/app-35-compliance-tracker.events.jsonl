@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-638384e19cd2","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-35-compliance-tracker\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-35-compliance-tracker\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-638384e19cd2","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-35-compliance-tracker\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-35-compliance-tracker\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","content":" wants"}
@@ -90,7 +90,7 @@
 {"version":1,"type":"tool_call","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","tool_id":"call_c70e631ef50e4eb79c01d654","tool_name":"list_dir","arguments_summary":"{\"path\": \".\"}"}
 {"version":1,"type":"tool_call","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","tool_id":"call_eca022937b034d6a907d2313","tool_name":"list_dir","arguments_summary":"{\"path\": \"docs\"}"}
 {"version":1,"type":"tool_result","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","tool_id":"call_c70e631ef50e4eb79c01d654","is_error":false,"result_summary":"dist/\nDockerfile\nnode_modules/\npackage-lock.json\npackage.json\nsrc/\ntsconfig.json"}
-{"version":1,"type":"tool_result","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","tool_id":"call_eca022937b034d6a907d2313","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-35-compliance-tracker\\\\workspace\\\\docs'"}
+{"version":1,"type":"tool_result","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","tool_id":"call_eca022937b034d6a907d2313","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-35-compliance-tracker\\\\workspace\\\\docs'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","content":" `"}
 {"version":1,"type":"reasoning_delta","session_id":"events-638384e19cd2","turn_id":"turn-ee247e3e980d","content":"docs"}

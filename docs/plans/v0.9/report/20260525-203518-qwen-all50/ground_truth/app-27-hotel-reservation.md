@@ -1,7 +1,7 @@
 # Ground Truth - app-27-hotel-reservation
 
 - App key: `app-27-hotel-reservation`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-27-hotel-reservation`
+- Source path: `<secure-code-hunt>\apps\java\app-27-hotel-reservation`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

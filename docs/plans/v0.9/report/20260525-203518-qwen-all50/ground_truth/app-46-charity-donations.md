@@ -1,7 +1,7 @@
 # Ground Truth - app-46-charity-donations
 
 - App key: `app-46-charity-donations`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-46-charity-donations`
+- Source path: `<secure-code-hunt>\apps\python\app-46-charity-donations`
 - Language/framework: python / flask
 
 ## Expected Chained Attacks

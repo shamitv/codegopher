@@ -1,7 +1,7 @@
 # Ground Truth - app-21-insurance-claims
 
 - App key: `app-21-insurance-claims`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-21-insurance-claims`
+- Source path: `<secure-code-hunt>\apps\python\app-21-insurance-claims`
 - Language/framework: python / flask
 
 ## Expected Chained Attacks

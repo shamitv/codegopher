@@ -1,7 +1,7 @@
 # Ground Truth - app-36-parking-mgmt
 
 - App key: `app-36-parking-mgmt`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-36-parking-mgmt`
+- Source path: `<secure-code-hunt>\apps\javascript\app-36-parking-mgmt`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

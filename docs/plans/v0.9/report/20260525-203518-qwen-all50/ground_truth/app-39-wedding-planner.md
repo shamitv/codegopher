@@ -1,7 +1,7 @@
 # Ground Truth - app-39-wedding-planner
 
 - App key: `app-39-wedding-planner`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-39-wedding-planner`
+- Source path: `<secure-code-hunt>\apps\javascript\app-39-wedding-planner`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

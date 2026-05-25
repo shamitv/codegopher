@@ -1,7 +1,7 @@
 # Analysis - app-43-music-streaming
 
 - App key: `app-43-music-streaming`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-43-music-streaming\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-43-music-streaming\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -87,11 +87,11 @@
 
 ## Tool Calls
 
-- `list_dir` `call_3beef4cc3345443c907489b6` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace"}
+- `list_dir` `call_3beef4cc3345443c907489b6` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace"}
 - `glob_search` `call_c4257040615c47c1a1572d82` {"pattern": "**/*.{js,ts,jsx,tsx,py,java,go,rb,php,cpp,c,h,hpp}"}
-- `list_dir` `call_7213a9fada6d4ee680bf4f61` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace\\src"}
-- `list_dir` `call_39cd7a6e5bd844a1942c2f0d` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace"}
+- `list_dir` `call_7213a9fada6d4ee680bf4f61` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace\\src"}
+- `list_dir` `call_39cd7a6e5bd844a1942c2f0d` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace"}
 - `read_many_files` `call_9e49cb660c664316861f86ae` {"paths": ["package.json", "Dockerfile", "src/index.js", "src/referenceGuards.js"]}
 - `glob_search` `call_178e374898284c2796eb3e92` {"pattern": "**/*"}
-- `list_dir` `call_d43a929d382244e4a9cf2ce1` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace\\docs"}
+- `list_dir` `call_d43a929d382244e4a9cf2ce1` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-43-music-streaming\\workspace\\docs"}
 - `write_chained_vulnerability_report` `call_05f3386fe28f4467a58d69b7` {"content": "# Chained Vulnerability Audit Report\n\n**Application:** Music Streaming Playlist Service (app-43-music-streaming)  \n**Review Date:** 2026-05-25  \n**Reviewer:** CodeGopher (static-only audit)  \n**Scope:** `src/index.js`, `src/referenceGuards.js`, `package.json`, `Dockerfile`  \n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| **Total Chained Vulnerabilities Found** | 3 |\n| **Maximum Severity (Chain)** | **HIGH** |\n| **Cross-Cutting Weaknesses** | 7 |\n| **Fi...

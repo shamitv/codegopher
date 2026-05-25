@@ -1,7 +1,7 @@
 # Ground Truth - app-10-telecom-billing
 
 - App key: `app-10-telecom-billing`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-10-telecom-billing`
+- Source path: `<secure-code-hunt>\apps\java\app-10-telecom-billing`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

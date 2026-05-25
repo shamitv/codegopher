@@ -1,7 +1,7 @@
 # Ground Truth - app-12-crypto-wallet
 
 - App key: `app-12-crypto-wallet`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-12-crypto-wallet`
+- Source path: `<secure-code-hunt>\apps\typescript\app-12-crypto-wallet`
 - Language/framework: typescript / nestjs
 
 ## Expected Chained Attacks

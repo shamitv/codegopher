@@ -1,7 +1,7 @@
 # Analysis - app-01-ecommerce-catalog
 
 - App key: `app-01-ecommerce-catalog`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-01-ecommerce-catalog\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-203518-qwen-all50\app-01-ecommerce-catalog\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

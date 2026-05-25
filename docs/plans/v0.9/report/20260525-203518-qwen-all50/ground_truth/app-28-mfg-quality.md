@@ -1,7 +1,7 @@
 # Ground Truth - app-28-mfg-quality
 
 - App key: `app-28-mfg-quality`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-28-mfg-quality`
+- Source path: `<secure-code-hunt>\apps\java\app-28-mfg-quality`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

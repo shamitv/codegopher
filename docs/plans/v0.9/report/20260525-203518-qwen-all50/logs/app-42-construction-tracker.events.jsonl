@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-78998bb5f0ae","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-42-construction-tracker\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-42-construction-tracker\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-78998bb5f0ae","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-42-construction-tracker\\workspace","provider":"openai","model":"Qwen/Qwen3.6-35B-A3B","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-203518-qwen-all50\\app-42-construction-tracker\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":" wants"}
@@ -3680,7 +3680,7 @@
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":"."}
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":"\n\n"}
 {"version":1,"type":"tool_call","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","tool_id":"call_fa2cb6c8b87d498b9f1f678f","tool_name":"list_dir","arguments_summary":"{\"path\": \"src/api\"}"}
-{"version":1,"type":"tool_result","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","tool_id":"call_fa2cb6c8b87d498b9f1f678f","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-42-construction-tracker\\\\workspace\\\\src\\\\api'"}
+{"version":1,"type":"tool_result","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","tool_id":"call_fa2cb6c8b87d498b9f1f678f","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-203518-qwen-all50\\\\app-42-construction-tracker\\\\workspace\\\\src\\\\api'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":"I"}
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":" just"}
 {"version":1,"type":"reasoning_delta","session_id":"events-78998bb5f0ae","turn_id":"turn-10507f3c8fe5","content":" read"}
