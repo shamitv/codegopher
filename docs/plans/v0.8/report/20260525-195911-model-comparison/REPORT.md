@@ -1,9 +1,9 @@
 # v0.8 All-50 Chained-Audit Model Comparison
 
 - Report generated: `2026-05-25T19:59:14+05:30`
-- Qwen benchmark artifacts: `D:\work\codegopher\docs\plans\v0.8\report\20260524-234855-all50`
-- Gemma-requested benchmark artifacts: `D:\work\codegopher\docs\plans\v0.8\report\20260525-180047-gemma-all50`
-- Proxy admin snapshots: [run 7](http://192.168.96.5:8080/admin/runs/7), [run 8](http://192.168.96.5:8080/admin/runs/8)
+- Qwen benchmark artifacts: `<repo>\docs\plans\v0.8\report\20260524-234855-all50`
+- Gemma-requested benchmark artifacts: `<repo>\docs\plans\v0.8\report\20260525-180047-gemma-all50`
+- Proxy admin snapshots: [run 7](http://LOCAL_LLM_HOST:8080/admin/runs/7), [run 8](http://LOCAL_LLM_HOST:8080/admin/runs/8)
 - Benchmark scope: 50 sanitized `secure-code-hunt` apps, static-only CodeGopher chained vulnerability audit, code-only temp workspaces.
 
 ## Executive Summary
@@ -214,12 +214,12 @@ Token columns are `input/output/total`. Time is benchmark app wall-clock. Cost i
 The command below was used per app, with only the model id differing between runs:
 
 ```powershell
-D:\work\codegopher\.venv\Scripts\cgopher.exe --events --no-project-init --approval-mode yolo --model <MODEL> --base-url http://192.168.96.5:8080/v1 --api-family chat_completions --replay-reasoning-content -p "Use @skill:chained-vulnerability-static-audit to perform a static-only chained vulnerability review of this codebase. Inspect only the current working directory. Do not use live probes, dynamic scanners, shell commands, or files outside this workspace. Write the final report with write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
+<repo>\.venv\Scripts\cgopher.exe --events --no-project-init --approval-mode yolo --model <MODEL> --base-url http://LOCAL_LLM_HOST:8080/v1 --api-family chat_completions --replay-reasoning-content -p "Use @skill:chained-vulnerability-static-audit to perform a static-only chained vulnerability review of this codebase. Inspect only the current working directory. Do not use live probes, dynamic scanners, shell commands, or files outside this workspace. Write the final report with write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
 ```
 
 ## Source Artifacts
 
-- Joined machine-readable comparison data: `D:\work\codegopher\docs\plans\v0.8\report\20260525-195911-model-comparison\comparison-data.json`
-- Qwen all-50 report: `D:\work\codegopher\docs\plans\v0.8\report\20260524-234855-all50\REPORT.md`
-- Gemma-requested all-50 report: `D:\work\codegopher\docs\plans\v0.8\report\20260525-180047-gemma-all50\REPORT.md`
+- Joined machine-readable comparison data: `<repo>\docs\plans\v0.8\report\20260525-195911-model-comparison\comparison-data.json`
+- Qwen all-50 report: `<repo>\docs\plans\v0.8\report\20260524-234855-all50\REPORT.md`
+- Gemma-requested all-50 report: `<repo>\docs\plans\v0.8\report\20260525-180047-gemma-all50\REPORT.md`
 

@@ -1,12 +1,12 @@
 {
   "generated_at": "2026-05-25T19:59:14+05:30",
-  "report_path": "D:\\work\\codegopher\\docs\\plans\\v0.8\\report\\20260525-195911-model-comparison\\REPORT.md",
+  "report_path": "<repo>\\docs\\plans\\v0.8\\report\\20260525-195911-model-comparison\\REPORT.md",
   "runs": {
     "qwen": {
       "label": "Qwen",
       "requested_model": "Qwen/Qwen3.6-35B-A3B",
       "proxy_run_id": 7,
-      "root": "D:\\work\\codegopher\\docs\\plans\\v0.8\\report\\20260524-234855-all50",
+      "root": "<repo>\\docs\\plans\\v0.8\\report\\20260524-234855-all50",
       "baseline_name": "20260524-234855-all50",
       "proxy": {
         "run": {
@@ -532,7 +532,7 @@
           "summary": {
             "app": "app-01-ecommerce-catalog",
             "display_name": "app-01-ecommerce-catalog",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-01-ecommerce-catalog\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-01-ecommerce-catalog\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -656,7 +656,7 @@
           "summary": {
             "app": "app-02-patient-portal",
             "display_name": "app-02-patient-portal",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-02-patient-portal\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-02-patient-portal\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -815,7 +815,7 @@
           "summary": {
             "app": "app-03-banking-service",
             "display_name": "app-03-banking-service",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-03-banking-service\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-03-banking-service\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -957,7 +957,7 @@
           "summary": {
             "app": "app-04-real-estate",
             "display_name": "app-04-real-estate",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-04-real-estate\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-04-real-estate\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -986,7 +986,7 @@
                   "turn_id": "turn-91e7af6e3a2c",
                   "tool_id": "call_8038db30ec034389bb9ca1dc",
                   "is_error": true,
-                  "result_summary": "Path C:/Users/shamit/AppData/Local/Temp/codegopher-v08-chain-20264855-all50/app-04-real-estate/workspace/static/js/app.js resolves outside project directory"
+                  "result_summary": "Path %LOCALAPPDATA%/Temp/codegopher-v08-chain-20264855-all50/app-04-real-estate/workspace/static/js/app.js resolves outside project directory"
                 }
               ],
               "mentions_removed_docs_in_output": false,
@@ -1147,7 +1147,7 @@
           "summary": {
             "app": "app-05-learning-mgmt",
             "display_name": "app-05-learning-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-05-learning-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-05-learning-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -1260,7 +1260,7 @@
           "summary": {
             "app": "app-06-hr-management",
             "display_name": "app-06-hr-management",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-06-hr-management\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-06-hr-management\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -1403,7 +1403,7 @@
           "summary": {
             "app": "app-07-airline-booking",
             "display_name": "app-07-airline-booking",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-07-airline-booking\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-07-airline-booking\\workspace",
             "returncode": 0,
             "attempt_count": 2,
             "event_counts": {
@@ -1575,7 +1575,7 @@
           "summary": {
             "app": "app-08-warehouse-mgmt",
             "display_name": "app-08-warehouse-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-08-warehouse-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-08-warehouse-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 2,
             "event_counts": {
@@ -1723,7 +1723,7 @@
           "summary": {
             "app": "app-09-legal-documents",
             "display_name": "app-09-legal-documents",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-09-legal-documents\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-09-legal-documents\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -1874,7 +1874,7 @@
           "summary": {
             "app": "app-10-telecom-billing",
             "display_name": "app-10-telecom-billing",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-10-telecom-billing\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-10-telecom-billing\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -1997,7 +1997,7 @@
           "summary": {
             "app": "app-11-social-analytics",
             "display_name": "app-11-social-analytics",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-11-social-analytics\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-11-social-analytics\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -2156,7 +2156,7 @@
           "summary": {
             "app": "app-12-crypto-wallet",
             "display_name": "app-12-crypto-wallet",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-12-crypto-wallet\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-12-crypto-wallet\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -2328,7 +2328,7 @@
           "summary": {
             "app": "app-13-project-mgmt",
             "display_name": "app-13-project-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-13-project-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-13-project-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -2510,7 +2510,7 @@
           "summary": {
             "app": "app-14-telemedicine",
             "display_name": "app-14-telemedicine",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-14-telemedicine\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-14-telemedicine\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -2939,7 +2939,7 @@
           "summary": {
             "app": "app-15-digital-assets",
             "display_name": "app-15-digital-assets",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-15-digital-assets\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-15-digital-assets\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -3377,7 +3377,7 @@
           "summary": {
             "app": "app-16-restaurant-reviews",
             "display_name": "app-16-restaurant-reviews",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-16-restaurant-reviews\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-16-restaurant-reviews\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -3700,7 +3700,7 @@
           "summary": {
             "app": "app-17-iot-dashboard",
             "display_name": "app-17-iot-dashboard",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-17-iot-dashboard\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-17-iot-dashboard\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -4038,7 +4038,7 @@
           "summary": {
             "app": "app-18-p2p-lending",
             "display_name": "app-18-p2p-lending",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-18-p2p-lending\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-18-p2p-lending\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -4359,7 +4359,7 @@
           "summary": {
             "app": "app-19-cms",
             "display_name": "app-19-cms",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-19-cms\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-19-cms\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -4684,7 +4684,7 @@
           "summary": {
             "app": "app-20-fitness-tracker",
             "display_name": "app-20-fitness-tracker",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-20-fitness-tracker\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-20-fitness-tracker\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5007,7 +5007,7 @@
           "summary": {
             "app": "app-21-insurance-claims",
             "display_name": "app-21-insurance-claims",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-21-insurance-claims\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-21-insurance-claims\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5131,7 +5131,7 @@
           "summary": {
             "app": "app-22-food-delivery",
             "display_name": "app-22-food-delivery",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-22-food-delivery\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-22-food-delivery\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5242,7 +5242,7 @@
           "summary": {
             "app": "app-23-govt-permits",
             "display_name": "app-23-govt-permits",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-23-govt-permits\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-23-govt-permits\\workspace",
             "returncode": 1,
             "attempt_count": 1,
             "event_counts": {
@@ -5339,7 +5339,7 @@
           "summary": {
             "app": "app-24-vet-clinic",
             "display_name": "app-24-vet-clinic",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-24-vet-clinic\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-24-vet-clinic\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5456,7 +5456,7 @@
           "summary": {
             "app": "app-25-supply-chain",
             "display_name": "app-25-supply-chain",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-25-supply-chain\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-25-supply-chain\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5570,7 +5570,7 @@
           "summary": {
             "app": "app-26-pharma-tracking",
             "display_name": "app-26-pharma-tracking",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-26-pharma-tracking\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-26-pharma-tracking\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5678,7 +5678,7 @@
           "summary": {
             "app": "app-27-hotel-reservation",
             "display_name": "app-27-hotel-reservation",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-27-hotel-reservation\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-27-hotel-reservation\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5796,7 +5796,7 @@
           "summary": {
             "app": "app-28-mfg-quality",
             "display_name": "app-28-mfg-quality",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-28-mfg-quality\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-28-mfg-quality\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -5915,7 +5915,7 @@
           "summary": {
             "app": "app-29-fleet-management",
             "display_name": "app-29-fleet-management",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-29-fleet-management\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-29-fleet-management\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -6025,7 +6025,7 @@
           "summary": {
             "app": "app-30-auction-platform",
             "display_name": "app-30-auction-platform",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-30-auction-platform\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-30-auction-platform\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -6137,7 +6137,7 @@
           "summary": {
             "app": "app-31-event-ticketing",
             "display_name": "app-31-event-ticketing",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-31-event-ticketing\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-31-event-ticketing\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -6549,7 +6549,7 @@
           "summary": {
             "app": "app-32-support-tickets",
             "display_name": "app-32-support-tickets",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-32-support-tickets\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-32-support-tickets\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -6962,7 +6962,7 @@
           "summary": {
             "app": "app-33-recruitment-ats",
             "display_name": "app-33-recruitment-ats",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-33-recruitment-ats\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-33-recruitment-ats\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -7394,7 +7394,7 @@
           "summary": {
             "app": "app-34-subscription-box",
             "display_name": "app-34-subscription-box",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-34-subscription-box\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-34-subscription-box\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -7811,7 +7811,7 @@
           "summary": {
             "app": "app-35-compliance-tracker",
             "display_name": "app-35-compliance-tracker",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-35-compliance-tracker\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-35-compliance-tracker\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -8224,7 +8224,7 @@
           "summary": {
             "app": "app-36-parking-mgmt",
             "display_name": "app-36-parking-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-36-parking-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-36-parking-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -8544,7 +8544,7 @@
           "summary": {
             "app": "app-37-crop-planner",
             "display_name": "app-37-crop-planner",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-37-crop-planner\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-37-crop-planner\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -8895,7 +8895,7 @@
           "summary": {
             "app": "app-38-museum-catalog",
             "display_name": "app-38-museum-catalog",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-38-museum-catalog\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-38-museum-catalog\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -9214,7 +9214,7 @@
           "summary": {
             "app": "app-39-wedding-planner",
             "display_name": "app-39-wedding-planner",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-39-wedding-planner\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-39-wedding-planner\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -9534,7 +9534,7 @@
           "summary": {
             "app": "app-40-pet-adoption",
             "display_name": "app-40-pet-adoption",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-40-pet-adoption\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-40-pet-adoption\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -9854,7 +9854,7 @@
           "summary": {
             "app": "app-41-library-reservation",
             "display_name": "app-41-library-reservation",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-41-library-reservation\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-41-library-reservation\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -10177,7 +10177,7 @@
           "summary": {
             "app": "app-42-construction-tracker",
             "display_name": "app-42-construction-tracker",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-42-construction-tracker\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-42-construction-tracker\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -10501,7 +10501,7 @@
           "summary": {
             "app": "app-43-music-streaming",
             "display_name": "app-43-music-streaming",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-43-music-streaming\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-43-music-streaming\\workspace",
             "returncode": 1,
             "attempt_count": 2,
             "event_counts": {
@@ -10824,7 +10824,7 @@
           "summary": {
             "app": "app-44-election-polling",
             "display_name": "app-44-election-polling",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-44-election-polling\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-44-election-polling\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -11148,7 +11148,7 @@
           "summary": {
             "app": "app-45-travel-expense",
             "display_name": "app-45-travel-expense",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-45-travel-expense\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-45-travel-expense\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -11471,7 +11471,7 @@
           "summary": {
             "app": "app-46-charity-donations",
             "display_name": "app-46-charity-donations",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-46-charity-donations\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-46-charity-donations\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -11603,7 +11603,7 @@
           "summary": {
             "app": "app-47-smart-home",
             "display_name": "app-47-smart-home",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-47-smart-home\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-47-smart-home\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -11726,7 +11726,7 @@
           "summary": {
             "app": "app-48-freelancer-market",
             "display_name": "app-48-freelancer-market",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-48-freelancer-market\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-48-freelancer-market\\workspace",
             "returncode": 0,
             "attempt_count": 2,
             "event_counts": {
@@ -11850,7 +11850,7 @@
           "summary": {
             "app": "app-49-sports-league",
             "display_name": "app-49-sports-league",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-49-sports-league\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-49-sports-league\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -11955,7 +11955,7 @@
           "summary": {
             "app": "app-50-energy-billing",
             "display_name": "app-50-energy-billing",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-50-energy-billing\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260524-234855-all50\\app-50-energy-billing\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -12059,7 +12059,7 @@
       "label": "Gemma-requested",
       "requested_model": "google/gemma-4-26B-A4B-it:deepinfra",
       "proxy_run_id": 8,
-      "root": "D:\\work\\codegopher\\docs\\plans\\v0.8\\report\\20260525-180047-gemma-all50",
+      "root": "<repo>\\docs\\plans\\v0.8\\report\\20260525-180047-gemma-all50",
       "baseline_name": "20260525-180047-gemma-all50",
       "proxy": {
         "run": {
@@ -12562,7 +12562,7 @@
           "summary": {
             "app": "app-01-ecommerce-catalog",
             "display_name": "app-01-ecommerce-catalog",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-01-ecommerce-catalog\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-01-ecommerce-catalog\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -12692,7 +12692,7 @@
           "summary": {
             "app": "app-02-patient-portal",
             "display_name": "app-02-patient-portal",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-02-patient-portal\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-02-patient-portal\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -12844,7 +12844,7 @@
           "summary": {
             "app": "app-03-banking-service",
             "display_name": "app-03-banking-service",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-03-banking-service\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-03-banking-service\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -12986,7 +12986,7 @@
           "summary": {
             "app": "app-04-real-estate",
             "display_name": "app-04-real-estate",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-04-real-estate\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-04-real-estate\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -13166,7 +13166,7 @@
           "summary": {
             "app": "app-05-learning-mgmt",
             "display_name": "app-05-learning-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-05-learning-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-05-learning-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -13280,7 +13280,7 @@
           "summary": {
             "app": "app-06-hr-management",
             "display_name": "app-06-hr-management",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-06-hr-management\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-06-hr-management\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -13398,7 +13398,7 @@
           "summary": {
             "app": "app-07-airline-booking",
             "display_name": "app-07-airline-booking",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-07-airline-booking\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-07-airline-booking\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -13564,7 +13564,7 @@
           "summary": {
             "app": "app-08-warehouse-mgmt",
             "display_name": "app-08-warehouse-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -13718,7 +13718,7 @@
           "summary": {
             "app": "app-09-legal-documents",
             "display_name": "app-09-legal-documents",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-09-legal-documents\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-09-legal-documents\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -13863,7 +13863,7 @@
           "summary": {
             "app": "app-10-telecom-billing",
             "display_name": "app-10-telecom-billing",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-10-telecom-billing\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-10-telecom-billing\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -13983,7 +13983,7 @@
           "summary": {
             "app": "app-11-social-analytics",
             "display_name": "app-11-social-analytics",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-11-social-analytics\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-11-social-analytics\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -14142,7 +14142,7 @@
           "summary": {
             "app": "app-12-crypto-wallet",
             "display_name": "app-12-crypto-wallet",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-12-crypto-wallet\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-12-crypto-wallet\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -14313,7 +14313,7 @@
           "summary": {
             "app": "app-13-project-mgmt",
             "display_name": "app-13-project-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-13-project-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-13-project-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -14495,7 +14495,7 @@
           "summary": {
             "app": "app-14-telemedicine",
             "display_name": "app-14-telemedicine",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-14-telemedicine\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-14-telemedicine\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -14923,7 +14923,7 @@
           "summary": {
             "app": "app-15-digital-assets",
             "display_name": "app-15-digital-assets",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-15-digital-assets\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-15-digital-assets\\workspace",
             "returncode": 1,
             "attempt_count": 1,
             "event_counts": {
@@ -15347,7 +15347,7 @@
           "summary": {
             "app": "app-16-restaurant-reviews",
             "display_name": "app-16-restaurant-reviews",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -15675,7 +15675,7 @@
           "summary": {
             "app": "app-17-iot-dashboard",
             "display_name": "app-17-iot-dashboard",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-17-iot-dashboard\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-17-iot-dashboard\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -16013,7 +16013,7 @@
           "summary": {
             "app": "app-18-p2p-lending",
             "display_name": "app-18-p2p-lending",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -16332,7 +16332,7 @@
           "summary": {
             "app": "app-19-cms",
             "display_name": "app-19-cms",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-19-cms\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-19-cms\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -16657,7 +16657,7 @@
           "summary": {
             "app": "app-20-fitness-tracker",
             "display_name": "app-20-fitness-tracker",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -16981,7 +16981,7 @@
           "summary": {
             "app": "app-21-insurance-claims",
             "display_name": "app-21-insurance-claims",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-21-insurance-claims\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-21-insurance-claims\\workspace",
             "returncode": 1,
             "attempt_count": 1,
             "event_counts": {
@@ -17086,7 +17086,7 @@
           "summary": {
             "app": "app-22-food-delivery",
             "display_name": "app-22-food-delivery",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-22-food-delivery\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-22-food-delivery\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17199,7 +17199,7 @@
           "summary": {
             "app": "app-23-govt-permits",
             "display_name": "app-23-govt-permits",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-23-govt-permits\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-23-govt-permits\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17311,7 +17311,7 @@
           "summary": {
             "app": "app-24-vet-clinic",
             "display_name": "app-24-vet-clinic",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-24-vet-clinic\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-24-vet-clinic\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17427,7 +17427,7 @@
           "summary": {
             "app": "app-25-supply-chain",
             "display_name": "app-25-supply-chain",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-25-supply-chain\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-25-supply-chain\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17541,7 +17541,7 @@
           "summary": {
             "app": "app-26-pharma-tracking",
             "display_name": "app-26-pharma-tracking",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-26-pharma-tracking\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-26-pharma-tracking\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17646,7 +17646,7 @@
           "summary": {
             "app": "app-27-hotel-reservation",
             "display_name": "app-27-hotel-reservation",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-27-hotel-reservation\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-27-hotel-reservation\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17758,7 +17758,7 @@
           "summary": {
             "app": "app-28-mfg-quality",
             "display_name": "app-28-mfg-quality",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-28-mfg-quality\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-28-mfg-quality\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17880,7 +17880,7 @@
           "summary": {
             "app": "app-29-fleet-management",
             "display_name": "app-29-fleet-management",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-29-fleet-management\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-29-fleet-management\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -17991,7 +17991,7 @@
           "summary": {
             "app": "app-30-auction-platform",
             "display_name": "app-30-auction-platform",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-30-auction-platform\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-30-auction-platform\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -18105,7 +18105,7 @@
           "summary": {
             "app": "app-31-event-ticketing",
             "display_name": "app-31-event-ticketing",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-31-event-ticketing\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-31-event-ticketing\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -18513,7 +18513,7 @@
           "summary": {
             "app": "app-32-support-tickets",
             "display_name": "app-32-support-tickets",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-32-support-tickets\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-32-support-tickets\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -18925,7 +18925,7 @@
           "summary": {
             "app": "app-33-recruitment-ats",
             "display_name": "app-33-recruitment-ats",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -19353,7 +19353,7 @@
           "summary": {
             "app": "app-34-subscription-box",
             "display_name": "app-34-subscription-box",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-34-subscription-box\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-34-subscription-box\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -19767,7 +19767,7 @@
           "summary": {
             "app": "app-35-compliance-tracker",
             "display_name": "app-35-compliance-tracker",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-35-compliance-tracker\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-35-compliance-tracker\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -20167,7 +20167,7 @@
           "summary": {
             "app": "app-36-parking-mgmt",
             "display_name": "app-36-parking-mgmt",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-36-parking-mgmt\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-36-parking-mgmt\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -20488,7 +20488,7 @@
           "summary": {
             "app": "app-37-crop-planner",
             "display_name": "app-37-crop-planner",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-37-crop-planner\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-37-crop-planner\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -20837,7 +20837,7 @@
           "summary": {
             "app": "app-38-museum-catalog",
             "display_name": "app-38-museum-catalog",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-38-museum-catalog\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-38-museum-catalog\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -21157,7 +21157,7 @@
           "summary": {
             "app": "app-39-wedding-planner",
             "display_name": "app-39-wedding-planner",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-39-wedding-planner\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-39-wedding-planner\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -21477,7 +21477,7 @@
           "summary": {
             "app": "app-40-pet-adoption",
             "display_name": "app-40-pet-adoption",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -21797,7 +21797,7 @@
           "summary": {
             "app": "app-41-library-reservation",
             "display_name": "app-41-library-reservation",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-41-library-reservation\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-41-library-reservation\\workspace",
             "returncode": 0,
             "attempt_count": 2,
             "event_counts": {
@@ -22118,7 +22118,7 @@
           "summary": {
             "app": "app-42-construction-tracker",
             "display_name": "app-42-construction-tracker",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-42-construction-tracker\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-42-construction-tracker\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -22439,7 +22439,7 @@
           "summary": {
             "app": "app-43-music-streaming",
             "display_name": "app-43-music-streaming",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-43-music-streaming\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-43-music-streaming\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -22771,7 +22771,7 @@
           "summary": {
             "app": "app-44-election-polling",
             "display_name": "app-44-election-polling",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-44-election-polling\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-44-election-polling\\workspace",
             "returncode": 0,
             "attempt_count": 2,
             "event_counts": {
@@ -23094,7 +23094,7 @@
           "summary": {
             "app": "app-45-travel-expense",
             "display_name": "app-45-travel-expense",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-45-travel-expense\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-45-travel-expense\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -23417,7 +23417,7 @@
           "summary": {
             "app": "app-46-charity-donations",
             "display_name": "app-46-charity-donations",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-46-charity-donations\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-46-charity-donations\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -23544,7 +23544,7 @@
           "summary": {
             "app": "app-47-smart-home",
             "display_name": "app-47-smart-home",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-47-smart-home\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-47-smart-home\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -23669,7 +23669,7 @@
           "summary": {
             "app": "app-48-freelancer-market",
             "display_name": "app-48-freelancer-market",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-48-freelancer-market\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-48-freelancer-market\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -23791,7 +23791,7 @@
           "summary": {
             "app": "app-49-sports-league",
             "display_name": "app-49-sports-league",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-49-sports-league\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-49-sports-league\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
@@ -23909,7 +23909,7 @@
           "summary": {
             "app": "app-50-energy-billing",
             "display_name": "app-50-energy-billing",
-            "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-50-energy-billing\\workspace",
+            "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-50-energy-billing\\workspace",
             "returncode": 0,
             "attempt_count": 1,
             "event_counts": {
