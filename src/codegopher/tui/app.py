@@ -23,6 +23,7 @@ from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget, selected_provider_entry
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
+from codegopher.core.mission import TaskLedger
 from codegopher.core.types import (
     CompactionEntry,
     MemoryEntry,
@@ -294,6 +295,10 @@ class CodeGopherApp(App[None]):
             on_compaction=self._on_agent_compaction,
             on_error=self._on_agent_error,
             on_complete=self._on_agent_complete,
+            on_task_contract_started=self._on_task_contract_started,
+            on_task_contract_updated=self._on_task_contract_updated,
+            on_task_contract_gate_failed=self._on_task_contract_gate_failed,
+            on_task_contract_completed=self._on_task_contract_completed,
         )
         try:
             await self._ensure_agent_session(callbacks).run_turn(prompt)
@@ -321,6 +326,9 @@ class CodeGopherApp(App[None]):
                     else []
                 ),
                 skill_manager=self.skill_manager,
+                task_ledgers=list(self.session_state.task_ledgers)
+                if self.session_state
+                else [],
             )
             self.tool_context = self._agent_session.tool_context
         else:
@@ -382,6 +390,26 @@ class CodeGopherApp(App[None]):
 
     async def _on_agent_error(self, message: str) -> None:
         self.set_status(f"Error: {message}")
+
+    async def _on_task_contract_started(self, ledger: TaskLedger) -> None:
+        self.set_status(f"Mission started: {ledger.contract.title}")
+        self._persist_session()
+
+    async def _on_task_contract_updated(self, ledger: TaskLedger) -> None:
+        self.set_status(
+            f"Mission active: {ledger.contract.title} ({ledger.recovery_attempts} recoveries)"
+        )
+        self._persist_session()
+
+    async def _on_task_contract_gate_failed(self, ledger: TaskLedger) -> None:
+        self.set_status(
+            f"Mission gates pending: {len(ledger.gate_failures)} unresolved"
+        )
+        self._persist_session()
+
+    async def _on_task_contract_completed(self, ledger: TaskLedger) -> None:
+        self.set_status(f"Mission {ledger.status}: {ledger.contract.title}")
+        self._persist_session()
 
     async def _on_agent_complete(self, result: AgentResult) -> None:
         if self._active_reasoning_message:
@@ -492,6 +520,11 @@ class CodeGopherApp(App[None]):
             )
         self.session_state.loaded_skill_ids = list(self.skill_manager.loaded_ids)
         self.session_state.todo_items = self.todo_state.list()
+        self.session_state.task_ledgers = (
+            list(self._agent_session.task_ledgers)
+            if self._agent_session is not None
+            else self.session_state.task_ledgers
+        )
         try:
             self.session_store.save(self.session_state, settings=self.settings)
         except OSError as exc:

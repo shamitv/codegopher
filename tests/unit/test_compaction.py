@@ -93,6 +93,17 @@ def test_build_compaction_prompt_includes_todo_memory_and_skill_context(
     assert "python-testing" in prompt
 
 
+def test_build_compaction_prompt_includes_mission_context(tmp_path: Path) -> None:
+    prompt = build_compaction_prompt(
+        sample_messages(),
+        cwd=tmp_path,
+        mission_items=["Mission: Chained audit", "Required artifacts: report.md"],
+    )
+
+    assert "Active mission contract and task ledger" in prompt
+    assert "Mission: Chained audit" in prompt
+
+
 def test_compacted_messages_preserves_recent_turns_verbatim() -> None:
     messages: list[Message] = [
         {"role": "user", "content": "old question"},

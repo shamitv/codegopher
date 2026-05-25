@@ -10,6 +10,7 @@ from textual.widgets import Input
 
 import codegopher.tui.launcher as launcher
 from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, Settings
+from codegopher.core.mission import TaskLedger, select_mission_contract
 from codegopher.core.types import TodoItem
 from codegopher.memory import MemoryStore
 from codegopher.providers.mock import MockProvider
@@ -187,6 +188,22 @@ def test_tui_session_loads_legacy_v3_without_todo_items(tmp_path: Path) -> None:
     assert result.state.todo_items == []
 
 
+def test_tui_session_loads_legacy_v4_without_task_ledgers(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    path = store.save(state, settings=make_settings())
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["version"] = 4
+    data.pop("task_ledgers")
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+    result = store.load_latest(cwd=tmp_path)
+
+    assert result.error is None
+    assert result.state is not None
+    assert result.state.task_ledgers == []
+
+
 def test_tui_session_persists_loaded_skill_ids(tmp_path: Path) -> None:
     store = make_store(tmp_path)
     state = store.create(cwd=tmp_path, settings=make_settings())
@@ -198,6 +215,29 @@ def test_tui_session_persists_loaded_skill_ids(tmp_path: Path) -> None:
     assert result.error is None
     assert result.state is not None
     assert result.state.loaded_skill_ids == ["pytest", "reviews"]
+
+
+def test_tui_session_persists_task_ledgers(tmp_path: Path) -> None:
+    store = make_store(tmp_path)
+    state = store.create(cwd=tmp_path, settings=make_settings())
+    contract = select_mission_contract(
+        prompt="scan for chained vulnerabilities",
+        loaded_skill_ids=("chained-vulnerability-static-audit",),
+    )
+    assert contract is not None
+    ledger = TaskLedger.start(contract)
+    ledger.record_tool_call("write_chained_vulnerability_report")
+    state.task_ledgers.append(ledger)
+    store.save(state, settings=make_settings())
+
+    result = store.load_latest(cwd=tmp_path)
+
+    assert result.error is None
+    assert result.state is not None
+    assert len(result.state.task_ledgers) == 1
+    loaded = result.state.task_ledgers[0]
+    assert loaded.contract.id == "chained-vulnerability-static-audit"
+    assert loaded.observed_tool_calls == ["write_chained_vulnerability_report"]
 
 
 def test_tui_session_rejects_invalid_provider_messages(tmp_path: Path) -> None:

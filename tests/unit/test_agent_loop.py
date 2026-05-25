@@ -766,3 +766,85 @@ def test_agent_result_has_structured_cli_shape() -> None:
         "tool_results": [],
         "iterations": 1,
     }
+
+
+@pytest.mark.asyncio
+async def test_chained_audit_contract_recovers_when_report_is_missing(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "audit complete"}, {"type": "done"}],
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-report",
+                        "name": "write_chained_vulnerability_report",
+                        "arguments": {"content": "# Chained report\n"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "complete"}, {"type": "done"}],
+        ]
+    )
+
+    result = await run_agent(
+        prompt="use @skill:chained-vulnerability-static-audit to audit this repo",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+    )
+
+    assert result.final_text == "complete"
+    assert result.iterations == 3
+    assert "not complete yet" in str(provider.calls[1][-1]["content"])
+    assert (
+        tmp_path / "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
+    ).read_text(encoding="utf-8") == "# Chained report\n"
+
+
+@pytest.mark.asyncio
+async def test_active_contract_recovers_malformed_tool_call_json(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "error",
+                    "message": "Malformed JSON in tool arguments: missing quote",
+                }
+            ],
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-report",
+                        "name": "write_chained_vulnerability_report",
+                        "arguments": {"content": "# Report after repair\n"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "recovered"}, {"type": "done"}],
+        ]
+    )
+
+    result = await run_agent(
+        prompt="use @skill:chained-vulnerability-static-audit to audit this repo",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(approval_mode=ApprovalMode.yolo),
+        cwd=tmp_path,
+    )
+
+    assert result.final_text == "recovered"
+    assert "provider returned malformed tool-call JSON" in str(
+        provider.calls[1][-1]["content"]
+    )
+    assert (
+        tmp_path / "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
+    ).read_text(encoding="utf-8") == "# Report after repair\n"

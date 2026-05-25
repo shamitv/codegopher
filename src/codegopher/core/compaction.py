@@ -49,6 +49,7 @@ def build_compaction_prompt(
     memories: Iterable[str] = (),
     skills: Iterable[str] = (),
     todo_items: Iterable[str] = (),
+    mission_items: Iterable[str] = (),
     preserve_recent_user_turns: int = RECENT_USER_TURNS_TO_KEEP,
 ) -> str:
     split = split_for_compaction(
@@ -70,6 +71,11 @@ def build_compaction_prompt(
     )
     if todo := list(todo_items):
         sections.append("Active TODO state:\n" + "\n".join(f"- {item}" for item in todo))
+    if mission := list(mission_items):
+        sections.append(
+            "Active mission contract and task ledger:\n"
+            + "\n".join(f"- {item}" for item in mission)
+        )
     if memory_items := list(memories):
         sections.append("Selected memories:\n" + "\n".join(f"- {item}" for item in memory_items))
     if skill_items := list(skills):

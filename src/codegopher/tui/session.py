@@ -13,11 +13,12 @@ from typing import Any, Literal
 from uuid import uuid4
 
 from codegopher.config.schema import Settings
+from codegopher.core.mission import TaskLedger
 from codegopher.core.types import Message, TodoItem
 from codegopher.utils.paths import canonical_path
 
-SESSION_VERSION = 4
-COMPATIBLE_SESSION_VERSIONS = {1, 2, 3, SESSION_VERSION}
+SESSION_VERSION = 5
+COMPATIBLE_SESSION_VERSIONS = {1, 2, 3, 4, SESSION_VERSION}
 MessageRole = Literal["user", "assistant", "system"]
 
 
@@ -40,6 +41,7 @@ class TuiSessionState:
     provider_messages: list[Message] = field(default_factory=list)
     loaded_skill_ids: list[str] = field(default_factory=list)
     todo_items: list[TodoItem] = field(default_factory=list)
+    task_ledgers: list[TaskLedger] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -146,6 +148,9 @@ class TuiSessionStore:
             "provider_messages": state.provider_messages,
             "loaded_skill_ids": state.loaded_skill_ids,
             "todo_items": [item.model_dump(mode="json") for item in state.todo_items],
+            "task_ledgers": [
+                ledger.model_dump(mode="json") for ledger in state.task_ledgers
+            ],
         }
 
     def _decode_state(self, data: Any, *, expected_cwd: str) -> TuiSessionState:
@@ -183,6 +188,7 @@ class TuiSessionStore:
         )
         loaded_skill_ids = self._decode_loaded_skill_ids(data.get("loaded_skill_ids", []))
         todo_items = self._decode_todo_items(data.get("todo_items", []))
+        task_ledgers = self._decode_task_ledgers(data.get("task_ledgers", []))
 
         return TuiSessionState(
             session_id=str(data.get("session_id", ""))
@@ -197,6 +203,7 @@ class TuiSessionStore:
             provider_messages=provider_messages,
             loaded_skill_ids=loaded_skill_ids,
             todo_items=todo_items,
+            task_ledgers=task_ledgers,
         )
 
     def _decode_provider_messages(self, raw_messages: Any) -> list[Message]:
@@ -265,3 +272,16 @@ class TuiSessionStore:
             except Exception as exc:
                 raise ValueError(f"todo item is invalid: {exc}") from exc
         return items
+
+    def _decode_task_ledgers(self, raw_ledgers: Any) -> list[TaskLedger]:
+        if not isinstance(raw_ledgers, list):
+            raise ValueError("task ledgers must be a list")
+        ledgers: list[TaskLedger] = []
+        for raw_ledger in raw_ledgers:
+            if not isinstance(raw_ledger, dict):
+                raise ValueError("task ledger must be an object")
+            try:
+                ledgers.append(TaskLedger.model_validate(raw_ledger))
+            except Exception as exc:
+                raise ValueError(f"task ledger is invalid: {exc}") from exc
+        return ledgers
