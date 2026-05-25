@@ -1,10 +1,10 @@
 {
   "app": "app-20-fitness-tracker",
   "display_name": "app-20-fitness-tracker",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-4540da123930",
       "tool_id": "call_1a1903ef39be493ab81b3cde",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -46,7 +46,7 @@
       "turn_id": "turn-4540da123930",
       "tool_id": "call_2d2a059c32554c119f13ad50",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -55,7 +55,7 @@
       "turn_id": "turn-4540da123930",
       "tool_id": "call_7c3013c4e5f74896bca7ed19",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\src\\\\index.js\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\src\\\\index.js\"}"
     },
     {
       "version": 1,
@@ -64,7 +64,7 @@
       "turn_id": "turn-4540da123930",
       "tool_id": "call_cef9a917c0f345ee9457b46a",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\package.json\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\package.json\"}"
     },
     {
       "version": 1,
@@ -73,7 +73,7 @@
       "turn_id": "turn-4540da123930",
       "tool_id": "call_d856153afeb74cb9bcf42597",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\Dockerfile\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\Dockerfile\"}"
     },
     {
       "version": 1,
@@ -91,7 +91,7 @@
       "turn_id": "turn-4540da123930",
       "tool_id": "call_5518b444e9f541d59990609f",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\docs\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\docs\"}"
     },
     {
       "version": 1,
@@ -174,7 +174,7 @@
       "turn_id": "turn-4540da123930",
       "tool_id": "call_5518b444e9f541d59990609f",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-20-fitness-tracker\\\\workspace\\\\docs'"
     },
     {
       "version": 1,

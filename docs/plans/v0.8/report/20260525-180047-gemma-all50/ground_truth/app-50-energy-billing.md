@@ -1,7 +1,7 @@
 # Ground Truth - app-50-energy-billing
 
 - App key: `app-50-energy-billing`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-50-energy-billing`
+- Source path: `<secure-code-hunt>\apps\java\app-50-energy-billing`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

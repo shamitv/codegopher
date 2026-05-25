@@ -1,7 +1,7 @@
 # Ground Truth - app-48-freelancer-market
 
 - App key: `app-48-freelancer-market`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-48-freelancer-market`
+- Source path: `<secure-code-hunt>\apps\python\app-48-freelancer-market`
 - Language/framework: python / fastapi
 
 ## Expected Chained Attacks

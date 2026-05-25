@@ -1,7 +1,7 @@
 # Analysis - app-27-hotel-reservation
 
 - App key: `app-27-hotel-reservation`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-27-hotel-reservation\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-27-hotel-reservation\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

@@ -1,10 +1,10 @@
 {
   "app": "app-13-project-mgmt",
   "display_name": "app-13-project-mgmt",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-13-project-mgmt\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-13-project-mgmt\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_e319679b5dd74c7ca05e00a5",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -46,7 +46,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_836805376dde4edc80d4abd9",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 50, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\package.json\"}"
+      "arguments_summary": "{\"end_line\": 50, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\package.json\"}"
     },
     {
       "version": 1,
@@ -55,7 +55,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_62cdcd26fdaf45b5963b98fb",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -64,7 +64,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_45335e05315443999c4936c2",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\Dockerfile\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\Dockerfile\"}"
     },
     {
       "version": 1,
@@ -73,7 +73,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_4afd1a76e4d54d2c8535ac7e",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\"}"
     },
     {
       "version": 1,
@@ -82,7 +82,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_5f3fe7451f54435397d83bbd",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\"}"
     },
     {
       "version": 1,
@@ -91,7 +91,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_928cf5536e0743b694b04860",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
     },
     {
       "version": 1,
@@ -100,7 +100,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_ed1f8e6e1a494ebdb065b42e",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 100, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\"}"
+      "arguments_summary": "{\"end_line\": 100, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\"}"
     },
     {
       "version": 1,
@@ -118,7 +118,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_e59eaab91bba4bec8ebe96d4",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 10, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\"}"
+      "arguments_summary": "{\"end_line\": 10, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\src\\\\index.ts\"}"
     },
     {
       "version": 1,
@@ -127,7 +127,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_5b0a140352214a7588b366b6",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\\\\index.html\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\\\\index.html\"}"
     },
     {
       "version": 1,
@@ -136,7 +136,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_d58ff2f0aa004b4ea36c2689",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\\\\js\\\\app.js\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\\\\js\\\\app.js\"}"
     },
     {
       "version": 1,
@@ -145,7 +145,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_f30f883ccad745da9b3ed90a",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\\\\css\\\\main.css\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\public\\\\css\\\\main.css\"}"
     },
     {
       "version": 1,
@@ -154,7 +154,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_cacf1aa63dda4e28adedb5a1",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\tsconfig.json\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\tsconfig.json\"}"
     },
     {
       "version": 1,
@@ -199,7 +199,7 @@
       "turn_id": "turn-7a71a58fdbd0",
       "tool_id": "call_bf3497a5bd434bc297c46c5d",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\docs\\\\security\\\\CHAINED_VULNERABILITIES_REVIEW.md\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-13-project-mgmt\\\\workspace\\\\docs\\\\security\\\\CHAINED_VULNERABILITIES_REVIEW.md\"}"
     },
     {
       "version": 1,

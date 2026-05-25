@@ -1,7 +1,7 @@
 # Ground Truth - app-19-cms
 
 - App key: `app-19-cms`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-19-cms`
+- Source path: `<secure-code-hunt>\apps\javascript\app-19-cms`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

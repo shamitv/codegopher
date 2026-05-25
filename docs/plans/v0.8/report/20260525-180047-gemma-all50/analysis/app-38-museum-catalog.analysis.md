@@ -1,7 +1,7 @@
 # Analysis - app-38-museum-catalog
 
 - App key: `app-38-museum-catalog`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-38-museum-catalog\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-38-museum-catalog\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

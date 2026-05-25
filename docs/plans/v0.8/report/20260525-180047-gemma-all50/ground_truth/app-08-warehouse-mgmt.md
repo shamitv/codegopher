@@ -1,7 +1,7 @@
 # Ground Truth - app-08-warehouse-mgmt
 
 - App key: `app-08-warehouse-mgmt`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-08-warehouse-mgmt`
+- Source path: `<secure-code-hunt>\apps\java\app-08-warehouse-mgmt`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

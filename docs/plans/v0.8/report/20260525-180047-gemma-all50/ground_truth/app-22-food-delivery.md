@@ -1,7 +1,7 @@
 # Ground Truth - app-22-food-delivery
 
 - App key: `app-22-food-delivery`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-22-food-delivery`
+- Source path: `<secure-code-hunt>\apps\python\app-22-food-delivery`
 - Language/framework: python / fastapi
 
 ## Expected Chained Attacks

@@ -1,7 +1,7 @@
 # Ground Truth - app-40-pet-adoption
 
 - App key: `app-40-pet-adoption`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-40-pet-adoption`
+- Source path: `<secure-code-hunt>\apps\javascript\app-40-pet-adoption`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

@@ -1,7 +1,7 @@
 # Ground Truth - app-29-fleet-management
 
 - App key: `app-29-fleet-management`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-29-fleet-management`
+- Source path: `<secure-code-hunt>\apps\java\app-29-fleet-management`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

@@ -1,7 +1,7 @@
 # Analysis - app-33-recruitment-ats
 
 - App key: `app-33-recruitment-ats`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-33-recruitment-ats\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-33-recruitment-ats\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -53,13 +53,13 @@
 
 ## Tool Calls
 
-- `list_dir` `call_82f850248e464a98aedc6bf8` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace"}
-- `list_dir` `call_c11f9e2f78324d92afab3be8` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\src"}
-- `read_file` `call_76a63c27da2b4cbb8fa98cf0` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\package.json"}
-- `read_file` `call_1061590129a04693a29c740d` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\src\\index.ts"}
-- `read_file` `call_3b61975e690a4cfd9614f80e` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\Dockerfile"}
-- `list_dir` `call_509e8a7ec2294f96be30f070` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\dist"}
-- `read_file` `call_19d502a0ce664d1b92640d67` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\tsconfig.json"}
+- `list_dir` `call_82f850248e464a98aedc6bf8` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace"}
+- `list_dir` `call_c11f9e2f78324d92afab3be8` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\src"}
+- `read_file` `call_76a63c27da2b4cbb8fa98cf0` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\package.json"}
+- `read_file` `call_1061590129a04693a29c740d` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\src\\index.ts"}
+- `read_file` `call_3b61975e690a4cfd9614f80e` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\Dockerfile"}
+- `list_dir` `call_509e8a7ec2294f96be30f070` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\dist"}
+- `read_file` `call_19d502a0ce664d1b92640d67` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-33-recruitment-ats\\workspace\\tsconfig.json"}
 - `update_todo` `call_a139df50798545a8bf32a543` {"action": "add", "id": "1", "text": "Phase 1: Attack surface mapping - complete"}
 - `write_chained_vulnerability_report` `call_9eab3fce480e4f23afb20dec` {"content": "# Chained Vulnerability Audit Report\n\n**Project:** Recruitment ATS Platform (app-33-recruitment-ats)  \n**Audit Type:** Static-Only Chained Vulnerability Review  \n**Date:** 2026-05-25  \n**Auditor:** CodeGopher (Static Analysis)  \n**Scope:** `src/index.ts`, `package.json`, `Dockerfile`, `tsconfig.json`  \n\n---\n\n## 1. Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| **Total Chained Vulnerabilities Found** | 4 |\n| **Maximum Severity** | **CRITICAL** |\n| **Cross-Cuttin...
 - `update_todo` `call_4e5577c32d134164af8b0553` {"action": "done", "id": "1", "text": "Phase 1: Attack surface mapping - complete"}

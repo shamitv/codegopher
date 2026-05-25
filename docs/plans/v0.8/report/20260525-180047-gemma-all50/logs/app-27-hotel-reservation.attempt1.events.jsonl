@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-94ed2afa4f02","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-27-hotel-reservation\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-27-hotel-reservation\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-94ed2afa4f02","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-27-hotel-reservation\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-27-hotel-reservation\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":" wants"}
@@ -1793,7 +1793,7 @@
 {"version":1,"type":"text_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":"."}
 {"version":1,"type":"text_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":"\n\n"}
 {"version":1,"type":"tool_call","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","tool_id":"call_effdd7b5df59456c86835ef1","tool_name":"list_dir","arguments_summary":"{\"path\": \"docs/security\"}"}
-{"version":1,"type":"tool_result","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","tool_id":"call_effdd7b5df59456c86835ef1","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-27-hotel-reservation\\\\workspace\\\\docs\\\\security'"}
+{"version":1,"type":"tool_result","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","tool_id":"call_effdd7b5df59456c86835ef1","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-27-hotel-reservation\\\\workspace\\\\docs\\\\security'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":"Now"}
 {"version":1,"type":"reasoning_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":" I"}
 {"version":1,"type":"reasoning_delta","session_id":"events-94ed2afa4f02","turn_id":"turn-e1c844e9aca5","content":" have"}

@@ -1,10 +1,10 @@
 {
   "app": "app-26-pharma-tracking",
   "display_name": "app-26-pharma-tracking",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-26-pharma-tracking\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-26-pharma-tracking\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -363,7 +363,7 @@
       "turn_id": "turn-d66b35d9c5d3",
       "tool_id": "call_72635f2e49b240f1931dca8d",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-26-pharma-tracking\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-26-pharma-tracking\\\\workspace\\\\docs'"
     },
     {
       "version": 1,

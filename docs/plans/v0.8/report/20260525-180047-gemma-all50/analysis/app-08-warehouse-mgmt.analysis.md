@@ -1,7 +1,7 @@
 # Analysis - app-08-warehouse-mgmt
 
 - App key: `app-08-warehouse-mgmt`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-08-warehouse-mgmt\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-08-warehouse-mgmt\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -54,11 +54,11 @@
 
 ## Tool Calls
 
-- `list_dir` `call_84de774ba9d8425c83daeb36` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace"}
+- `list_dir` `call_84de774ba9d8425c83daeb36` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace"}
 - `glob_search` `call_b176681ca7e8429585409490` {"pattern": "**/*.py"}
 - `glob_search` `call_85f379810a3d4201a8d2b3cf` {"pattern": "**/*.js"}
 - `glob_search` `call_17494167094c46b8a0b98b74` {"pattern": "**/*.ts"}
-- `list_dir` `call_d76852121ad94ab8b79a17bb` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace\\src"}
+- `list_dir` `call_d76852121ad94ab8b79a17bb` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace\\src"}
 - `glob_search` `call_bd752a543d274615bc67e853` {"pattern": "**/*.java"}
 - `glob_search` `call_04e04b2129434547a2980304` {"pattern": "**/*.xml"}
 - `glob_search` `call_f3cc405a48ab4b4bb263f602` {"pattern": "**/*.yml"}

@@ -1,7 +1,7 @@
 # Ground Truth - app-11-social-analytics
 
 - App key: `app-11-social-analytics`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-11-social-analytics`
+- Source path: `<secure-code-hunt>\apps\typescript\app-11-social-analytics`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

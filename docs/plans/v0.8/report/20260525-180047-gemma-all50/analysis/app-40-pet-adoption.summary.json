@@ -1,10 +1,10 @@
 {
   "app": "app-40-pet-adoption",
   "display_name": "app-40-pet-adoption",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -237,7 +237,7 @@
       "turn_id": "turn-828c305c28b6",
       "tool_id": "call_948bffd13d474bc090f6a2b3",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-40-pet-adoption\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-40-pet-adoption\\\\workspace\\\\docs'"
     },
     {
       "version": 1,

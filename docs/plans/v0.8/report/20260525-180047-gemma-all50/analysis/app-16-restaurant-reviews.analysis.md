@@ -1,7 +1,7 @@
 # Analysis - app-16-restaurant-reviews
 
 - App key: `app-16-restaurant-reviews`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-16-restaurant-reviews\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-16-restaurant-reviews\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -53,10 +53,10 @@
 
 ## Tool Calls
 
-- `list_dir` `call_7123fcb63f2a45f19482ce75` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace"}
-- `list_dir` `call_596fcecc88a64b4c9f68c133` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\src"}
-- `read_file` `call_723b972acb924af1932007b1` {"end_line": 40, "path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\package.json", "start_line": 1}
-- `read_file` `call_11d50359babe46068780e587` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\Dockerfile"}
-- `read_file` `call_192658cfb7a34d22b966eb16` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\src\\index.js"}
-- `list_dir` `call_d9bdd6f80a0241429d108a43` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\docs"}
+- `list_dir` `call_7123fcb63f2a45f19482ce75` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace"}
+- `list_dir` `call_596fcecc88a64b4c9f68c133` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\src"}
+- `read_file` `call_723b972acb924af1932007b1` {"end_line": 40, "path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\package.json", "start_line": 1}
+- `read_file` `call_11d50359babe46068780e587` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\Dockerfile"}
+- `read_file` `call_192658cfb7a34d22b966eb16` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\src\\index.js"}
+- `list_dir` `call_d9bdd6f80a0241429d108a43` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace\\docs"}
 - `write_chained_vulnerability_report` `call_d874c1c395034801899434c2` {"content": "# Chained Vulnerability Static Audit Report\n\n## Restaurant Review Platform (app-16)\n\n**Date:** 2026-05-25  \n**Auditor:** CodeGopher (Static-Only Audit)  \n**Scope:** `src/index.js`, `package.json`, `Dockerfile`  \n**Technology Stack:** Express.js 4.x, SQLite3, bcryptjs, cookie-parser, CORS  \n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|--------|-------|\n| **Chains Detected** | 3 |\n| **Maximum Severity** | **HIGH** |\n| **Confidence Levels** | 2× High, 1× Medium |...

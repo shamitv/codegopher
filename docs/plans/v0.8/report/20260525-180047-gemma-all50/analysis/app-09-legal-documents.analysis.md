@@ -1,7 +1,7 @@
 # Analysis - app-09-legal-documents
 
 - App key: `app-09-legal-documents`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-09-legal-documents\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-09-legal-documents\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

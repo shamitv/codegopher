@@ -1,7 +1,7 @@
 # Ground Truth - app-45-travel-expense
 
 - App key: `app-45-travel-expense`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-45-travel-expense`
+- Source path: `<secure-code-hunt>\apps\javascript\app-45-travel-expense`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

@@ -1,7 +1,7 @@
 # Analysis - app-34-subscription-box
 
 - App key: `app-34-subscription-box`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-34-subscription-box\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-34-subscription-box\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

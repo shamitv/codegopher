@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-4645689bb7b5","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-17-iot-dashboard\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-4645689bb7b5","turn_id":"turn-5659939b6928","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-17-iot-dashboard\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-4645689bb7b5","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-17-iot-dashboard\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-4645689bb7b5","turn_id":"turn-5659939b6928","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-17-iot-dashboard\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4645689bb7b5","turn_id":"turn-5659939b6928","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4645689bb7b5","turn_id":"turn-5659939b6928","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4645689bb7b5","turn_id":"turn-5659939b6928","content":" wants"}

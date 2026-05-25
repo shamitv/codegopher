@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-88a52051fa43","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-88a52051fa43","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-08-warehouse-mgmt\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":" wants"}
@@ -96,7 +96,7 @@
 {"version":1,"type":"text_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":" structure"}
 {"version":1,"type":"text_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":"."}
 {"version":1,"type":"text_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":"\n\n"}
-{"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_84de774ba9d8425c83daeb36","tool_name":"list_dir","arguments_summary":"{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-08-warehouse-mgmt\\\\workspace\"}"}
+{"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_84de774ba9d8425c83daeb36","tool_name":"list_dir","arguments_summary":"{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-08-warehouse-mgmt\\\\workspace\"}"}
 {"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_b176681ca7e8429585409490","tool_name":"glob_search","arguments_summary":"{\"pattern\": \"**/*.py\"}"}
 {"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_85f379810a3d4201a8d2b3cf","tool_name":"glob_search","arguments_summary":"{\"pattern\": \"**/*.js\"}"}
 {"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_17494167094c46b8a0b98b74","tool_name":"glob_search","arguments_summary":"{\"pattern\": \"**/*.ts\"}"}
@@ -123,7 +123,7 @@
 {"version":1,"type":"text_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":" tree"}
 {"version":1,"type":"text_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":"."}
 {"version":1,"type":"text_delta","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","content":"\n\n"}
-{"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_d76852121ad94ab8b79a17bb","tool_name":"list_dir","arguments_summary":"{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-08-warehouse-mgmt\\\\workspace\\\\src\"}"}
+{"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_d76852121ad94ab8b79a17bb","tool_name":"list_dir","arguments_summary":"{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-08-warehouse-mgmt\\\\workspace\\\\src\"}"}
 {"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_bd752a543d274615bc67e853","tool_name":"glob_search","arguments_summary":"{\"pattern\": \"**/*.java\"}"}
 {"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_04e04b2129434547a2980304","tool_name":"glob_search","arguments_summary":"{\"pattern\": \"**/*.xml\"}"}
 {"version":1,"type":"tool_call","session_id":"events-88a52051fa43","turn_id":"turn-8c757ab47123","tool_id":"call_f3cc405a48ab4b4bb263f602","tool_name":"glob_search","arguments_summary":"{\"pattern\": \"**/*.yml\"}"}

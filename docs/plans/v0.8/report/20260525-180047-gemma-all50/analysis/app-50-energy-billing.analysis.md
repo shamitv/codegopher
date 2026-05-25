@@ -1,7 +1,7 @@
 # Analysis - app-50-energy-billing
 
 - App key: `app-50-energy-billing`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-50-energy-billing\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-50-energy-billing\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

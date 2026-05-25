@@ -1,7 +1,7 @@
 # Analysis - app-39-wedding-planner
 
 - App key: `app-39-wedding-planner`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-39-wedding-planner\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-39-wedding-planner\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

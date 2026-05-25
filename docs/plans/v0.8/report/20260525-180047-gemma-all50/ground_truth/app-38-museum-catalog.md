@@ -1,7 +1,7 @@
 # Ground Truth - app-38-museum-catalog
 
 - App key: `app-38-museum-catalog`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-38-museum-catalog`
+- Source path: `<secure-code-hunt>\apps\javascript\app-38-museum-catalog`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

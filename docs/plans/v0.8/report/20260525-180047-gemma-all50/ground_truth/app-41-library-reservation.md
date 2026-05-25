@@ -1,7 +1,7 @@
 # Ground Truth - app-41-library-reservation
 
 - App key: `app-41-library-reservation`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-41-library-reservation`
+- Source path: `<secure-code-hunt>\apps\javascript\app-41-library-reservation`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

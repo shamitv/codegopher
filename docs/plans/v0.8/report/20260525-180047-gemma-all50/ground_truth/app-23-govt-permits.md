@@ -1,7 +1,7 @@
 # Ground Truth - app-23-govt-permits
 
 - App key: `app-23-govt-permits`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-23-govt-permits`
+- Source path: `<secure-code-hunt>\apps\python\app-23-govt-permits`
 - Language/framework: python / django
 
 ## Expected Chained Attacks

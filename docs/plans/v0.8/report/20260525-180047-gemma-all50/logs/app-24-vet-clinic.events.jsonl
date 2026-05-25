@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-e902e27ce420","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-24-vet-clinic\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-e902e27ce420","turn_id":"turn-56bc42f9c732","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-24-vet-clinic\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-e902e27ce420","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-24-vet-clinic\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-e902e27ce420","turn_id":"turn-56bc42f9c732","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-24-vet-clinic\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-e902e27ce420","turn_id":"turn-56bc42f9c732","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-e902e27ce420","turn_id":"turn-56bc42f9c732","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-e902e27ce420","turn_id":"turn-56bc42f9c732","content":" wants"}

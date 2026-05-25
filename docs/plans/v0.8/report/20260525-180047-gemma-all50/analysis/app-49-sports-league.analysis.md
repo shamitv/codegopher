@@ -1,7 +1,7 @@
 # Analysis - app-49-sports-league
 
 - App key: `app-49-sports-league`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-49-sports-league\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-49-sports-league\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

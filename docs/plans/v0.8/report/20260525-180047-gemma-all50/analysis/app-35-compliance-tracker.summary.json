@@ -1,10 +1,10 @@
 {
   "app": "app-35-compliance-tracker",
   "display_name": "app-35-compliance-tracker",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-35-compliance-tracker\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-35-compliance-tracker\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_fd6f234760fe42149db1117f",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -46,7 +46,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_3f45201d73a745249a093e10",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -55,7 +55,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_99e316861b2644249eb46510",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\dist\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\dist\"}"
     },
     {
       "version": 1,
@@ -64,7 +64,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_6da839d7568d4f2f9d82225e",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\package.json\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\package.json\"}"
     },
     {
       "version": 1,
@@ -73,7 +73,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_950ba4da0ea44ee0b6e763f2",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\"}"
     },
     {
       "version": 1,
@@ -82,7 +82,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_77f958c83fe94b16b6be7af7",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 100, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
+      "arguments_summary": "{\"end_line\": 100, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
     },
     {
       "version": 1,
@@ -91,7 +91,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_83e66aa1957d4cc2a69588ea",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const app\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const app\"}"
     },
     {
       "version": 1,
@@ -100,7 +100,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_bba76bbeb1c84b38ba4402f0",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const db\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const db\"}"
     },
     {
       "version": 1,
@@ -109,7 +109,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_c4f4a706f8ed457db813b220",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions\"}"
     },
     {
       "version": 1,
@@ -118,7 +118,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_2dfd99d4cda945bb94639bd0",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"requireAuth\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"requireAuth\"}"
     },
     {
       "version": 1,
@@ -127,7 +127,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_6c70d457ed0e49b39a973491",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port\"}"
     },
     {
       "version": 1,
@@ -136,7 +136,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_c6b82141e4544fb39d53ff1a",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"import\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"import\"}"
     },
     {
       "version": 1,
@@ -154,7 +154,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_28755e48b8444d0db2403784",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 60, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
+      "arguments_summary": "{\"end_line\": 60, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
     },
     {
       "version": 1,
@@ -163,7 +163,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_09c19366b30f441cb960b1a4",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"Express\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"Express\"}"
     },
     {
       "version": 1,
@@ -172,7 +172,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_d2fc8e864d854fc684be24e7",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"sqlite3\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"sqlite3\"}"
     },
     {
       "version": 1,
@@ -181,7 +181,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_4c9218a1815e48c2a7a6a724",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"db.run\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"db.run\"}"
     },
     {
       "version": 1,
@@ -190,7 +190,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_eba31c986efc43b89dd34261",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"eval\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"eval\"}"
     },
     {
       "version": 1,
@@ -199,7 +199,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_4d4d5ebc5d2b4d2fa7e16b4b",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"CREATE TABLE\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"CREATE TABLE\"}"
     },
     {
       "version": 1,
@@ -208,7 +208,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_79f0bf9ca8fa487ebea7a368",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"cors\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"cors\"}"
     },
     {
       "version": 1,
@@ -217,7 +217,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_987fbe681d21438995d87fa7",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"require('express')\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"require('express')\"}"
     },
     {
       "version": 1,
@@ -226,7 +226,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_03e4a5be36fd472ba06064e4",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"require('cors')\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"require('cors')\"}"
     },
     {
       "version": 1,
@@ -235,7 +235,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_8d6cca28cd7a448f8300dd0a",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"new sqlite3\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"new sqlite3\"}"
     },
     {
       "version": 1,
@@ -244,7 +244,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_8c02e06fbaf148e786b11f11",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"type User\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"type User\"}"
     },
     {
       "version": 1,
@@ -253,7 +253,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_0cf8e7335aba4acc9cf3b23a",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port\"}"
     },
     {
       "version": 1,
@@ -262,7 +262,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_8dd241c8f788494caef4e987",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 200, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
+      "arguments_summary": "{\"end_line\": 200, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
     },
     {
       "version": 1,
@@ -271,7 +271,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_0f979711602746748e75e601",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"AppRole\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"AppRole\"}"
     },
     {
       "version": 1,
@@ -280,7 +280,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_10d8e8ef1dc948c9bad6bc3f",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"session_id\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"session_id\"}"
     },
     {
       "version": 1,
@@ -289,7 +289,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_9bed1b2ce51047a484a27ddb",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"port =\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"port =\"}"
     },
     {
       "version": 1,
@@ -298,7 +298,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_fda21853dfbb46e8a9e7f9c8",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"cookie-parser\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"cookie-parser\"}"
     },
     {
       "version": 1,
@@ -307,7 +307,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_ac3562dccd924d27a4435887",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const PORT\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const PORT\"}"
     },
     {
       "version": 1,
@@ -316,7 +316,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_1a2122a5a32f47b1af57112a",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const express\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const express\"}"
     },
     {
       "version": 1,
@@ -325,7 +325,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_10b1c72e6cda4be9b76431cf",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const cors\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const cors\"}"
     },
     {
       "version": 1,
@@ -334,7 +334,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_9f03ca0d244548bc9fae6ee6",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const bcrypt\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const bcrypt\"}"
     },
     {
       "version": 1,
@@ -343,7 +343,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_e9e8b23fd97e45ebae6aed23",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const cookie\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const cookie\"}"
     },
     {
       "version": 1,
@@ -352,7 +352,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_320cd042e8814e299d9b848b",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"new Database\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"new Database\"}"
     },
     {
       "version": 1,
@@ -361,7 +361,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_8f17c84be52542219854803f",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const Database\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const Database\"}"
     },
     {
       "version": 1,
@@ -370,7 +370,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_4e42b149a107449ab8f109c3",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sqlite3\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sqlite3\"}"
     },
     {
       "version": 1,
@@ -379,7 +379,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_917ffc40cfb24cb2b2797845",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"interface User\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"interface User\"}"
     },
     {
       "version": 1,
@@ -388,7 +388,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_3e1cbac69f6844cc8ee6c306",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions\"}"
     },
     {
       "version": 1,
@@ -397,7 +397,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_368729f7cd7d44b082dce2a2",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"function requireAuth\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"function requireAuth\"}"
     },
     {
       "version": 1,
@@ -406,7 +406,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_191dc01f4f394e1fb215000b",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"start_line\": 1}"
     },
     {
       "version": 1,
@@ -415,7 +415,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_e8e9060319174fcdb2a3e8c1",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"function requireAuth\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"function requireAuth\"}"
     },
     {
       "version": 1,
@@ -424,7 +424,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_5a194cd9552e41049a445b4a",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"import {\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"import {\"}"
     },
     {
       "version": 1,
@@ -433,7 +433,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_ce5213848abe429e90b0a31f",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port\"}"
     },
     {
       "version": 1,
@@ -442,7 +442,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_c43977af57b24219939c43ea",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions\"}"
     },
     {
       "version": 1,
@@ -451,7 +451,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_d1b9b963d7f64e179fcf686c",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"createTable\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"createTable\"}"
     },
     {
       "version": 1,
@@ -460,7 +460,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_e75e69c943f24bdf9d06e3ff",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"db.get\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"db.get\"}"
     },
     {
       "version": 1,
@@ -469,7 +469,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_39c25bbcdbbf4c8f84242303",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"function require\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"function require\"}"
     },
     {
       "version": 1,
@@ -478,7 +478,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_18787c6a022643cca4b6439c",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"( req\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"( req\"}"
     },
     {
       "version": 1,
@@ -487,7 +487,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_36a62ea0f89548cbb40dae9b",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const express = \"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const express = \"}"
     },
     {
       "version": 1,
@@ -496,7 +496,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_f4789837867c4f15bd9cffda",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"import\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"import\"}"
     },
     {
       "version": 1,
@@ -505,7 +505,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_654799b8cc3a487f98a89b3e",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"require('\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"require('\"}"
     },
     {
       "version": 1,
@@ -514,7 +514,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_3efdd4ef58a749df8adc12c4",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port =\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const port =\"}"
     },
     {
       "version": 1,
@@ -523,7 +523,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_e1227fb941ed4552876509d1",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions =\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"const sessions =\"}"
     },
     {
       "version": 1,
@@ -532,7 +532,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_2ac8b9e3ea23432780c58de9",
       "tool_name": "grep_search",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"type User =\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\src\\\\index.ts\", \"query\": \"type User =\"}"
     },
     {
       "version": 1,
@@ -541,7 +541,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_c127709ca9f34430832d9314",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -550,7 +550,7 @@
       "turn_id": "turn-e20c22da02ea",
       "tool_id": "call_3c1a6128b98a4723ac7c80d8",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\Dockerfile\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-35-compliance-tracker\\\\workspace\\\\Dockerfile\"}"
     }
   ],
   "tool_results": [

@@ -1,7 +1,7 @@
 # Ground Truth - app-32-support-tickets
 
 - App key: `app-32-support-tickets`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-32-support-tickets`
+- Source path: `<secure-code-hunt>\apps\typescript\app-32-support-tickets`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

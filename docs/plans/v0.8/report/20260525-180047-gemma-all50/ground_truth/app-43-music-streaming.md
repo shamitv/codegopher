@@ -1,7 +1,7 @@
 # Ground Truth - app-43-music-streaming
 
 - App key: `app-43-music-streaming`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-43-music-streaming`
+- Source path: `<secure-code-hunt>\apps\javascript\app-43-music-streaming`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

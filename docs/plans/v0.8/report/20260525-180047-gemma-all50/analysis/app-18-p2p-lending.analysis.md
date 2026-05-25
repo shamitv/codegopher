@@ -1,7 +1,7 @@
 # Analysis - app-18-p2p-lending
 
 - App key: `app-18-p2p-lending`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-18-p2p-lending\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-18-p2p-lending\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -53,18 +53,18 @@
 
 ## Tool Calls
 
-- `list_dir` `call_dba8441e1a0a4c018058579b` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace"}
+- `list_dir` `call_dba8441e1a0a4c018058579b` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace"}
 - `update_todo` `call_b6e8232b71a44eed9c124cf0` {"action": "add", "text": "Phase 1: Attack surface mapping - explore directory structure and identify routes/endpoints"}
 - `update_todo` `call_e693ce58ee264951b5f74b78` {"action": "add", "text": "Phase 2: Weakness inventory - find security weaknesses across the codebase"}
 - `update_todo` `call_02d33665c2a34267b24acc43` {"action": "add", "text": "Phase 3: Attack graph synthesis - connect sources to sinks via weaknesses"}
 - `update_todo` `call_f3c1aec3141348be896a6ca9` {"action": "add", "text": "Phase 4: Impact assessment and report writing"}
-- `list_dir` `call_366c620d130f4805a19dadc7` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\src"}
-- `read_file` `call_b3909e70f7c8453580924c46` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\package.json"}
-- `read_file` `call_038e6c1f66a44e67a5a2de92` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\Dockerfile"}
-- `read_file` `call_4cdfc15f2c2b4c24ba593724` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\src\\index.js"}
+- `list_dir` `call_366c620d130f4805a19dadc7` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\src"}
+- `read_file` `call_b3909e70f7c8453580924c46` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\package.json"}
+- `read_file` `call_038e6c1f66a44e67a5a2de92` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\Dockerfile"}
+- `read_file` `call_4cdfc15f2c2b4c24ba593724` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace\\src\\index.js"}
 - `update_todo` `call_4097bede739e4a53b77587c2` {"action": "done", "id": "todo-ce602b52", "text": "Phase 1: Attack surface mapping - explore directory structure and identify routes/endpoints"}
 - `update_todo` `call_d2949dbce919433285b07712` {"action": "start", "text": "Phase 2: Weakness inventory - find security weaknesses across the codebase"}
-- `list_dir` `call_706b64fa80524b37a82c47b8` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace"}
+- `list_dir` `call_706b64fa80524b37a82c47b8` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace"}
 - `update_todo` `call_1097610356db4d83ae13e35d` {"action": "start", "id": "todo-2dd974a3", "text": "Phase 2: Weakness inventory - find security weaknesses across the codebase"}
 - `update_todo` `call_b57921a8c01847aea8c8e004` {"action": "done", "id": "todo-2dd974a3", "text": "Phase 2: Weakness inventory - find security weaknesses across the codebase"}
 - `update_todo` `call_ddec6f144b9246f288377f72` {"action": "start", "id": "todo-a98d34cc", "text": "Phase 3: Attack graph synthesis - connect sources to sinks via weaknesses"}

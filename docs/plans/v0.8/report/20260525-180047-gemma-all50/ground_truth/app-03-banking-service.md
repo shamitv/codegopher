@@ -1,7 +1,7 @@
 # Ground Truth - app-03-banking-service
 
 - App key: `app-03-banking-service`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-03-banking-service`
+- Source path: `<secure-code-hunt>\apps\python\app-03-banking-service`
 - Language/framework: python / fastapi
 
 ## Expected Chained Attacks

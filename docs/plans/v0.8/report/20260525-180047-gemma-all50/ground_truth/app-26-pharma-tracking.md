@@ -1,7 +1,7 @@
 # Ground Truth - app-26-pharma-tracking
 
 - App key: `app-26-pharma-tracking`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-26-pharma-tracking`
+- Source path: `<secure-code-hunt>\apps\java\app-26-pharma-tracking`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

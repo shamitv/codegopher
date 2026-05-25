@@ -1,7 +1,7 @@
 # Analysis - app-45-travel-expense
 
 - App key: `app-45-travel-expense`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-45-travel-expense\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-45-travel-expense\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

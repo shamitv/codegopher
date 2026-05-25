@@ -1,7 +1,7 @@
 # Ground Truth - app-09-legal-documents
 
 - App key: `app-09-legal-documents`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-09-legal-documents`
+- Source path: `<secure-code-hunt>\apps\java\app-09-legal-documents`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

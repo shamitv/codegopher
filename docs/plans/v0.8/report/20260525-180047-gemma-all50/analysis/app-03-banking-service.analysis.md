@@ -1,7 +1,7 @@
 # Analysis - app-03-banking-service
 
 - App key: `app-03-banking-service`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-03-banking-service\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-03-banking-service\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -183,5 +183,5 @@
 - `grep_search` `call_5f91a56035774861a97ebeec` {"path": "app.py", "query": "list"}
 - `update_todo` `call_a051e1a6a0314168af5a234b` {"action": "add", "text": "Phase 1: Attack surface mapping (routes, endpoints, data flows)"}
 - `update_todo` `call_cb50dd5cc4a34558ace174f5` {"action": "start", "text": "Phase 1: Attack surface mapping (routes, endpoints, data flows)"}
-- `write_chained_vulnerability_report` `call_918a524791ca4b3ca1db0be5` {"content": "# Chained Vulnerability Audit Report\n\n**Service:** Sovereign Wealth Management Banking Service (App 03)\n**Date:** 2026-05-25\n**Auditor:** CodeGopher (Static Analysis Only)\n**Scope:** `C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-03-banking-service\\workspace`\n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| **Total Chained Vulnerabilities Found** | 3 |\n| **Maximum Severity** | HIGH |\n| **Critical Chains** ...
+- `write_chained_vulnerability_report` `call_918a524791ca4b3ca1db0be5` {"content": "# Chained Vulnerability Audit Report\n\n**Service:** Sovereign Wealth Management Banking Service (App 03)\n**Date:** 2026-05-25\n**Auditor:** CodeGopher (Static Analysis Only)\n**Scope:** `%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-03-banking-service\\workspace`\n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| **Total Chained Vulnerabilities Found** | 3 |\n| **Maximum Severity** | HIGH |\n| **Critical Chains** ...
 - `update_todo` `call_8bc2dabe85284275a22b0d07` {"action": "done", "id": "todo-fee9b2ae", "text": "Phase 1: Attack surface mapping (routes, endpoints, data flows)"}

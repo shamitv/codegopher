@@ -1,10 +1,10 @@
 {
   "app": "app-44-election-polling",
   "display_name": "app-44-election-polling",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-44-election-polling\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-44-election-polling\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-14c91c3b3ad9",
       "tool_id": "call_ffb8daa8f7d9475cbe544769",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -55,7 +55,7 @@
       "turn_id": "turn-14c91c3b3ad9",
       "tool_id": "call_cedc61f364e5495e86f9156d",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -64,7 +64,7 @@
       "turn_id": "turn-14c91c3b3ad9",
       "tool_id": "call_afbee3b0c9e044a791328a79",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\package.json\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\package.json\"}"
     },
     {
       "version": 1,
@@ -73,7 +73,7 @@
       "turn_id": "turn-14c91c3b3ad9",
       "tool_id": "call_44f24c10ee79466296aeac27",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\Dockerfile\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\Dockerfile\"}"
     },
     {
       "version": 1,
@@ -82,7 +82,7 @@
       "turn_id": "turn-14c91c3b3ad9",
       "tool_id": "call_80dbe28000af4f8688e6dcf4",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\src\\\\index.js\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\src\\\\index.js\"}"
     },
     {
       "version": 1,
@@ -91,7 +91,7 @@
       "turn_id": "turn-14c91c3b3ad9",
       "tool_id": "call_dfce4bf9dff64df8bbc6a270",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\node_modules\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\\\\node_modules\"}"
     },
     {
       "version": 1,
@@ -190,7 +190,7 @@
       "turn_id": "turn-14c91c3b3ad9",
       "tool_id": "call_010538c37b4f47f58449bc4b",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-44-election-polling\\\\workspace\"}"
     },
     {
       "version": 1,

@@ -1,7 +1,7 @@
 # Analysis - app-46-charity-donations
 
 - App key: `app-46-charity-donations`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-46-charity-donations\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-46-charity-donations\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -68,4 +68,4 @@
 - `update_todo` `call_ea09b4ced477495dba6866c3` {"action": "done", "id": "todo-c6909a1b"}
 - `update_todo` `call_14e67aabd6484ae795d584e9` {"action": "add", "text": "Phase 3: Attack graph synthesis - connect sources to weaknesses to sinks"}
 - `update_todo` `call_7739e2f9983d488eb4ffe80c` {"action": "done", "id": "todo-1976e10b"}
-- `write_chained_vulnerability_report` `call_f4d5b021c70a4d61a40367ce` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project:** Charity Donations Application  \n**Date:** 2026-05-25  \n**Auditor:** CodeGopher (Static-Only Analysis)  \n**Scope:** All files in `C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-46-charity-donations\\workspace`  \n**Approach:** Static source-code analysis only — no live probes, dynamic scanners, shell commands, or external network tests.\n\n---\n\n## Summary Dashboard\n\n|...
+- `write_chained_vulnerability_report` `call_f4d5b021c70a4d61a40367ce` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project:** Charity Donations Application  \n**Date:** 2026-05-25  \n**Auditor:** CodeGopher (Static-Only Analysis)  \n**Scope:** All files in `%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-46-charity-donations\\workspace`  \n**Approach:** Static source-code analysis only — no live probes, dynamic scanners, shell commands, or external network tests.\n\n---\n\n## Summary Dashboard\n\n|...

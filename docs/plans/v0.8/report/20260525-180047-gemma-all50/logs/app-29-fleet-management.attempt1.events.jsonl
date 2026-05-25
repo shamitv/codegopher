@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-a4ea267d3b36","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-29-fleet-management\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-a4ea267d3b36","turn_id":"turn-5e2908e0f45d","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-29-fleet-management\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-a4ea267d3b36","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-29-fleet-management\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-a4ea267d3b36","turn_id":"turn-5e2908e0f45d","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-29-fleet-management\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-a4ea267d3b36","turn_id":"turn-5e2908e0f45d","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-a4ea267d3b36","turn_id":"turn-5e2908e0f45d","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-a4ea267d3b36","turn_id":"turn-5e2908e0f45d","content":" wants"}

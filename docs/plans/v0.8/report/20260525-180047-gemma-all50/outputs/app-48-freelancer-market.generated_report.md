@@ -3,7 +3,7 @@
 **Project**: Freelancer Marketplace (FastAPI)  
 **File**: `app.py`  
 **Date**: 2026-05-25  
-**Scope**: Source-only static analysis of the current working directory (`C:\...\app-48-freelancer-market\workspace`)  
+**Scope**: Source-only static analysis of the current working directory (`<workspace-root>\app-48-freelancer-market\workspace`)  
 **Approach**: Read files only — no live probes, no dynamic scanners, no shell commands  
 
 ---

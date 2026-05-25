@@ -3,7 +3,7 @@
 **Service:** Sovereign Wealth Management Banking Service (App 03)
 **Date:** 2026-05-25
 **Auditor:** CodeGopher (Static Analysis Only)
-**Scope:** `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-03-banking-service\workspace`
+**Scope:** `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-03-banking-service\workspace`
 
 ---
 

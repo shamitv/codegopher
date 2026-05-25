@@ -1,7 +1,7 @@
 # Ground Truth - app-04-real-estate
 
 - App key: `app-04-real-estate`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-04-real-estate`
+- Source path: `<secure-code-hunt>\apps\python\app-04-real-estate`
 - Language/framework: python / flask
 
 ## Expected Chained Attacks

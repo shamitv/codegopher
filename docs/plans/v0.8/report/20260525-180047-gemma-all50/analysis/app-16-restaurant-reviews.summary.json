@@ -1,10 +1,10 @@
 {
   "app": "app-16-restaurant-reviews",
   "display_name": "app-16-restaurant-reviews",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-16-restaurant-reviews\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-d02b83271fbc",
       "tool_id": "call_7123fcb63f2a45f19482ce75",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -46,7 +46,7 @@
       "turn_id": "turn-d02b83271fbc",
       "tool_id": "call_596fcecc88a64b4c9f68c133",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -55,7 +55,7 @@
       "turn_id": "turn-d02b83271fbc",
       "tool_id": "call_723b972acb924af1932007b1",
       "tool_name": "read_file",
-      "arguments_summary": "{\"end_line\": 40, \"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\package.json\", \"start_line\": 1}"
+      "arguments_summary": "{\"end_line\": 40, \"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\package.json\", \"start_line\": 1}"
     },
     {
       "version": 1,
@@ -64,7 +64,7 @@
       "turn_id": "turn-d02b83271fbc",
       "tool_id": "call_11d50359babe46068780e587",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\Dockerfile\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\Dockerfile\"}"
     },
     {
       "version": 1,
@@ -73,7 +73,7 @@
       "turn_id": "turn-d02b83271fbc",
       "tool_id": "call_192658cfb7a34d22b966eb16",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\src\\\\index.js\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\src\\\\index.js\"}"
     },
     {
       "version": 1,
@@ -82,7 +82,7 @@
       "turn_id": "turn-d02b83271fbc",
       "tool_id": "call_d9bdd6f80a0241429d108a43",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\docs\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\docs\"}"
     },
     {
       "version": 1,
@@ -147,7 +147,7 @@
       "turn_id": "turn-d02b83271fbc",
       "tool_id": "call_d9bdd6f80a0241429d108a43",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-16-restaurant-reviews\\\\workspace\\\\docs'"
     },
     {
       "version": 1,

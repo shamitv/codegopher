@@ -1,10 +1,10 @@
 {
   "app": "app-18-p2p-lending",
   "display_name": "app-18-p2p-lending",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-18-p2p-lending\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-339c0ae29b14",
       "tool_id": "call_dba8441e1a0a4c018058579b",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -82,7 +82,7 @@
       "turn_id": "turn-339c0ae29b14",
       "tool_id": "call_366c620d130f4805a19dadc7",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -91,7 +91,7 @@
       "turn_id": "turn-339c0ae29b14",
       "tool_id": "call_b3909e70f7c8453580924c46",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\package.json\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\package.json\"}"
     },
     {
       "version": 1,
@@ -100,7 +100,7 @@
       "turn_id": "turn-339c0ae29b14",
       "tool_id": "call_038e6c1f66a44e67a5a2de92",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\Dockerfile\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\Dockerfile\"}"
     },
     {
       "version": 1,
@@ -109,7 +109,7 @@
       "turn_id": "turn-339c0ae29b14",
       "tool_id": "call_4cdfc15f2c2b4c24ba593724",
       "tool_name": "read_file",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\src\\\\index.js\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\\\\src\\\\index.js\"}"
     },
     {
       "version": 1,
@@ -136,7 +136,7 @@
       "turn_id": "turn-339c0ae29b14",
       "tool_id": "call_706b64fa80524b37a82c47b8",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-18-p2p-lending\\\\workspace\"}"
     },
     {
       "version": 1,

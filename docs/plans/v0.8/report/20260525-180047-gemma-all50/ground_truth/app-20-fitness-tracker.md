@@ -1,7 +1,7 @@
 # Ground Truth - app-20-fitness-tracker
 
 - App key: `app-20-fitness-tracker`
-- Source path: `D:\work\secure-code-hunt\apps\javascript\app-20-fitness-tracker`
+- Source path: `<secure-code-hunt>\apps\javascript\app-20-fitness-tracker`
 - Language/framework: javascript / express
 
 ## Expected Chained Attacks

@@ -1,7 +1,7 @@
 # Ground Truth - app-05-learning-mgmt
 
 - App key: `app-05-learning-mgmt`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-05-learning-mgmt`
+- Source path: `<secure-code-hunt>\apps\python\app-05-learning-mgmt`
 - Language/framework: python / flask
 
 ## Expected Chained Attacks

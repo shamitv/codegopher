@@ -1,7 +1,7 @@
 # Analysis - app-25-supply-chain
 
 - App key: `app-25-supply-chain`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-25-supply-chain\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-25-supply-chain\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -77,4 +77,4 @@
 - `glob_search` `call_9d2fa7477cc4485699510a6d` {"pattern": "**/security/**"}
 - `glob_search` `call_f2cf447c6ac3448cb9ac07ad` {"pattern": "**/docs/**"}
 - `read_many_files` `call_05bfc5ed1f914cfb91f0847f` {"paths": ["app.py"]}
-- `write_chained_vulnerability_report` `call_ccdcfe8ce7214ad9841a4ffa` {"content": "# Chained Vulnerability Static Audit Report\n\n**Repository**: supply-chain (Flask web application)\n**Audit date**: 2026-05-25\n**Auditor**: CodeGopher (Static-Only Review)\n**Scope**: All source files in `C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-25-supply-chain\\workspace`\n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|--------|-------|\n| **Total chained vulnerabilities** | **2** |\n| **Maximum severity** | **CRITIC...
+- `write_chained_vulnerability_report` `call_ccdcfe8ce7214ad9841a4ffa` {"content": "# Chained Vulnerability Static Audit Report\n\n**Repository**: supply-chain (Flask web application)\n**Audit date**: 2026-05-25\n**Auditor**: CodeGopher (Static-Only Review)\n**Scope**: All source files in `%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-25-supply-chain\\workspace`\n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|--------|-------|\n| **Total chained vulnerabilities** | **2** |\n| **Maximum severity** | **CRITIC...

@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-4223e0616405","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-4223e0616405","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-40-pet-adoption\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":" wants"}
@@ -2535,7 +2535,7 @@
 {"version":1,"type":"reasoning_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":"\n"}
 {"version":1,"type":"text_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":"\n\n"}
 {"version":1,"type":"tool_call","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","tool_id":"call_948bffd13d474bc090f6a2b3","tool_name":"list_dir","arguments_summary":"{\"path\": \"docs\"}"}
-{"version":1,"type":"tool_result","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","tool_id":"call_948bffd13d474bc090f6a2b3","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-40-pet-adoption\\\\workspace\\\\docs'"}
+{"version":1,"type":"tool_result","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","tool_id":"call_948bffd13d474bc090f6a2b3","is_error":true,"result_summary":"[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-40-pet-adoption\\\\workspace\\\\docs'"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":" docs"}
 {"version":1,"type":"reasoning_delta","session_id":"events-4223e0616405","turn_id":"turn-828c305c28b6","content":" directory"}

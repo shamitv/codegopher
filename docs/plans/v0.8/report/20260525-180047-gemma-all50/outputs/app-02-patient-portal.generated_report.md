@@ -3,7 +3,7 @@
 **Project**: Nexus Health Vault — Patient Portal (App 02)  
 **Date**: 2026-05-25  
 **Auditor**: CodeGopher — Chained Vulnerability Static Audit  
-**Scope**: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-02-patient-portal\workspace`  
+**Scope**: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-02-patient-portal\workspace`  
 
 ---
 

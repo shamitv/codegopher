@@ -3,7 +3,7 @@
 **Project:** Charity Donations Application  
 **Date:** 2026-05-25  
 **Auditor:** CodeGopher (Static-Only Analysis)  
-**Scope:** All files in `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-46-charity-donations\workspace`  
+**Scope:** All files in `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-46-charity-donations\workspace`  
 **Approach:** Static source-code analysis only — no live probes, dynamic scanners, shell commands, or external network tests.
 
 ---

@@ -1,10 +1,10 @@
 {
   "app": "app-21-insurance-claims",
   "display_name": "app-21-insurance-claims",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-21-insurance-claims\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-21-insurance-claims\\workspace",
   "returncode": 1,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -138,7 +138,7 @@
       "turn_id": "turn-65305f9c936a",
       "tool_id": "call_02ce9b802be0478d9786e6e4",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-21-insurance-claims\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-21-insurance-claims\\\\workspace\\\\docs'"
     }
   ],
   "write_report_called": false,

@@ -1,7 +1,7 @@
 # Ground Truth - app-47-smart-home
 
 - App key: `app-47-smart-home`
-- Source path: `D:\work\secure-code-hunt\apps\python\app-47-smart-home`
+- Source path: `<secure-code-hunt>\apps\python\app-47-smart-home`
 - Language/framework: python / fastapi
 
 ## Expected Chained Attacks

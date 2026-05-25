@@ -1,7 +1,7 @@
 # Ground Truth - app-15-digital-assets
 
 - App key: `app-15-digital-assets`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-15-digital-assets`
+- Source path: `<secure-code-hunt>\apps\typescript\app-15-digital-assets`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

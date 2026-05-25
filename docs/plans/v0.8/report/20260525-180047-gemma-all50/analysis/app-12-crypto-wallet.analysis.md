@@ -1,7 +1,7 @@
 # Analysis - app-12-crypto-wallet
 
 - App key: `app-12-crypto-wallet`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-12-crypto-wallet\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-12-crypto-wallet\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

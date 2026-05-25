@@ -1,10 +1,10 @@
 {
   "app": "app-03-banking-service",
   "display_name": "app-03-banking-service",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-03-banking-service\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-03-banking-service\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -1198,7 +1198,7 @@
       "turn_id": "turn-60801efc5a1e",
       "tool_id": "call_918a524791ca4b3ca1db0be5",
       "tool_name": "write_chained_vulnerability_report",
-      "arguments_summary": "{\"content\": \"# Chained Vulnerability Audit Report\\n\\n**Service:** Sovereign Wealth Management Banking Service (App 03)\\n**Date:** 2026-05-25\\n**Auditor:** CodeGopher (Static Analysis Only)\\n**Scope:** `C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-03-banking-service\\\\workspace`\\n\\n---\\n\\n## Summary Dashboard\\n\\n| Metric | Value |\\n|---|---|\\n| **Total Chained Vulnerabilities Found** | 3 |\\n| **Maximum Severity** | HIGH |\\n| **Critical Chains** ..."
+      "arguments_summary": "{\"content\": \"# Chained Vulnerability Audit Report\\n\\n**Service:** Sovereign Wealth Management Banking Service (App 03)\\n**Date:** 2026-05-25\\n**Auditor:** CodeGopher (Static Analysis Only)\\n**Scope:** `%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-03-banking-service\\\\workspace`\\n\\n---\\n\\n## Summary Dashboard\\n\\n| Metric | Value |\\n|---|---|\\n| **Total Chained Vulnerabilities Found** | 3 |\\n| **Maximum Severity** | HIGH |\\n| **Critical Chains** ..."
     },
     {
       "version": 1,

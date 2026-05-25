@@ -1,7 +1,7 @@
 # Analysis - app-36-parking-mgmt
 
 - App key: `app-36-parking-mgmt`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-36-parking-mgmt\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-36-parking-mgmt\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

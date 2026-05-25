@@ -1,7 +1,7 @@
 # Analysis - app-11-social-analytics
 
 - App key: `app-11-social-analytics`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-11-social-analytics\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-11-social-analytics\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

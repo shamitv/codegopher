@@ -1,7 +1,7 @@
 # Analysis - app-19-cms
 
 - App key: `app-19-cms`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-19-cms\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-19-cms\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes

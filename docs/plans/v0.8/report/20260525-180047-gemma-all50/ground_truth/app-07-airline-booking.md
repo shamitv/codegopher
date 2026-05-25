@@ -1,7 +1,7 @@
 # Ground Truth - app-07-airline-booking
 
 - App key: `app-07-airline-booking`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-07-airline-booking`
+- Source path: `<secure-code-hunt>\apps\java\app-07-airline-booking`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

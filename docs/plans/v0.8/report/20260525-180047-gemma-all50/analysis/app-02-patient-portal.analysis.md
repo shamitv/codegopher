@@ -1,7 +1,7 @@
 # Analysis - app-02-patient-portal
 
 - App key: `app-02-patient-portal`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-02-patient-portal\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-02-patient-portal\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -77,4 +77,4 @@
 - `read_file` `call_a61937d7f88f42f49359c9dc` {"path": "portal/static/css/main.css"}
 - `list_dir` `call_6b113b705e0a43f7abff6c2b` {"path": "."}
 - `glob_search` `call_e9ba5c70b61646d0b520959b` {"pattern": "docs/**/*"}
-- `write_chained_vulnerability_report` `call_eb0fa28ec8d8463ba38c4a84` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project**: Nexus Health Vault — Patient Portal (App 02)  \n**Date**: 2026-05-25  \n**Auditor**: CodeGopher — Chained Vulnerability Static Audit  \n**Scope**: `C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-02-patient-portal\\workspace`  \n\n---\n\n## Executive Summary\n\n| Metric | Value |\n|--------|-------|\n| Total chained vulnerabilities found | **4** |\n| Maximum severity | **HIG...
+- `write_chained_vulnerability_report` `call_eb0fa28ec8d8463ba38c4a84` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project**: Nexus Health Vault — Patient Portal (App 02)  \n**Date**: 2026-05-25  \n**Auditor**: CodeGopher — Chained Vulnerability Static Audit  \n**Scope**: `%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-02-patient-portal\\workspace`  \n\n---\n\n## Executive Summary\n\n| Metric | Value |\n|--------|-------|\n| Total chained vulnerabilities found | **4** |\n| Maximum severity | **HIG...

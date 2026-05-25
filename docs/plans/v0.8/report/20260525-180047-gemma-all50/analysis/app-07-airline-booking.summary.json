@@ -1,10 +1,10 @@
 {
   "app": "app-07-airline-booking",
   "display_name": "app-07-airline-booking",
-  "workspace": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-07-airline-booking\\workspace",
+  "workspace": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-07-airline-booking\\workspace",
   "returncode": 0,
   "command": [
-    "D:\\work\\codegopher\\.venv\\Scripts\\cgopher.exe",
+    "<repo>\\.venv\\Scripts\\cgopher.exe",
     "--events",
     "--no-project-init",
     "--approval-mode",
@@ -12,7 +12,7 @@
     "--model",
     "google/gemma-4-26B-A4B-it:deepinfra",
     "--base-url",
-    "http://192.168.96.5:8080/v1",
+    "http://LOCAL_LLM_HOST:8080/v1",
     "--api-family",
     "chat_completions",
     "--replay-reasoning-content",
@@ -37,7 +37,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_b797ff704b02491f8098822b",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\"}"
     },
     {
       "version": 1,
@@ -73,7 +73,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_d2ee5f6fd446453492e08be5",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -82,7 +82,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_fa105ff3a62944f6bc3673ff",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\"}"
     },
     {
       "version": 1,
@@ -136,7 +136,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_0102e162f9e04a63800d943d",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\test\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\test\"}"
     },
     {
       "version": 1,
@@ -181,7 +181,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_04683cbd54cf4b9e9d834666",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\"}"
     },
     {
       "version": 1,
@@ -226,7 +226,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_90a076ea9a7042b98945f7e3",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\\\\java\\\\com\\\\airline\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\\\\java\\\\com\\\\airline\"}"
     },
     {
       "version": 1,
@@ -235,7 +235,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_1f59f9d247da4ed0a43129b8",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\\\\resources\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\\\\resources\"}"
     },
     {
       "version": 1,
@@ -271,7 +271,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_9b5a9300788643969ca159ef",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\test\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\test\"}"
     },
     {
       "version": 1,
@@ -298,7 +298,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_49a17733500440b0928393c4",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\\\\resources\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\src\\\\main\\\\resources\"}"
     },
     {
       "version": 1,
@@ -379,7 +379,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_54997f014e664f3d8c8f5b2b",
       "tool_name": "list_dir",
-      "arguments_summary": "{\"path\": \"C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\docs\"}"
+      "arguments_summary": "{\"path\": \"%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\docs\"}"
     },
     {
       "version": 1,
@@ -741,7 +741,7 @@
       "turn_id": "turn-053b05c57e80",
       "tool_id": "call_54997f014e664f3d8c8f5b2b",
       "is_error": true,
-      "result_summary": "[WinError 3] The system cannot find the path specified: 'C:\\\\Users\\\\shamit\\\\AppData\\\\Local\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\docs'"
+      "result_summary": "[WinError 3] The system cannot find the path specified: '%LOCALAPPDATA%\\\\Temp\\\\codegopher-v08-chain-20260525-180047-gemma-all50\\\\app-07-airline-booking\\\\workspace\\\\docs'"
     },
     {
       "version": 1,

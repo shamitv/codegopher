@@ -1,7 +1,7 @@
 # Ground Truth - app-14-telemedicine
 
 - App key: `app-14-telemedicine`
-- Source path: `D:\work\secure-code-hunt\apps\typescript\app-14-telemedicine`
+- Source path: `<secure-code-hunt>\apps\typescript\app-14-telemedicine`
 - Language/framework: typescript / express
 
 ## Expected Chained Attacks

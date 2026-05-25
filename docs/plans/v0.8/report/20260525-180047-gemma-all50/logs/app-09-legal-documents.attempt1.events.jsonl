@@ -1,5 +1,5 @@
-{"version":1,"type":"session_started","session_id":"events-cfc074518f6e","turn_id":null,"cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-09-legal-documents\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
-{"version":1,"type":"turn_started","session_id":"events-cfc074518f6e","turn_id":"turn-97681464af0b","cwd":"c:\\users\\shamit\\appdata\\local\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-09-legal-documents\\workspace"}
+{"version":1,"type":"session_started","session_id":"events-cfc074518f6e","turn_id":null,"cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-09-legal-documents\\workspace","provider":"openai","model":"google/gemma-4-26B-A4B-it:deepinfra","approval_mode":"yolo"}
+{"version":1,"type":"turn_started","session_id":"events-cfc074518f6e","turn_id":"turn-97681464af0b","cwd":"%LOCALAPPDATA%\\temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-09-legal-documents\\workspace"}
 {"version":1,"type":"reasoning_delta","session_id":"events-cfc074518f6e","turn_id":"turn-97681464af0b","content":"The"}
 {"version":1,"type":"reasoning_delta","session_id":"events-cfc074518f6e","turn_id":"turn-97681464af0b","content":" user"}
 {"version":1,"type":"reasoning_delta","session_id":"events-cfc074518f6e","turn_id":"turn-97681464af0b","content":" wants"}

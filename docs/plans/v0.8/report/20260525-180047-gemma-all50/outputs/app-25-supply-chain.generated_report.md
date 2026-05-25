@@ -3,7 +3,7 @@
 **Repository**: supply-chain (Flask web application)
 **Audit date**: 2026-05-25
 **Auditor**: CodeGopher (Static-Only Review)
-**Scope**: All source files in `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-25-supply-chain\workspace`
+**Scope**: All source files in `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-25-supply-chain\workspace`
 
 ---
 

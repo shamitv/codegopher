@@ -1,7 +1,7 @@
 # Ground Truth - app-06-hr-management
 
 - App key: `app-06-hr-management`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-06-hr-management`
+- Source path: `<secure-code-hunt>\apps\java\app-06-hr-management`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

@@ -1,7 +1,7 @@
 # Ground Truth - app-30-auction-platform
 
 - App key: `app-30-auction-platform`
-- Source path: `D:\work\secure-code-hunt\apps\java\app-30-auction-platform`
+- Source path: `<secure-code-hunt>\apps\java\app-30-auction-platform`
 - Language/framework: java / spring-boot
 
 ## Expected Chained Attacks

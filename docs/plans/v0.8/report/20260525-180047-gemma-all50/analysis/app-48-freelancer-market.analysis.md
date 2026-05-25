@@ -1,7 +1,7 @@
 # Analysis - app-48-freelancer-market
 
 - App key: `app-48-freelancer-market`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-48-freelancer-market\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-48-freelancer-market\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -86,4 +86,4 @@
 - `update_todo` `call_5bc611fbe7ff47acb9c8b38c` {"action": "done", "id": "todo-fb76dffb"}
 - `update_todo` `call_3c7e67e232d44c8a8bdb0340` {"action": "done", "id": "todo-e668410e"}
 - `update_todo` `call_728e0fa3a6774d868c665578` {"action": "done", "id": "todo-113c02f8"}
-- `write_chained_vulnerability_report` `call_2a8915c54f3a4ae995954f6e` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project**: Freelancer Marketplace (FastAPI)  \n**File**: `app.py`  \n**Date**: 2026-05-25  \n**Scope**: Source-only static analysis of the current working directory (`C:\\...\\app-48-freelancer-market\\workspace`)  \n**Approach**: Read files only — no live probes, no dynamic scanners, no shell commands  \n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| Total chained vulnerabilities found | **3** |\n| Maximum sever...
+- `write_chained_vulnerability_report` `call_2a8915c54f3a4ae995954f6e` {"content": "# Chained Vulnerability Static Audit Report\n\n**Project**: Freelancer Marketplace (FastAPI)  \n**File**: `app.py`  \n**Date**: 2026-05-25  \n**Scope**: Source-only static analysis of the current working directory (`<workspace-root>\\app-48-freelancer-market\\workspace`)  \n**Approach**: Read files only — no live probes, no dynamic scanners, no shell commands  \n\n---\n\n## Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| Total chained vulnerabilities found | **3** |\n| Maximum sever...

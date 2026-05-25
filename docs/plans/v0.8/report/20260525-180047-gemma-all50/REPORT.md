@@ -1,18 +1,18 @@
 # v0.8 Development Chained Vulnerability Benchmark Report
 
 - Created: 2026-05-25T19:36:32
-- Report root: `D:\work\codegopher\docs\plans\v0.8\report\20260525-180047-gemma-all50`
-- Temp root: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50`
-- LLM endpoint: `http://192.168.96.5:8080/v1`
+- Report root: `<repo>\docs\plans\v0.8\report\20260525-180047-gemma-all50`
+- Temp root: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50`
+- LLM endpoint: `http://LOCAL_LLM_HOST:8080/v1`
 - Model: `google/gemma-4-26B-A4B-it:deepinfra`
 - API family: `chat_completions`
 - Scope: development-only benchmark tooling; no public `cgopher benchmark` command.
-- Previous report: `D:\work\codegopher\docs\plans\v0.8\report\20260524-234855-all50\REPORT.md`
+- Previous report: `<repo>\docs\plans\v0.8\report\20260524-234855-all50\REPORT.md`
 
 ## Command Shape
 
 ```powershell
-D:\work\codegopher\.venv\Scripts\cgopher.exe --events --no-project-init --approval-mode yolo --model google/gemma-4-26B-A4B-it:deepinfra --base-url http://192.168.96.5:8080/v1 --api-family chat_completions --replay-reasoning-content -p "Use @skill:chained-vulnerability-static-audit to perform a static-only chained vulnerability review of this codebase. Inspect only the current working directory. Do not use live probes, dynamic scanners, shell commands, or files outside this workspace. Write the final report with write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
+<repo>\.venv\Scripts\cgopher.exe --events --no-project-init --approval-mode yolo --model google/gemma-4-26B-A4B-it:deepinfra --base-url http://LOCAL_LLM_HOST:8080/v1 --api-family chat_completions --replay-reasoning-content -p "Use @skill:chained-vulnerability-static-audit to perform a static-only chained vulnerability review of this codebase. Inspect only the current working directory. Do not use live probes, dynamic scanners, shell commands, or files outside this workspace. Write the final report with write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
 ```
 
 ## Results

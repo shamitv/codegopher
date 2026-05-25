@@ -1,7 +1,7 @@
 # Analysis - app-20-fitness-tracker
 
 - App key: `app-20-fitness-tracker`
-- Temp workspace: `C:\Users\shamit\AppData\Local\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-20-fitness-tracker\workspace`
+- Temp workspace: `%LOCALAPPDATA%\Temp\codegopher-v08-chain-20260525-180047-gemma-all50\app-20-fitness-tracker\workspace`
 - Return code: 0
 - Attempts: 1
 - Generated report: yes
@@ -53,12 +53,12 @@
 
 ## Tool Calls
 
-- `list_dir` `call_1a1903ef39be493ab81b3cde` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace"}
-- `list_dir` `call_2d2a059c32554c119f13ad50` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\src"}
-- `read_file` `call_7c3013c4e5f74896bca7ed19` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\src\\index.js"}
-- `read_file` `call_cef9a917c0f345ee9457b46a` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\package.json"}
-- `read_file` `call_d856153afeb74cb9bcf42597` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\Dockerfile"}
+- `list_dir` `call_1a1903ef39be493ab81b3cde` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace"}
+- `list_dir` `call_2d2a059c32554c119f13ad50` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\src"}
+- `read_file` `call_7c3013c4e5f74896bca7ed19` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\src\\index.js"}
+- `read_file` `call_cef9a917c0f345ee9457b46a` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\package.json"}
+- `read_file` `call_d856153afeb74cb9bcf42597` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\Dockerfile"}
 - `glob_search` `call_6b25d1ae9a424f42b996c8c5` {"pattern": "**/*"}
-- `list_dir` `call_5518b444e9f541d59990609f` {"path": "C:\\Users\\shamit\\AppData\\Local\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\docs"}
+- `list_dir` `call_5518b444e9f541d59990609f` {"path": "%LOCALAPPDATA%\\Temp\\codegopher-v08-chain-20260525-180047-gemma-all50\\app-20-fitness-tracker\\workspace\\docs"}
 - `glob_search` `call_64e0cbe5948a4a89a5cc5e74` {"pattern": "docs/**/*"}
 - `write_chained_vulnerability_report` `call_1bd0e0786c0544d49f298d80` {"content": "# Chained Vulnerability Audit Report — Fitness Tracker API\n\n**Application:** Fitness Tracker (Express/SQLite)  \n**Audit Date:** 2026-05-25  \n**Auditor:** CodeGopher (Static-Only Chained Vulnerability Audit)  \n**Scope:** `src/index.js`, `package.json`, `Dockerfile`  \n\n---\n\n## Executive Summary Dashboard\n\n| Metric | Value |\n|---|---|\n| Total chains detected | **3** |\n| Maximum chain severity | **HIGH** |\n| Medium-severity chains | **1** |\n| Low-severity chains | **1...
