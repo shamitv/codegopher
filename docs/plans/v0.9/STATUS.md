@@ -30,7 +30,7 @@
 
 - Report: `docs/plans/v0.9/report/20260525-203518-qwen-all50/REPORT.md`
 - Model requested: `Qwen/Qwen3.6-35B-A3B`
-- Proxy run: `http://192.168.96.5:8080/admin/runs/9`
+- Proxy run: `http://LOCAL_LLM_HOST:8080/admin/runs/9`
 - Proxy route confirmation: 541/541 requests used request model `Qwen/Qwen3.6-35B-A3B`, upstream model `Qwen/Qwen3.6-35B-A3B:deepinfra`, and billing model `Qwen/Qwen3.6-35B-A3B:deepinfra`.
 - Proxy stats for run 9 at inspection time: 541 requests, 5.9M total tokens, $1.30 reported cost, 0 HTTP errors.
 - Benchmark attempts: 51 total attempts, 1 retry.
