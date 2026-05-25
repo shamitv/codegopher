@@ -20,6 +20,7 @@ The product goal is simple: keep the agent close to the developer's workspace, m
 - Context management: inspect context budget through `/stats` and summarize long provider history through `/compact [instructions]`.
 - Memory: save approved session or project memory, inspect it with `/memory`, and remove it with `/forget ID --yes`.
 - Skills: initialize project skill guidance with `cgopher init`, materialize built-in skill packs with `cgopher init --skill-pack repo-docs|security|chained-vulns|all`, load Markdown skills from `.codegopher/skills`, and mention them with `@skill:ID`.
+- Mission contracts: complex work and built-in skills can use session task ledgers to keep required TODOs, artifacts, evidence, and completion gates visible across compaction and retries.
 - Chained vulnerability audits: run the built-in `chained-vulnerability-static-audit` skill or TUI `/audit --chain` to create a static attack-graph report at `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
 - Session TODOs: track active work with `/todo`, `/todo add TEXT`, `/todo done ID`, or the model-facing `update_todo` tool.
 - Project inspection: list directories, read files, search text, and summarize findings.
@@ -38,7 +39,7 @@ The product goal is simple: keep the agent close to the developer's workspace, m
 
 ## Feature Status
 
-CodeGopher is in early alpha with a working headless loop, an interactive TUI, a VS Code `@codegopher` chat extension, file and shell tools, session persistence, provider reasoning rendering, Responses API support, MCP stdio/SSE integration, context-window tracking, compaction, memory, Markdown skills, built-in repository documentation and static security skill packs, chained vulnerability attack-graph audit scaffolding, and session TODO state. Larger product features remain roadmap items:
+CodeGopher is in early alpha with a working headless loop, an interactive TUI, a VS Code `@codegopher` chat extension, file and shell tools, session persistence, provider reasoning rendering, Responses API support, MCP stdio/SSE integration, context-window tracking, compaction, memory, Markdown skills, skill-led mission contracts, built-in repository documentation and static security skill packs, chained vulnerability attack-graph audit scaffolding, and session TODO state. Larger product features remain roadmap items:
 
 - Production-grade sub-agent scheduling beyond the current chained-audit coordinator/linker scaffolding.
 - Git worktree helpers.
