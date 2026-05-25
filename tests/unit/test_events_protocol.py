@@ -399,6 +399,7 @@ def test_config_snapshot_event_supports_endpoint_metadata() -> None:
         model="gpt-test",
         api_family="responses",
         base_url="https://api.example.test/v1",
+        replay_reasoning_content=True,
         config_sources=["defaults", "project"],
     )
 
@@ -407,6 +408,7 @@ def test_config_snapshot_event_supports_endpoint_metadata() -> None:
     assert event.model == "gpt-test"
     assert event.api_family == "responses"
     assert event.base_url == "https://api.example.test/v1"
+    assert event.replay_reasoning_content is True
     assert event.config_sources == ["defaults", "project"]
 
 

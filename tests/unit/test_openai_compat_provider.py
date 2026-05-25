@@ -105,6 +105,52 @@ async def test_openai_compat_provider_strips_responses_metadata_from_messages() 
 
 
 @pytest.mark.asyncio
+async def test_openai_compat_provider_strips_reasoning_content_by_default() -> None:
+    client = FakeClient()
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    _ = [
+        event
+        async for event in provider.stream(
+            [{"role": "assistant", "content": None, "reasoning_content": "private"}],
+            [],
+            model="gpt-test",
+            temperature=0.2,
+            max_output_tokens=128,
+        )
+    ]
+
+    assert client.chat.completions.kwargs["messages"] == [
+        {"role": "assistant", "content": None}
+    ]
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_replays_reasoning_content_when_enabled() -> None:
+    client = FakeClient()
+    provider = OpenAICompatProvider(
+        environ={"OPENAI_API_KEY": "sk-test"},
+        client=client,
+        replay_reasoning_content=True,
+    )
+
+    _ = [
+        event
+        async for event in provider.stream(
+            [{"role": "assistant", "content": None, "reasoning_content": "private"}],
+            [],
+            model="gpt-test",
+            temperature=0.2,
+            max_output_tokens=128,
+        )
+    ]
+
+    assert client.chat.completions.kwargs["messages"] == [
+        {"role": "assistant", "content": None, "reasoning_content": "private"}
+    ]
+
+
+@pytest.mark.asyncio
 async def test_openai_compat_provider_parses_text_deltas() -> None:
     client = FakeClient(
         AsyncStream(

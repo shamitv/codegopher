@@ -19,6 +19,7 @@ def build_system_prompt(
     memories: Iterable[str] = (),
     skills: Iterable[str] = (),
     todo_items: Iterable[str] = (),
+    mission_items: Iterable[str] = (),
 ) -> str:
     tool_names = ", ".join(tool.name for tool in registry.list())
     prompt = (
@@ -42,6 +43,11 @@ def build_system_prompt(
         prompt += "\nActive TODOs:\n" + "\n".join(
             f"- {item}" for item in active_todo_items
         )
+    active_mission_items = list(mission_items)
+    if active_mission_items:
+        prompt += "\nActive mission contract:\n" + "\n".join(
+            f"- {item}" for item in active_mission_items
+        )
     return prompt
 
 
@@ -54,6 +60,7 @@ def build_messages(
     memories: Iterable[str] = (),
     skills: Iterable[str] = (),
     todo_items: Iterable[str] = (),
+    mission_items: Iterable[str] = (),
 ) -> list[Message]:
     return [
         {
@@ -65,6 +72,7 @@ def build_messages(
                 memories=memories,
                 skills=skills,
                 todo_items=todo_items,
+                mission_items=mission_items,
             ),
         },
         *conversation.provider_messages(),

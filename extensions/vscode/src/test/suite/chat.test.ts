@@ -84,6 +84,35 @@ suite("CodeGopher chat controller", () => {
     assert.deepEqual(stream.markdownParts, ["Hello ", "there"]);
   });
 
+  test("forwards chained vulnerability requests as normal chat prompts", async () => {
+    const fakeClient = new FakeChatClient();
+    const stream = new FakeChatResponseStream();
+    const controller = new CodeGopherChatController({
+      outputChannel: new FakeOutputChannel(),
+      clientFactory: () => fakeClient,
+      turnIdFactory: () => "turn-chain"
+    });
+
+    const resultPromise = controller.handleRequest(
+      fakeRequest("scan for chained vulnerabilities"),
+      fakeContext(),
+      stream.asChatStream(),
+      fakeCancellationToken()
+    );
+
+    fakeClient.completeTurn({
+      version: 1,
+      type: "turn_complete",
+      turn_id: "turn-chain"
+    });
+
+    await resultPromise;
+
+    assert.deepEqual(fakeClient.startCalls.map((call) => call.prompt), [
+      "scan for chained vulnerabilities"
+    ]);
+  });
+
   test("renders tool call and result events as compact progress", async () => {
     const fakeClient = new FakeChatClient();
     const stream = new FakeChatResponseStream();

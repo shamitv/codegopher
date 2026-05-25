@@ -68,6 +68,7 @@ The extension contributes these settings:
 - `codegopher.model`: optional model override.
 - `codegopher.baseUrl`: optional provider base URL override.
 - `codegopher.apiFamily`: optional `chat_completions` or `responses` override.
+- Provider entries can enable `replay_reasoning_content = true` for Chat Completions upstreams that require assistant reasoning replay after tool calls; the endpoint viewer reports the effective setting.
 - `codegopher.apiKeyEnv`: optional environment variable name for the stored provider API key. Leave blank to expose a stored key as `OPENAI_API_KEY`; set it to values such as `HF_TOKEN` for Hugging Face Router.
 - `codegopher.approvalMode`: optional `review`, `auto`, or `yolo` override.
 - `codegopher.maxIterations`: per-turn agent loop limit passed as `--max-iterations`; defaults to `64`.

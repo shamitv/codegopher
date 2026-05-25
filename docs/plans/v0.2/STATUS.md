@@ -58,7 +58,7 @@ Practical readiness estimate:
 2026-05-15 on `feature/v0.2-milestones-8-9-integration`:
 
 - Ran plain `.venv/bin/cgopher` in a TTY with `CODEGOPHER_TEST_MOCK_RESPONSE="smoke response"` and an isolated `CODEGOPHER_DATA_HOME`.
-- Confirmed the Textual TUI started for `/home/shamit/work/codegopher` and rendered model/provider/approval/cwd status.
+- Confirmed the Textual TUI started for `<repo>` and rendered model/provider/approval/cwd status.
 - Submitted `/help`; it rendered slash command help locally in the TUI.
 - Submitted `smoke turn`; the mocked provider response rendered as `Assistant: smoke response`.
 - Quit with Ctrl+Q cleanly.

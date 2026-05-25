@@ -190,6 +190,42 @@ class TurnCompleteEvent(ProtocolEvent):
     iteration_count: int = Field(default=0, ge=0)
 
 
+class TaskContractStartedEvent(ProtocolEvent):
+    type: Literal["task_contract_started"] = "task_contract_started"
+    turn_id: str = Field(min_length=1)
+    task_id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    status: Literal["active", "completed", "incomplete"]
+    required_tool_calls: list[str] = Field(default_factory=list)
+    required_artifacts: list[str] = Field(default_factory=list)
+
+
+class TaskContractUpdatedEvent(ProtocolEvent):
+    type: Literal["task_contract_updated"] = "task_contract_updated"
+    turn_id: str = Field(min_length=1)
+    task_id: str = Field(min_length=1)
+    status: Literal["active", "completed", "incomplete"]
+    observed_tool_calls: list[str] = Field(default_factory=list)
+    observed_artifacts: list[str] = Field(default_factory=list)
+    recovery_attempts: int = Field(default=0, ge=0)
+
+
+class TaskContractGateFailedEvent(ProtocolEvent):
+    type: Literal["task_contract_gate_failed"] = "task_contract_gate_failed"
+    turn_id: str = Field(min_length=1)
+    task_id: str = Field(min_length=1)
+    gate_failures: list[str] = Field(default_factory=list)
+    recovery_attempts: int = Field(default=0, ge=0)
+
+
+class TaskContractCompletedEvent(ProtocolEvent):
+    type: Literal["task_contract_completed"] = "task_contract_completed"
+    turn_id: str = Field(min_length=1)
+    task_id: str = Field(min_length=1)
+    status: Literal["completed", "incomplete"]
+    outcome: str | None = None
+
+
 class ConfigSnapshotEvent(ProtocolEvent):
     type: Literal["config_snapshot"] = "config_snapshot"
     workspace_root: str = Field(min_length=1)
@@ -197,6 +233,7 @@ class ConfigSnapshotEvent(ProtocolEvent):
     model: str = Field(min_length=1)
     api_family: Literal["chat_completions", "responses"]
     base_url: str | None = None
+    replay_reasoning_content: bool = False
     config_sources: list[str] = Field(default_factory=list)
 
 
@@ -248,6 +285,10 @@ _PROTOCOL_MODELS: dict[str, type[ProtocolModel]] = {
     "tool_result": ToolResultEvent,
     "error": ErrorEvent,
     "turn_complete": TurnCompleteEvent,
+    "task_contract_started": TaskContractStartedEvent,
+    "task_contract_updated": TaskContractUpdatedEvent,
+    "task_contract_gate_failed": TaskContractGateFailedEvent,
+    "task_contract_completed": TaskContractCompletedEvent,
     "config_snapshot": ConfigSnapshotEvent,
     "mcp_servers": McpServersEvent,
     "mcp_server_saved": McpServerSavedEvent,

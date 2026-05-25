@@ -41,6 +41,7 @@ suite("CodeGopher config UI", () => {
         "Model: gpt-test",
         "API family: responses",
         "Base URL: https://api.example.test/v1",
+        "Replay reasoning content: enabled",
         "Config sources: defaults, project"
       ].join("\n")
     ]);
@@ -60,6 +61,7 @@ suite("CodeGopher config UI", () => {
     });
 
     assert.match(details, /Base URL: Not configured/);
+    assert.match(details, /Replay reasoning content: disabled/);
     assert.match(details, /Config sources: Not reported/);
   });
 
@@ -674,6 +676,7 @@ class FakeConfigClient implements CodeGopherConfigClient {
       model: "gpt-test",
       api_family: "responses",
       base_url: "https://api.example.test/v1",
+      replay_reasoning_content: true,
       config_sources: ["defaults", "project"]
     });
   }

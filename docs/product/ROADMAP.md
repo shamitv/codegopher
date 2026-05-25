@@ -11,9 +11,11 @@ This roadmap separates completed release slices from planned work. Dates are int
 | v0.3 - Context, Memory, And Skills | Done | Implemented; TODO checklist is complete. |
 | v0.4 - OpenAI Responses API And MCP | Done locally | Implemented and locally verified with full tests, lint, typecheck, build, Playwright MCP stdio, and controlled MCP SSE checks. |
 | v0.5 - Repository Documentation And Static Security Skill Packs | Done locally | Implemented and locally verified; CI/release review still required. |
-| v0.6 - VS Code Extension Layer | TODO | Planned; implementation has not started. |
-| v0.7 - Advanced Coding Workflows | TODO | Planned future slice. |
-| v0.8 - Richer IDE UI And Webview Work | TODO | Future slice for custom VS Code panels that still rely on the Python engine. |
+| v0.6 - VS Code Extension Layer | Done locally | Implemented and locally verified; manual/release review remains tracked in the v0.6 plan. |
+| v0.7 - Chained Vulnerability Detection | Done locally | Built-in chained-vulnerability skill, static audit policy, attack graph/report scaffolding, docs, and tests are implemented; CI/release review remains. |
+| v0.8 - Audit Quality And Development Benchmark Infrastructure | Done locally | Internal chained-audit benchmark tooling, report-quality improvements, and real-LLM measurement; no public benchmark CLI. |
+| v0.9 - Harder Chained Vulnerability Benchmark Corpus | Done locally | All-50 benchmark corpus difficulty upgrade, stricter evaluator metrics, and Qwen all-50 report are implemented locally. |
+| v0.10 - Mission Contracts And Skill-Led Task Ledgers | Done locally | Mission contracts, session task ledgers, completion gates, recovery prompts, lifecycle events, TUI persistence, and skill guidance are implemented locally. |
 
 ## v0.1 - Headless Agent Loop
 
@@ -122,30 +124,62 @@ TODO:
 - Subprocess lifecycle management, cancellation, restart, and clear user-facing errors.
 - Configured LLM endpoint viewing and MCP server management through VS Code-native controls, not a custom webview.
 
-## v0.7 - Advanced Coding Workflows
+## v0.7 - Chained Vulnerability Detection
 
-Status: TODO.
+Status: Done locally.
 
-Goal: support larger changes and safer multi-step execution.
+Goal: detect source-to-sink exploit chains where multiple modest weaknesses combine into high-impact security outcomes.
 
-TODO:
+Done locally:
 
-- Planning mode with read-only analysis before execution.
-- Sub-agent dispatch for bounded parallel tasks.
-- Git diff and worktree helpers.
-- Optional Docker-based sandboxing.
-- More complete web fetch/search tooling.
-- Documentation, examples, and release automation for PyPI.
-
-## v0.8 - Richer IDE UI And Webview Work
-
-Status: TODO.
-
-Goal: add richer VS Code UI surfaces after the first chat-based extension is stable, while continuing to keep the Python engine authoritative.
+- Built-in `chained-vulnerability-static-audit` Markdown skill for static-only attack-graph review.
+- `cgopher init --skill-pack chained-vulns`, with `security` and `all` packs updated to include the chained audit skill.
+- TUI `/audit --chain` entry point that submits a normal skill-backed audit prompt.
+- Static audit tool policy that restricts chained-audit turns to read/list/search, TODO updates, and the dedicated chained report writer.
+- Attack graph models, Mermaid rendering, report writing, scan coordinator scaffolding, and chain linker scaffolding.
+- Unit and integration tests for skill materialization, static policy, graph/report generation, coordinator/linker behavior, TUI routing, and VS Code prompt forwarding.
 
 TODO:
 
-- Custom VS Code webview panels for richer chat, MCP server management, endpoint inspection, logs, and visual state where native chat and command-palette flows are too limited.
-- Webview-to-extension message bridge that forwards actions to `cgopher --events` instead of reimplementing agent logic in TypeScript.
-- Frontend state, accessibility, keyboard navigation, theming, and VS Code webview security hardening.
-- Tests for webview message passing, state synchronization, redaction, and subprocess error recovery.
+- Run CI and release review.
+
+## v0.8 - Audit Quality And Development Benchmark Infrastructure
+
+Status: Done locally.
+
+Goal: improve chained-vulnerability audit quality and add internal development-only benchmark automation while keeping user-facing audit interfaces unchanged.
+
+Done locally:
+
+- Internal `codegopher.devtools.benchmark` runner for isolated code-only chained-audit benchmark scans.
+- Ground-truth recall, safety/isolation, source-reference quality, and unmatched candidate-chain reporting.
+- Chained-audit skill guidance for line-level evidence, no-chain report writing, confidence calibration, and cross-cutting weaknesses.
+- Real-LLM measurement against the secure-code-hunt benchmark apps.
+- No public `cgopher benchmark` command or compatibility guarantee.
+
+## v0.9 - Harder Chained Vulnerability Benchmark Corpus
+
+Status: Done locally.
+
+Goal: make the chained-vulnerability benchmark harder and more diagnostic.
+
+Done locally:
+
+- Extended benchmark manifests and evaluator scoring for multiple chains, difficulty, vulnerability family, required evidence, and decoy reporting.
+- Upgraded the secure-code-hunt all-50 corpus in place with a medium/hard/expert difficulty ladder.
+- Archived Qwen all-50 benchmark results under `docs/plans/v0.9/report/`.
+
+## v0.10 - Mission Contracts And Skill-Led Task Ledgers
+
+Status: Done locally.
+
+Goal: keep complex agent work on track through explicit mission contracts, session task ledgers, and runtime-owned completion gates.
+
+Done locally:
+
+- Core mission contract and task ledger models.
+- Skill-to-contract profiles for repository documentation, CRUD OWASP audit, chained vulnerability audit, and generic complex tasks.
+- Provider context and compaction prompt injection for active mission state.
+- Completion-gate recovery for strict chained-audit reports.
+- Task lifecycle events and TUI session persistence.
+- Built-in documentation and security skill guidance updated to use contract-backed TODO and evidence workflows.

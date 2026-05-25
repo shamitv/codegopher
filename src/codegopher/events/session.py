@@ -30,6 +30,7 @@ from codegopher.config.schema import McpServerConfig, Settings
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
+from codegopher.core.mission import TaskLedger
 from codegopher.core.types import ToolCall
 from codegopher.events.protocol import (
     ApprovalRequestEvent,
@@ -43,6 +44,10 @@ from codegopher.events.protocol import (
     ProtocolEvent,
     ReasoningDeltaEvent,
     SessionStartedEvent,
+    TaskContractCompletedEvent,
+    TaskContractGateFailedEvent,
+    TaskContractStartedEvent,
+    TaskContractUpdatedEvent,
     TextDeltaEvent,
     ToolCallEvent,
     ToolResultEvent,
@@ -338,6 +343,7 @@ class EventsSession:
                 snapshot.api_family,
             ),
             base_url=snapshot.base_url,
+            replay_reasoning_content=snapshot.replay_reasoning_content,
             config_sources=list(snapshot.config_sources),
         )
         await self._emit(event)
@@ -454,6 +460,18 @@ class EventsSession:
             on_approval_request=lambda request: self._on_approval_request(turn_id, request),
             on_error=lambda message: self._on_agent_error(turn_id, message),
             on_complete=lambda result: self._on_complete(turn_id, result),
+            on_task_contract_started=lambda ledger: self._on_task_contract_started(
+                turn_id, ledger
+            ),
+            on_task_contract_updated=lambda ledger: self._on_task_contract_updated(
+                turn_id, ledger
+            ),
+            on_task_contract_gate_failed=lambda ledger: self._on_task_contract_gate_failed(
+                turn_id, ledger
+            ),
+            on_task_contract_completed=lambda ledger: self._on_task_contract_completed(
+                turn_id, ledger
+            ),
         )
         if self._agent_session is None:
             if self.provider is None or self.registry is None or self.tool_context is None:
@@ -569,6 +587,73 @@ class EventsSession:
                 tool_count=len(result.tool_results),
                 approval_count=self._active_approval_count,
                 iteration_count=result.iterations,
+            )
+        )
+
+    async def _on_task_contract_started(
+        self,
+        turn_id: str,
+        ledger: TaskLedger,
+    ) -> None:
+        await self._emit(
+            TaskContractStartedEvent(
+                session_id=self.session_id,
+                turn_id=turn_id,
+                task_id=ledger.id,
+                title=ledger.contract.title,
+                status=ledger.status,
+                required_tool_calls=ledger.contract.required_tool_calls,
+                required_artifacts=ledger.contract.required_artifacts,
+            )
+        )
+
+    async def _on_task_contract_updated(
+        self,
+        turn_id: str,
+        ledger: TaskLedger,
+    ) -> None:
+        await self._emit(
+            TaskContractUpdatedEvent(
+                session_id=self.session_id,
+                turn_id=turn_id,
+                task_id=ledger.id,
+                status=ledger.status,
+                observed_tool_calls=ledger.observed_tool_calls,
+                observed_artifacts=ledger.observed_artifacts,
+                recovery_attempts=ledger.recovery_attempts,
+            )
+        )
+
+    async def _on_task_contract_gate_failed(
+        self,
+        turn_id: str,
+        ledger: TaskLedger,
+    ) -> None:
+        await self._emit(
+            TaskContractGateFailedEvent(
+                session_id=self.session_id,
+                turn_id=turn_id,
+                task_id=ledger.id,
+                gate_failures=ledger.gate_failures,
+                recovery_attempts=ledger.recovery_attempts,
+            )
+        )
+
+    async def _on_task_contract_completed(
+        self,
+        turn_id: str,
+        ledger: TaskLedger,
+    ) -> None:
+        status: Literal["completed", "incomplete"] = (
+            "completed" if ledger.status == "completed" else "incomplete"
+        )
+        await self._emit(
+            TaskContractCompletedEvent(
+                session_id=self.session_id,
+                turn_id=turn_id,
+                task_id=ledger.id,
+                status=status,
+                outcome=ledger.outcome,
             )
         )
 

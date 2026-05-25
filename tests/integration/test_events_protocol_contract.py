@@ -31,6 +31,7 @@ def test_vscode_python_protocol_contract_round_trip_stream() -> None:
             model="gpt-test",
             api_family="responses",
             base_url="https://api.example.test/v1",
+            replay_reasoning_content=True,
             config_sources=["defaults", "project"],
         ),
         ListMcpServersCommand(session_id="session-1", workspace_root="/repo"),

@@ -22,6 +22,7 @@ class CliOverrides:
     provider: str | None = None
     base_url: str | None = None
     api_family: str | None = None
+    replay_reasoning_content: bool | None = None
     approval_mode: str | None = None
     max_iterations: int | None = None
     debug: bool | None = None
@@ -116,29 +117,38 @@ def _cli_overrides(overrides: CliOverrides | None) -> dict[str, Any]:
     return data
 
 
-def _env_provider_overrides(environ: Mapping[str, str]) -> dict[str, str]:
-    overrides: dict[str, str] = {}
+def _env_provider_overrides(environ: Mapping[str, str]) -> dict[str, Any]:
+    overrides: dict[str, Any] = {}
     if base_url := environ.get("CODEGOPHER_BASE_URL"):
         overrides["base_url"] = base_url
     if api_family := environ.get("CODEGOPHER_API_FAMILY"):
         overrides["api_family"] = api_family
     if api_key_env := environ.get("CODEGOPHER_API_KEY_ENV"):
         overrides["api_key_env"] = api_key_env
+    if replay_reasoning_content := environ.get("CODEGOPHER_REPLAY_REASONING_CONTENT"):
+        overrides["replay_reasoning_content"] = replay_reasoning_content.lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
     return overrides
 
 
-def _cli_provider_overrides(overrides: CliOverrides | None) -> dict[str, str]:
+def _cli_provider_overrides(overrides: CliOverrides | None) -> dict[str, Any]:
     if overrides is None:
         return {}
-    data: dict[str, str] = {}
+    data: dict[str, Any] = {}
     if overrides.base_url:
         data["base_url"] = overrides.base_url
     if overrides.api_family:
         data["api_family"] = overrides.api_family
+    if overrides.replay_reasoning_content is not None:
+        data["replay_reasoning_content"] = overrides.replay_reasoning_content
     return data
 
 
-def _apply_provider_overrides(data: dict[str, Any], overrides: Mapping[str, str]) -> None:
+def _apply_provider_overrides(data: dict[str, Any], overrides: Mapping[str, Any]) -> None:
     if not overrides:
         return
     entry = _ensure_selected_provider_entry(data)
@@ -152,6 +162,7 @@ def _has_cli_overrides(overrides: CliOverrides | None) -> bool:
             overrides.provider,
             overrides.base_url,
             overrides.api_family,
+            overrides.replay_reasoning_content is not None,
             overrides.approval_mode,
             overrides.debug is not None,
         )

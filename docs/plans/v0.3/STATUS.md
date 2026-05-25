@@ -59,7 +59,7 @@ Practical readiness estimate:
 - Markdown skills can be bootstrapped with `cgopher init [PATH]`.
 - `.codegopher/` is local config/runtime state and should not be committed.
 - Project init/default skill population is implemented so target codebases can bootstrap `.codegopher/skills`.
-- Local ignored config currently points the OpenAI-compatible provider at `http://192.168.96.26:8090/v1`.
+- Local ignored config currently points the OpenAI-compatible provider at `http://LOCAL_LLM_HOST:8090/v1`.
 
 ## Pre-Implementation Real Endpoint Smoke Test
 
@@ -74,7 +74,7 @@ Practical readiness estimate:
 
 2026-05-17 on `feature/v0.3-release-readiness`:
 
-- Confirmed `.codegopher/settings.toml` points `openai/local-llm` at `http://192.168.96.26:8090/v1`.
+- Confirmed `.codegopher/settings.toml` points `openai/local-llm` at `http://LOCAL_LLM_HOST:8090/v1`.
 - Ran `OPENAI_API_KEY=dummy-key .venv/bin/cgopher -p "Reply with exactly: codegopher-smoke-ok" --json`.
 - Confirmed the local OpenAI-compatible endpoint returned `codegopher-smoke-ok`.
 - Result payload: `{"final_text": "codegopher-smoke-ok", "tool_results": [], "iterations": 1}`.

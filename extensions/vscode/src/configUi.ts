@@ -437,6 +437,7 @@ export function formatEndpointDetails(snapshot: ConfigSnapshotEvent): string {
     `Model: ${redactDisplayText(snapshot.model)}`,
     `API family: ${redactDisplayText(snapshot.api_family)}`,
     `Base URL: ${redactDisplayText(snapshot.base_url ?? "Not configured")}`,
+    `Replay reasoning content: ${snapshot.replay_reasoning_content ? "enabled" : "disabled"}`,
     `Config sources: ${formatConfigSources(snapshot.config_sources)}`
   ].join("\n");
 }

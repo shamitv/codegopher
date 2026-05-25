@@ -7,6 +7,7 @@ CodeGopher supports two OpenAI API families behind the same provider protocol.
 - `chat_completions` is the default and uses the existing OpenAI-compatible Chat Completions stream path.
 - `responses` uses `AsyncOpenAI.responses.create(..., stream=True, store=False)`.
 - `CODEGOPHER_API_FAMILY` and `--api-family chat_completions|responses` override the selected provider entry for one run.
+- `replay_reasoning_content = true`, `CODEGOPHER_REPLAY_REASONING_CONTENT=true`, or `--replay-reasoning-content` enables a Chat Completions compatibility mode for upstreams that require assistant `reasoning_content` to be replayed after tool calls. The default is `false`.
 - Responses API history is stateless with local metadata replay: CodeGopher stores required response output items such as function calls and encrypted reasoning items in local conversation state instead of relying on OpenAI-hosted state.
 
 ## MCP Runtime

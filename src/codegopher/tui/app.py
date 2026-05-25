@@ -23,6 +23,7 @@ from codegopher.core.context import build_messages
 from codegopher.core.context_budget import calculate_context_budget, selected_provider_entry
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ConfigurationError, ProviderError
+from codegopher.core.mission import TaskLedger
 from codegopher.core.types import (
     CompactionEntry,
     MemoryEntry,
@@ -252,6 +253,9 @@ class CodeGopherApp(App[None]):
             self.set_status("Mention expansion failed")
             return
 
+        self._start_agent_turn(expansion.prompt)
+
+    def _start_agent_turn(self, prompt: str) -> None:
         self.turn_count += 1
         self._set_turn_running(True)
         self._active_reasoning_message = ""
@@ -264,7 +268,7 @@ class CodeGopherApp(App[None]):
         self.query_one("#assistant-stream", Static).update("")
         self.set_status("Running agent turn...")
         self.run_worker(
-            self._run_agent_turn(expansion.prompt),
+            self._run_agent_turn(prompt),
             name="agent-turn",
             group="agent",
             exclusive=True,
@@ -291,6 +295,10 @@ class CodeGopherApp(App[None]):
             on_compaction=self._on_agent_compaction,
             on_error=self._on_agent_error,
             on_complete=self._on_agent_complete,
+            on_task_contract_started=self._on_task_contract_started,
+            on_task_contract_updated=self._on_task_contract_updated,
+            on_task_contract_gate_failed=self._on_task_contract_gate_failed,
+            on_task_contract_completed=self._on_task_contract_completed,
         )
         try:
             await self._ensure_agent_session(callbacks).run_turn(prompt)
@@ -318,6 +326,9 @@ class CodeGopherApp(App[None]):
                     else []
                 ),
                 skill_manager=self.skill_manager,
+                task_ledgers=list(self.session_state.task_ledgers)
+                if self.session_state
+                else [],
             )
             self.tool_context = self._agent_session.tool_context
         else:
@@ -379,6 +390,26 @@ class CodeGopherApp(App[None]):
 
     async def _on_agent_error(self, message: str) -> None:
         self.set_status(f"Error: {message}")
+
+    async def _on_task_contract_started(self, ledger: TaskLedger) -> None:
+        self.set_status(f"Mission started: {ledger.contract.title}")
+        self._persist_session()
+
+    async def _on_task_contract_updated(self, ledger: TaskLedger) -> None:
+        self.set_status(
+            f"Mission active: {ledger.contract.title} ({ledger.recovery_attempts} recoveries)"
+        )
+        self._persist_session()
+
+    async def _on_task_contract_gate_failed(self, ledger: TaskLedger) -> None:
+        self.set_status(
+            f"Mission gates pending: {len(ledger.gate_failures)} unresolved"
+        )
+        self._persist_session()
+
+    async def _on_task_contract_completed(self, ledger: TaskLedger) -> None:
+        self.set_status(f"Mission {ledger.status}: {ledger.contract.title}")
+        self._persist_session()
 
     async def _on_agent_complete(self, result: AgentResult) -> None:
         if self._active_reasoning_message:
@@ -489,6 +520,11 @@ class CodeGopherApp(App[None]):
             )
         self.session_state.loaded_skill_ids = list(self.skill_manager.loaded_ids)
         self.session_state.todo_items = self.todo_state.list()
+        self.session_state.task_ledgers = (
+            list(self._agent_session.task_ledgers)
+            if self._agent_session is not None
+            else self.session_state.task_ledgers
+        )
         try:
             self.session_store.save(self.session_state, settings=self.settings)
         except OSError as exc:
@@ -505,6 +541,8 @@ class CodeGopherApp(App[None]):
     def _handle_slash_command(self, command: SlashCommand) -> None:
         if command.name == "help":
             self._handle_help_command(command)
+        elif command.name == "audit":
+            self._handle_audit_command(command)
         elif command.name == "clear":
             self._handle_clear_command(command)
         elif command.name == "compact":
@@ -546,6 +584,18 @@ class CodeGopherApp(App[None]):
         )
         self.append_system_message("\n".join(lines))
         self.set_status("Displayed help")
+
+    def _handle_audit_command(self, command: SlashCommand) -> None:
+        if command.arguments != "--chain":
+            self._command_error("Usage: /audit --chain")
+            return
+        prompt = (
+            "use @skill:chained-vulnerability-static-audit to review this repository "
+            "for chained vulnerabilities and write docs/security/"
+            "CHAINED_VULNERABILITIES_REVIEW.md"
+        )
+        self.append_user_message(command.raw)
+        self._start_agent_turn(prompt)
 
     def _handle_clear_command(self, command: SlashCommand) -> None:
         if command.arguments:

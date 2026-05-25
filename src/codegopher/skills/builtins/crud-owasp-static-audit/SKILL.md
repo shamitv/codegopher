@@ -13,6 +13,8 @@ Use this skill for authorized source-only security review of CRUD web applicatio
 - Do not run live HTTP probing, fuzzing, credential attacks, dynamic scanners, exploit payloads, or network tests.
 - Do not generate exploit payloads or step-by-step abuse instructions.
 - If the user asks for active testing, explain that this skill is limited to static review and ask for a separate authorized testing workflow.
+- CodeGopher may activate a mission contract for this skill. Use the session TODO ledger to track attack-surface inventory, OWASP category coverage, evidence collection, missing tests, report/no-findings output, and unknowns.
+- Treat the mission ledger as active task state, not long-term memory. Do not save audit progress to persistent memory unless the user explicitly asks.
 
 ## Review Inputs
 
@@ -54,3 +56,4 @@ Inspect source that defines:
 - If the user asks for a written artifact, default to `docs/security/OWASP_TOP10_2025_REVIEW.md`.
 - If the user does not ask for files, produce a structured report in chat.
 - Include summary, scope, methodology, findings, affected files, OWASP category, risk rating, evidence, remediation, missing tests, and unknown/not-reviewed areas.
+- Before finishing, self-check the active TODO ledger and ensure every finding has file, method or symbol where available, line evidence where available, OWASP mapping, risk, remediation, and missing-test notes. If no findings are identified, say so explicitly and list reviewed areas and unknowns.

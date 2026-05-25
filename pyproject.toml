@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "codegopher"
-version = "0.1.0"
+version = "0.2.1"
 description = "A Python-native, provider-agnostic AI coding agent for your terminal"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -68,6 +68,11 @@ Issues        = "https://github.com/shamitv/codegopher/issues"
 # ---------------------------------------------------------------------------
 # Hatch
 # ---------------------------------------------------------------------------
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/docs/plans/**",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/codegopher"]
 

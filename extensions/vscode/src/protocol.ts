@@ -169,6 +169,7 @@ export interface ConfigSnapshotEvent extends ProtocolBase {
   model: string;
   api_family: ApiFamily;
   base_url?: string | null;
+  replay_reasoning_content?: boolean;
   config_sources?: string[];
 }
 
@@ -480,6 +481,7 @@ function validateMessage(type: ProtocolType, message: Record<string, unknown>): 
       requireString(message, "model");
       requireOneOf(message, "api_family", ["chat_completions", "responses"]);
       optionalStringOrNull(message, "base_url");
+      optionalBoolean(message, "replay_reasoning_content");
       optionalStringArray(message, "config_sources");
       break;
     case "mcp_servers":

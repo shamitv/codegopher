@@ -18,6 +18,9 @@ from codegopher.events.protocol import (
     McpServerSavedEvent,
     McpServersEvent,
     SessionStartedEvent,
+    TaskContractCompletedEvent,
+    TaskContractGateFailedEvent,
+    TaskContractStartedEvent,
     ToolResultEvent,
     TurnCompleteEvent,
     TurnStartedEvent,
@@ -331,6 +334,49 @@ async def test_events_session_maps_agent_loop_errors(tmp_path: Path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_events_session_emits_task_contract_lifecycle_events(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [{"type": "text_delta", "content": "not done"}, {"type": "done"}],
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-report",
+                        "name": "write_chained_vulnerability_report",
+                        "arguments": {"content": "# Report\n"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+    session = EventsSession(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+    )
+
+    result = await session.run_turn(
+        "use @skill:chained-vulnerability-static-audit",
+        turn_id="turn-contract",
+    )
+
+    assert result.final_text == "done"
+    assert any(isinstance(event, TaskContractStartedEvent) for event in session.events)
+    assert any(isinstance(event, TaskContractGateFailedEvent) for event in session.events)
+    completed = [
+        event
+        for event in session.events
+        if isinstance(event, TaskContractCompletedEvent)
+    ]
+    assert completed[-1].status == "completed"
+
+
+@pytest.mark.asyncio
 async def test_events_session_config_helpers_emit_redacted_mcp_events(
     tmp_path: Path,
 ) -> None:
@@ -358,6 +404,7 @@ async def test_events_session_config_helpers_emit_redacted_mcp_events(
 
     assert isinstance(config, ConfigSnapshotEvent)
     assert config.provider == "openai"
+    assert config.replay_reasoning_content is False
     assert config.config_sources == ["defaults"]
     assert isinstance(saved, McpServerSavedEvent)
     assert saved.server.headers == {"Authorization": "[redacted]"}

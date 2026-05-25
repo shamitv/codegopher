@@ -22,6 +22,7 @@ class Message(TypedDict, total=False):
     tool_call_id: str
     tool_calls: list[dict[str, Any]]
     response_items: list[dict[str, Any]]
+    reasoning_content: str
 
 
 class ToolCall(TypedDict):
