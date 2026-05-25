@@ -86,6 +86,13 @@ def test_cli_prompt_dry_run_echoes_prompt() -> None:
     assert result.output == "mocked\n"
 
 
+def test_cli_does_not_expose_public_benchmark_command() -> None:
+    result = CliRunner().invoke(app, ["benchmark"])
+
+    assert result.exit_code != 0
+    assert "No such command 'benchmark'" in result.output
+
+
 def test_cli_applies_settings_overrides() -> None:
     result = CliRunner().invoke(
         app,
