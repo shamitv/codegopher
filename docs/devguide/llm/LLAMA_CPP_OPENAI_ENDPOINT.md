@@ -29,7 +29,7 @@ From the compiled `llama.cpp` directory:
 The OpenAI-compatible base URL is:
 
 ```text
-http://YOUR_VM_IP:8000/v1
+LOCAL_OPENAI_COMPATIBLE_ENDPOINT
 ```
 
 Use any placeholder API key if the client requires one, such as:
@@ -43,7 +43,7 @@ sk-local-test
 Run this from the VM:
 
 ```bash
-curl http://127.0.0.1:8000/v1/chat/completions \
+curl $LOCAL_OPENAI_COMPATIBLE_ENDPOINT/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-local-test" \
   -d '{

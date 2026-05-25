@@ -154,7 +154,7 @@ Done locally:
 - Internal `codegopher.devtools.benchmark` runner for isolated code-only chained-audit benchmark scans.
 - Ground-truth recall, safety/isolation, source-reference quality, and unmatched candidate-chain reporting.
 - Chained-audit skill guidance for line-level evidence, no-chain report writing, confidence calibration, and cross-cutting weaknesses.
-- Real-LLM measurement against the secure-code-hunt benchmark apps.
+- Real-LLM measurement against the sample benchmark apps.
 - No public `cgopher benchmark` command or compatibility guarantee.
 
 ## v0.9 - Harder Chained Vulnerability Benchmark Corpus
@@ -166,7 +166,7 @@ Goal: make the chained-vulnerability benchmark harder and more diagnostic.
 Done locally:
 
 - Extended benchmark manifests and evaluator scoring for multiple chains, difficulty, vulnerability family, required evidence, and decoy reporting.
-- Upgraded the secure-code-hunt all-50 corpus in place with a medium/hard/expert difficulty ladder.
+- Upgraded the all-50 sample benchmark corpus in place with a medium/hard/expert difficulty ladder.
 - Archived Qwen all-50 benchmark results under `docs/plans/v0.9/report/`.
 
 ## v0.10 - Mission Contracts And Skill-Led Task Ledgers

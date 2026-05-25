@@ -31,7 +31,7 @@
 
 - Apps: `app-03-banking-service`, `app-46-charity-donations`.
 - Model: `Qwen/Qwen3.6-35B-A3B`.
-- Endpoint: `http://192.168.96.5:8080/v1`.
+- Endpoint: `LOCAL_OPENAI_COMPATIBLE_ENDPOINT`.
 - Result: both apps generated reports, called `write_chained_vulnerability_report`, and reached full recall.
 - Aggregate recall: 4/4 chains and 12/12 components.
 - Safety: no compromised runs; hygiene passed for both sanitized workspaces.

@@ -13,7 +13,7 @@ Target workspace:
 This report documents the v0.6 VS Code smoke path using the local OpenAI-compatible LLM endpoint:
 
 ```text
-http://LOCAL_LLM_HOST:8080/v1
+LOCAL_OPENAI_COMPATIBLE_ENDPOINT
 ```
 
 The endpoint was reachable from Codex after switching from port `8090` to `8080`. The advertised model was:
@@ -68,7 +68,7 @@ VS Code smoke settings:
 ```json
 {
   "codegopher.cliPath": "<repo>/.venv/bin/cgopher",
-  "codegopher.baseUrl": "http://LOCAL_LLM_HOST:8080/v1",
+  "codegopher.baseUrl": "LOCAL_OPENAI_COMPATIBLE_ENDPOINT",
   "codegopher.model": "Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf",
   "codegopher.apiFamily": "chat_completions",
   "codegopher.apiKeyEnv": "LOCAL_LLM_API_KEY",
@@ -86,7 +86,7 @@ CODEGOPHER_API_KEY_ENV=LOCAL_LLM_API_KEY \
 LOCAL_LLM_API_KEY=dummy-key \
 <repo>/.venv/bin/cgopher \
   --no-project-init \
-  --base-url http://LOCAL_LLM_HOST:8080/v1 \
+  --base-url LOCAL_OPENAI_COMPATIBLE_ENDPOINT \
   --api-family chat_completions \
   --model Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf \
   -p 'Reply with exactly: codegopher-smoke-ok' \

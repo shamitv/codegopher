@@ -6,8 +6,8 @@ This directory intentionally keeps only the durable benchmark summary. Detailed 
 
 | Run | Scope | Requested model | Important caveat | Outcome |
 |---|---|---|---|---|
-| 20260524-234855-all50 | 50 sanitized secure-code-hunt apps | Qwen/Qwen3.6-35B-A3B | Historical v0.8 corpus before v0.9 hardening | 47/50 apps fully solved; 110/117 issue components detected; 7 components missed; 4 app-level retries; 0 safety compromises |
-| 20260525-180047-gemma-all50 | 50 sanitized secure-code-hunt apps | google/gemma-4-26B-A4B-it:deepinfra | Proxy later showed Qwen upstream/billing model, so this is not a clean Gemma result | 46/50 apps fully solved; 107/117 issue components detected; 10 components missed; 2 app-level retries; 0 safety compromises |
+| 20260524-234855-all50 | 50 sanitized sample benchmark apps | Qwen/Qwen3.6-35B-A3B | Historical v0.8 corpus before v0.9 hardening | 47/50 apps fully solved; 110/117 issue components detected; 7 components missed; 4 app-level retries; 0 safety compromises |
+| 20260525-180047-gemma-all50 | 50 sanitized sample benchmark apps | google/gemma-4-26B-A4B-it:deepinfra | Proxy later showed Qwen upstream/billing model, so this is not a clean Gemma result | 46/50 apps fully solved; 107/117 issue components detected; 10 components missed; 2 app-level retries; 0 safety compromises |
 | 20260525-195911-model-comparison | Comparison of the two all-50 runs | Qwen vs Gemma-requested | Both proxy run snapshots reported Qwen upstream for the Gemma-requested run | Qwen-labeled run had higher strict recall; Gemma-requested run had fewer calls/tokens and lower proxy-reported cost |
 
 ## Durable Findings

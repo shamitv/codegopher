@@ -2,7 +2,7 @@
 
 ## Background
 
-v0.8 added development-only benchmark tooling and produced sanitized all-50 `secure-code-hunt` benchmark reports. The later model-comparison review found an important proxy-routing caveat: both compared all-50 runs were served by Qwen upstream, even when one run was requested with a Gemma model id. Those reports remain useful as historical Qwen baselines, but they are not a clean model comparison.
+v0.8 added development-only benchmark tooling and produced sanitized all-50 sample benchmark reports. The later model-comparison review found an important proxy-routing caveat: both compared all-50 runs were served by Qwen upstream, even when one run was requested with a Gemma model id. Those reports remain useful as historical Qwen baselines, but they are not a clean model comparison.
 
 The current corpus is also becoming too easy for the chained-audit workflow. Each app currently has one planted chain, most chains have only two or three components, and the common families are direct IDOR, SQL injection, SSRF, weak auth, debug/config leaks, and predictable session issues. v0.9 raises benchmark difficulty by modifying the existing 50 apps in place and making evaluation stricter.
 

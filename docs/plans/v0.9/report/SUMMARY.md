@@ -6,7 +6,7 @@ This directory intentionally keeps only the durable benchmark summary. Detailed 
 
 | Run | Scope | Model | Outcome |
 |---|---|---|---|
-| 20260525-203518-qwen-all50 | 50 hardened secure-code-hunt apps | Qwen/Qwen3.6-35B-A3B | 45/50 apps fully solved; 3 partial; 2 missed; 93/100 chains detected; 253/268 components detected; 0 safety compromises |
+| 20260525-203518-qwen-all50 | 50 hardened sample benchmark apps | Qwen/Qwen3.6-35B-A3B | 45/50 apps fully solved; 3 partial; 2 missed; 93/100 chains detected; 253/268 components detected; 0 safety compromises |
 
 ## Recall By Difficulty
 

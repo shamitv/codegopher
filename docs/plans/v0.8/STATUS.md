@@ -28,7 +28,7 @@ The v0.7 manifests are not exhaustive, so v0.8 must not treat unmatched generate
 | Internal benchmark package | Complete locally | `codegopher.devtools.benchmark` is the implementation namespace. |
 | Audit skill quality | Complete locally | Source references, no-chain reporting, confidence, and cross-cutting weakness guidance added. |
 | Tests | Complete locally | Unit, mocked integration, full pytest, Ruff, and mypy passed. |
-| Real-LLM rescan | Complete locally | Three secure-code-hunt apps scanned with local proxy and reasoning replay. |
+| Real-LLM rescan | Complete locally | Three sample benchmark apps scanned with local proxy and reasoning replay. |
 
 ## v0.8 Real-LLM Rescan
 

@@ -13,7 +13,7 @@ Target workspace:
 This walkthrough documents the CodeGopher Textual TUI path against the local OpenAI-compatible LLM endpoint:
 
 ```text
-http://LOCAL_LLM_HOST:8080/v1
+LOCAL_OPENAI_COMPATIBLE_ENDPOINT
 ```
 
 The endpoint was reachable, and the advertised model was:
@@ -78,7 +78,7 @@ CODEGOPHER_API_KEY_ENV=LOCAL_LLM_API_KEY \
 LOCAL_LLM_API_KEY=dummy-key \
 <repo>/.venv/bin/cgopher \
   --no-project-init \
-  --base-url http://LOCAL_LLM_HOST:8080/v1 \
+  --base-url LOCAL_OPENAI_COMPATIBLE_ENDPOINT \
   --api-family chat_completions \
   --model Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf \
   --approval-mode review
@@ -93,7 +93,7 @@ CODEGOPHER_API_KEY_ENV=LOCAL_LLM_API_KEY \
 LOCAL_LLM_API_KEY=dummy-key \
 <repo>/.venv/bin/cgopher \
   --no-project-init \
-  --base-url http://LOCAL_LLM_HOST:8080/v1 \
+  --base-url LOCAL_OPENAI_COMPATIBLE_ENDPOINT \
   --api-family chat_completions \
   --model Qwen3.6-35B-A3B-UD-MTP-Q4_K_XL.gguf \
   -p 'Reply with exactly: codegopher-smoke-ok' \

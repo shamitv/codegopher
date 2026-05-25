@@ -115,7 +115,7 @@ npm test
 When testing `codegopher.cliPath`, include cases for:
 
 - `cgopher` resolved from `PATH`.
-- An absolute path such as `%USERPROFILE%\AppData\Local\Programs\Python\Python312\Scripts\cgopher.exe`.
+- An absolute path such as `path\to\cgopher.exe`.
 - Paths containing spaces.
 - Missing executable errors.
 

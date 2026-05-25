@@ -6,7 +6,7 @@
 - Internal benchmark manifests now support multiple chains plus `difficulty`, `subtlety_tags`, `required_evidence`, `chain_prerequisites`, `negative_evidence`, and `vulnerability_family`.
 - Evaluator now reports full-chain recall, component recall, missing required evidence, decoy/negative-evidence hits, recall by difficulty, and recall by vulnerability family.
 - Aggregate benchmark reports now include grouped difficulty/family recall plus per-app missing-evidence and decoy-misfire counts.
-- All 50 `secure-code-hunt` apps were upgraded in place with v0.9 manifest metadata, 100 total chains, 268 total components, and one neutral guard/helper decoy file per app.
+- All 50 sample benchmark apps were upgraded in place with v0.9 manifest metadata, 100 total chains, 268 total components, and one neutral guard/helper decoy file per app.
 
 ## Corpus Inventory
 
@@ -30,7 +30,7 @@
 
 - Report: `docs/plans/v0.9/report/20260525-203518-qwen-all50/REPORT.md`
 - Model requested: `Qwen/Qwen3.6-35B-A3B`
-- Proxy run: `http://LOCAL_LLM_HOST:8080/admin/runs/9`
+- Proxy run: `LOCAL_PROXY_RUN_URL`
 - Proxy route confirmation: 541/541 requests used request model `Qwen/Qwen3.6-35B-A3B`, upstream model `Qwen/Qwen3.6-35B-A3B:deepinfra`, and billing model `Qwen/Qwen3.6-35B-A3B:deepinfra`.
 - Proxy stats for run 9 at inspection time: 541 requests, 5.9M total tokens, $1.30 reported cost, 0 HTTP errors.
 - Benchmark attempts: 51 total attempts, 1 retry.

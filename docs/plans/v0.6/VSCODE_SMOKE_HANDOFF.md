@@ -138,7 +138,7 @@ Use VS Code Insiders for this test so the normal Stable VS Code session does not
 6. In the new Extension Development Host, open the disposable workspace:
 
    ```text
-   <secure-code-hunt>\apps\java\app-06-hr-management
+   <sample-app-root>\apps\java\app-06-hr-management
    ```
 
 7. In the Extension Development Host settings, set the CodeGopher settings from the JSON block above.

@@ -107,8 +107,8 @@ Commit rules:
 
 ## Milestone 7 - Required Local LLM Verification
 
-- [x] T038: Update real endpoint test to run against `http://LOCAL_LLM_HOST:8080/v1`.
-  Verify: `rg -n "LOCAL_LLM_HOST:8080/v1" tests/integration/test_real_llm_endpoint.py`
+- [x] T038: Update real endpoint test to run against `LOCAL_OPENAI_COMPATIBLE_ENDPOINT`.
+  Verify: `rg -n "LOCAL_OPENAI_COMPATIBLE_ENDPOINT" tests/integration/test_real_llm_endpoint.py`
 - [x] T039: Configure the real endpoint test to use `Qwen/Qwen3.6-35B-A3B`, `chat_completions`, and `OPENAI_API_KEY=dummy-key`.
   Verify: `rg -n "Qwen/Qwen3.6-35B-A3B|dummy-key|chat_completions" tests/integration/test_real_llm_endpoint.py`
 - [x] T040: Assert stripped final text equals `codegopher-smoke-ok`, no tools are used, and one iteration completes.

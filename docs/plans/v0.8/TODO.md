@@ -46,5 +46,5 @@ This checklist is commit-oriented and scoped to internal benchmark infrastructur
 - [x] T025: Run full Python tests.
 - [x] T026: Run Ruff and mypy.
 - [x] T027: Run VS Code compile/lint/tests if touched.
-- [x] T028: Run internal real-LLM benchmark on the three secure-code-hunt apps.
+- [x] T028: Run internal real-LLM benchmark on the three sample benchmark apps.
 - [x] T029: Update this TODO and STATUS with final results.
