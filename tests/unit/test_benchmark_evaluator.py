@@ -144,6 +144,7 @@ def test_extract_candidate_chain_titles_deduplicates_and_ignores_tables() -> Non
         """
 ## Chain 1: Booking IDOR
 ### Chain #1 Table
+### Chain details
 ## Chain: Booking IDOR
 ## Chain 2: Debug Console
 ### Chain graph
@@ -189,7 +190,7 @@ def test_parse_candidate_chain_ledger_tracks_exact_evidence_and_controls() -> No
 
     assert ledger["present"] is True
     assert len(ledger["candidate_chains"]) == 2
-    assert ledger["total_evidence_items"] == 7
+    assert ledger["total_evidence_items"] == 6
     assert ledger["exact_evidence_items"] == 4
     assert ledger["safe_control_counts"]["nearby_only"] == 1
     assert ledger["safe_control_counts"]["same_path_blocker"] == 1
@@ -233,3 +234,35 @@ def test_report_quality_includes_json_ledger_exact_evidence_metrics() -> None:
         "not_applicable": 1,
         "unknown": 0,
     }
+
+
+def test_parse_candidate_chain_ledger_counts_nested_evidence_wrappers() -> None:
+    ledger = parse_candidate_chain_ledger(
+        """
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"evidence": {"path": "src/a.py", "symbol": "source", "line": "1"}},
+      "hop": {"evidence": [
+        {"path": "src/b.py", "symbol": "hop", "line_range": "2-3"}
+      ]},
+      "sink": {"evidence": {"path": "src/c.py", "symbol": "sink", "line": "4"}},
+      "safe_controls": [
+        {"evidence": {"path": "src/d.py", "symbol": "guard", "line": "5"}, "classification": "nearby_only"}
+      ],
+      "confidence": "high",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+""",
+    )
+
+    assert ledger["present"] is True
+    assert ledger["total_evidence_items"] == 4
+    assert ledger["exact_evidence_items"] == 4
+    assert ledger["safe_control_counts"]["nearby_only"] == 1

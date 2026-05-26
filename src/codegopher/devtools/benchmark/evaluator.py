@@ -403,14 +403,26 @@ def _iter_evidence_objects(candidate: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _iter_safe_control_objects(candidate: dict[str, Any]) -> list[dict[str, Any]]:
-    return _evidence_objects_from_value(candidate.get("safe_controls"))
-
-
-def _evidence_objects_from_value(value: Any) -> list[dict[str, Any]]:
+    value = candidate.get("safe_controls")
     if isinstance(value, dict):
         return [value]
     if isinstance(value, list):
         return [item for item in value if isinstance(item, dict)]
+    return []
+
+
+def _evidence_objects_from_value(value: Any) -> list[dict[str, Any]]:
+    if isinstance(value, dict):
+        items: list[dict[str, Any]] = []
+        if _looks_like_evidence_object(value):
+            items.append(value)
+        items.extend(_evidence_objects_from_value(value.get("evidence")))
+        return items
+    if isinstance(value, list):
+        items = []
+        for item in value:
+            items.extend(_evidence_objects_from_value(item))
+        return items
     return []
 
 
@@ -419,6 +431,24 @@ def _has_exact_evidence(item: dict[str, Any]) -> bool:
     symbol = _first_string(item, ("symbol", "method", "name"))
     line = _first_string(item, ("line", "lines", "line_range", "range"))
     return bool(path and symbol and line and re.search(r"\.[a-z0-9]+$", path, re.I))
+
+
+def _looks_like_evidence_object(item: dict[str, Any]) -> bool:
+    return any(
+        key in item
+        for key in (
+            "path",
+            "file",
+            "location",
+            "symbol",
+            "method",
+            "name",
+            "line",
+            "lines",
+            "line_range",
+            "range",
+        )
+    )
 
 
 def _safe_control_classification(item: dict[str, Any]) -> str:
@@ -577,6 +607,7 @@ def _is_candidate_chain_title(title: str) -> bool:
         " breakdown",
         " ledger",
         " model",
+        " details",
     )
     return not any(marker in title_l for marker in ignored_markers)
 

@@ -76,6 +76,7 @@ Report requirements:
 - Include a fenced JSON block with a top-level `candidate_chains` array.
 - Each JSON candidate must include `status`, `family`, `source`, `hop`, `sink`, `safe_controls`, `confidence`, and `missing_evidence`.
 - `source`, `hop`, `sink`, and `safe_controls` entries must use evidence objects with full repo-relative `path`, exact `symbol`, and `line` or `line_range`.
+- Every safe control must include `classification` with exactly one of `same_path_blocker`, `nearby_only`, `not_applicable`, or `unknown`.
 - For every candidate chain, include source, hop, sink, file, symbol, line or line range, confidence, missing evidence, and safe control/decoy rejection.
 - Use `read_file` with `include_line_numbers=true` when gathering final evidence.
 - Cite code evidence as `relative/path.ext:line` or `relative/path.ext:line-line`.
@@ -92,6 +93,8 @@ Use only source-derived evidence. Re-read the minimum necessary source files wit
 Every final evidence row must cite the full repository-relative path, exact symbol or method name, and line or line range. Replace abbreviated citations such as `Controller.java:40-47` with full citations such as `src/main/java/example/Controller.java:40-47`.
 
 Also include or repair the fenced JSON candidate ledger with a top-level `candidate_chains` array. Every `source`, `hop`, `sink`, and `safe_controls` evidence object must include `path`, `symbol`, and `line` or `line_range`.
+
+Every safe control must include a `classification` value from exactly this set: `same_path_blocker`, `nearby_only`, `not_applicable`, `unknown`. Use `nearby_only` when the guard is present but does not block the exact candidate path.
 
 Before finishing, perform these generic sweeps and record each result in the Candidate Chain Ledger:
 
@@ -410,12 +413,15 @@ class BenchmarkHarness:
             report
         )
         has_nearby_guard_over_rejection = _has_nearby_guard_over_rejection(report, ledger)
+        has_unknown_safe_controls = _has_only_unknown_safe_controls(ledger)
         has_contradiction = _has_contradictory_conclusions(report)
         return has_missing_json_ledger or (not has_ledger) or (not has_line_refs) or (
             claims_no_complete_chain and not claims_complete_chain
         ) or (claims_complete_chain and has_unresolved_completeness_marker) or (
             has_ledger and has_exact_evidence_gap
-        ) or has_helper_omission or has_nearby_guard_over_rejection or has_contradiction
+        ) or has_helper_omission or has_nearby_guard_over_rejection or (
+            has_unknown_safe_controls
+        ) or has_contradiction
 
     def _analyze(
         self,
@@ -644,6 +650,15 @@ def _has_nearby_guard_over_rejection(report: str, ledger: dict[str, Any]) -> boo
         marker in report_l for marker in ("reject", "rejected", "blocks", "blocked")
     )
     return bool(nearby_count and text_marker)
+
+
+def _has_only_unknown_safe_controls(ledger: dict[str, Any]) -> bool:
+    counts = ledger.get("safe_control_counts", {})
+    if not isinstance(counts, dict):
+        return False
+    total = sum(count for count in counts.values() if isinstance(count, int))
+    unknown = counts.get("unknown", 0)
+    return bool(total and unknown == total)
 
 
 def _has_contradictory_conclusions(report: str) -> bool:
