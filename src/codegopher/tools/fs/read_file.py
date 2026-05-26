@@ -10,13 +10,17 @@ from codegopher.tools.base import ToolContext, ToolResult
 
 class ReadFileTool:
     name = "read_file"
-    description = "Read a UTF-8 text file with optional 1-based inclusive line bounds."
+    description = (
+        "Read a UTF-8 text file with optional 1-based inclusive line bounds. "
+        "Set include_line_numbers=true when collecting code evidence."
+    )
     parameters: dict[str, Any] = {
         "type": "object",
         "properties": {
             "path": {"type": "string"},
             "start_line": {"type": "integer", "minimum": 1},
             "end_line": {"type": "integer", "minimum": 1},
+            "include_line_numbers": {"type": "boolean", "default": False},
         },
         "required": ["path"],
     }
@@ -44,6 +48,11 @@ class ReadFileTool:
         if start < 1 or end < start:
             return ToolResult(tool_call_id=call_id, content="Invalid line bounds", is_error=True)
         selected = lines[start - 1 : end]
+        if bool(arguments.get("include_line_numbers", False)):
+            selected = [
+                f"{line_number}: {line}"
+                for line_number, line in enumerate(selected, start=start)
+            ]
         context.access.record_file_read(path)
         return ToolResult(tool_call_id=call_id, content="\n".join(selected))
 
