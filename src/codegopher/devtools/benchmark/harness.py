@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -73,6 +75,7 @@ Report requirements:
 - For every candidate chain, include source, hop, sink, file, symbol, line or line range, confidence, missing evidence, and safe control/decoy rejection.
 - Use `read_file` with `include_line_numbers=true` when gathering final evidence.
 - Cite code evidence as `relative/path.ext:line` or `relative/path.ext:line-line`.
+- Use full repository-relative paths and exact method/symbol names in every final evidence row. Do not abbreviate citations to `File.java:line` when the full path is known.
 - If no complete chain is provable, still call the report writer and include reviewed areas, rejected candidates, missing evidence, and incomplete chains.
 """.strip()
 CORRECTIVE_BENCHMARK_PROMPT = """
@@ -81,6 +84,8 @@ Continue the same static-only chained vulnerability review. The current audit is
 Do not use manifests, removed evaluator files, parent directories, live probes, dynamic scanners, shell commands, or files outside this workspace.
 
 Use only source-derived evidence. Re-read the minimum necessary source files with `read_file` and `include_line_numbers=true`, then update the final report with `write_chained_vulnerability_report` to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
+
+Every final evidence row must cite the full repository-relative path, exact symbol or method name, and line or line range. Replace abbreviated citations such as `Controller.java:40-47` with full citations such as `src/main/java/example/Controller.java:40-47`.
 
 Before finishing, perform these generic sweeps and record each result in the Candidate Chain Ledger:
 
@@ -96,7 +101,7 @@ Before finishing, perform these generic sweeps and record each result in the Can
 
 For each candidate, state whether it is complete, incomplete, or rejected because a safe control blocks it. Include file, symbol, line/range, confidence, missing evidence, and decoy/safe-control rejection rows.
 """.strip()
-REDACTED_PROMPT_FOR_REPORT = "<structured chained-audit benchmark prompt>"
+REDACTED_PROMPT_FOR_REPORT = "<structured chained-audit benchmark prompt via events stdin>"
 
 
 @dataclass(frozen=True)
@@ -156,9 +161,7 @@ class BenchmarkHarness:
             summary = self.run_case(case)
             summaries.append(summary)
             print(f"[{_now()}] Completed {case.key}", flush=True)
-        command = (
-            self._build_command(REDACTED_PROMPT_FOR_REPORT) if self.config.cases else []
-        )
+        command = self._build_command() if self.config.cases else []
         metadata = ReportMetadata(
             title="Development Chained Vulnerability Benchmark Report",
             report_root=self.output_dir,
@@ -264,7 +267,12 @@ class BenchmarkHarness:
         attempt: int,
         prompt: str,
     ) -> ProcessAttempt:
-        command = tuple(self._build_command(prompt))
+        command = tuple(self._build_command())
+        input_text = _events_stdin_prompt(
+            prompt=prompt,
+            workspace=workspace,
+            turn_id=f"benchmark-{case.key}-attempt-{attempt}",
+        )
         env = dict(os.environ)
         env.pop("CODEGOPHER_TEST_MOCK_RESPONSE", None)
         env[self.config.api_key_env] = self.config.api_key_value
@@ -278,6 +286,7 @@ class BenchmarkHarness:
                 encoding="utf-8",
                 errors="replace",
                 capture_output=True,
+                input=input_text,
                 timeout=self.config.timeout_seconds,
                 check=False,
             )
@@ -301,7 +310,7 @@ class BenchmarkHarness:
                 timed_out=True,
             )
 
-    def _build_command(self, prompt: str) -> list[str]:
+    def _build_command(self) -> list[str]:
         command = [
             *self.config.cgopher_command,
             "--events",
@@ -317,7 +326,6 @@ class BenchmarkHarness:
         ]
         if self.config.replay_reasoning_content:
             command.append("--replay-reasoning-content")
-        command.extend(["-p", prompt])
         return command
 
     def _build_prepass(self, case: BenchmarkCase, workspace: Path) -> str:
@@ -384,9 +392,12 @@ class BenchmarkHarness:
                 "unresolved evidence",
             )
         )
+        has_exact_evidence_gap = _has_abbreviated_code_refs(report)
         return (not has_ledger) or (not has_line_refs) or (
             claims_no_complete_chain and not claims_complete_chain
-        ) or (claims_complete_chain and has_unresolved_completeness_marker)
+        ) or (claims_complete_chain and has_unresolved_completeness_marker) or (
+            has_ledger and has_exact_evidence_gap
+        )
 
     def _analyze(
         self,
@@ -557,3 +568,27 @@ def _should_retry(attempt: ProcessAttempt) -> bool:
 
 def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
+
+
+def _events_stdin_prompt(*, prompt: str, workspace: Path, turn_id: str) -> str:
+    start_turn = {
+        "version": 1,
+        "type": "start_turn",
+        "turn_id": turn_id,
+        "workspace_root": str(workspace),
+        "prompt": prompt,
+    }
+    shutdown = {"version": 1, "type": "shutdown"}
+    return json.dumps(start_turn) + "\n" + json.dumps(shutdown) + "\n"
+
+
+def _has_abbreviated_code_refs(report: str) -> bool:
+    file_line = re.compile(
+        r"\b([\w.-]+\.(?:py|ts|tsx|js|jsx|java|html|css)):\d+\b",
+        flags=re.IGNORECASE,
+    )
+    for match in file_line.finditer(report):
+        path = match.group(1)
+        if "/" not in path and "\\" not in path:
+            return True
+    return False

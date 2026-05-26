@@ -88,7 +88,8 @@ from pathlib import Path
 import json
 import sys
 
-prompt = " ".join(sys.argv)
+stdin_text = sys.stdin.read()
+prompt = " ".join(sys.argv) + "\\n" + stdin_text
 if "Continue the same static-only chained vulnerability review" in prompt:
     report = "# Report\\n\\n## Candidate Chain Ledger\\n\\n| Status | Source | Hop | Sink | File | Symbol | Line | Confidence | Missing Evidence | Safe Control |\\n|---|---|---|---|---|---|---|---|---|---|\\n| complete | input | none | vulnerable | app.py | vulnerable | app.py:1 | high | none | none |\\n\\n### Known Chain\\nEvidence: app.py:1 vulnerable.\\n"
 else:
@@ -288,6 +289,47 @@ def test_corrective_pass_triggers_for_unresolved_completeness_markers(
                 "| complete | source | hop | sink | app.py | vulnerable | app.py:1 |",
                 "",
                 "No audit of token or identifier generator helpers was completed.",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert harness._needs_corrective_pass(workspace) is True
+
+
+def test_corrective_pass_triggers_for_abbreviated_code_references(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+    workspace = harness.prepare_workspace(case)
+    report_path = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        "\n".join(
+            [
+                "# Report",
+                "",
+                "## Candidate Chain Ledger",
+                "",
+                "| Status | Source | Hop | Sink | File | Symbol | Line |",
+                "|---|---|---|---|---|---|---|",
+                "| complete | source | hop | sink | app.py | vulnerable | app.py:1 |",
             ]
         ),
         encoding="utf-8",

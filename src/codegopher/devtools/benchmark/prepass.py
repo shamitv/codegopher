@@ -95,7 +95,7 @@ CATEGORY_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = (
         "Identifier, token, reference, and display helpers",
         (
             re.compile(r"\b(?:generate|generator|sequence|next|random|uuid)\w*\b", re.I),
-            re.compile(r"\b(?:token|code|reference|ref|pnr|booking|order|shipment)\w*\b", re.I),
+            re.compile(r"\b(?:token|code|reference|ref|pnr)\w*\b", re.I),
             re.compile(r"\b(?:display|summary|raw|html|label|receipt)\w*\b", re.I),
         ),
     ),
