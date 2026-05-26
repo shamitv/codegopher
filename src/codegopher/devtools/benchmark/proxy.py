@@ -90,7 +90,10 @@ class ProxyRunClient:
         path: str,
         payload: JsonObject | None,
     ) -> JsonObject:
-        url = urljoin(f"{self.admin_url}/", path.lstrip("/"))
+        request_path = path
+        if self.admin_url.endswith("/admin") and request_path.startswith("/admin/"):
+            request_path = request_path[len("/admin") :]
+        url = urljoin(f"{self.admin_url}/", request_path.lstrip("/"))
         data = None
         headers = {"Accept": "application/json"}
         if payload is not None:

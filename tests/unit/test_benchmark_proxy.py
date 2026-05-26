@@ -56,3 +56,28 @@ def test_proxy_run_client_aborts_for_foreign_active_run() -> None:
 
     with pytest.raises(ProxyRunError, match="not owned"):
         client.start_run(name="CodeGopher test", notes="")
+
+
+def test_proxy_run_client_accepts_admin_ui_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    requested_urls: list[str] = []
+
+    class FakeResponse:
+        def __enter__(self) -> FakeResponse:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return b'{"active_run": null}'
+
+    def fake_urlopen(request: object, timeout: int) -> FakeResponse:
+        del timeout
+        requested_urls.append(request.full_url)  # type: ignore[attr-defined]
+        return FakeResponse()
+
+    monkeypatch.setattr("codegopher.devtools.benchmark.proxy.urlopen", fake_urlopen)
+    client = ProxyRunClient("http://proxy.example/admin")
+
+    assert client.active_run() is None
+    assert requested_urls == ["http://proxy.example/admin/api/runs"]
