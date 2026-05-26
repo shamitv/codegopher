@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from codegopher.devtools.benchmark.evaluator import (
+    count_line_references,
     evaluate_ground_truth,
     evaluate_report_quality,
     evaluate_safety,
@@ -36,6 +37,7 @@ from codegopher.devtools.benchmark.manifest import (
     VulnerabilityManifest,
     load_vulnerability_manifest,
 )
+from codegopher.devtools.benchmark.prepass import build_static_prepass
 from codegopher.devtools.benchmark.reporter import (
     ReportMetadata,
     render_aggregate_report,
@@ -45,13 +47,56 @@ from codegopher.devtools.benchmark.reporter import (
 )
 from codegopher.security.report import DEFAULT_CHAINED_VULNERABILITY_REPORT
 
-BENCHMARK_PROMPT = (
+BASE_BENCHMARK_PROMPT = (
     "Use @skill:chained-vulnerability-static-audit to perform a static-only chained "
     "vulnerability review of this codebase. Inspect only the current working directory. "
     "Do not use live probes, dynamic scanners, shell commands, or files outside this "
     "workspace. Write the final report with write_chained_vulnerability_report to "
     "docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
 )
+CHAIN_FAMILY_CHECKLIST = """
+Use this generic chain-family checklist; do not assume any item exists unless source evidence supports it:
+
+- Cross-file authorization or tenant confusion: user-controlled identifier -> missing ownership/tenant check -> privileged read/write.
+- Query or expression construction: request input -> query/filter/string builder -> data disclosure or unauthorized mutation.
+- SSRF/open redirect/internal fetch: URL or callback input -> normalization/redirect bypass -> internal resource, metadata, or privileged callback sink.
+- Reset, invite, session, or token chain: predictable or reusable token -> trust boundary hop -> account/session takeover or privilege change.
+- Identifier/reference/display helper chain: generated or predictable ID -> lookup endpoint -> raw or sensitive display sink.
+- Crypto/key/fallback misuse: weak or reused secret -> legacy compatibility path -> forged token, plaintext exposure, or integrity bypass.
+- Deserialization/template/path/archive flow: import/render/path input -> parser or filesystem hop -> code/data exposure or overwrite.
+- Race/state/background-job confusion: state-changing endpoint -> queued job/webhook/delayed transition -> unauthorized final state.
+- Error/config exposure chain: verbose error/config leak -> secret/internal identifier discovery -> follow-on privileged action.
+
+Report requirements:
+
+- Include a section titled "Candidate Chain Ledger".
+- For every candidate chain, include source, hop, sink, file, symbol, line or line range, confidence, missing evidence, and safe control/decoy rejection.
+- Use `read_file` with `include_line_numbers=true` when gathering final evidence.
+- Cite code evidence as `relative/path.ext:line` or `relative/path.ext:line-line`.
+- If no complete chain is provable, still call the report writer and include reviewed areas, rejected candidates, missing evidence, and incomplete chains.
+""".strip()
+CORRECTIVE_BENCHMARK_PROMPT = """
+Continue the same static-only chained vulnerability review. The current audit is missing one or more generic quality gates: line-numbered evidence, a Candidate Chain Ledger, or a clear complete-chain/incomplete-chain conclusion.
+
+Do not use manifests, removed evaluator files, parent directories, live probes, dynamic scanners, shell commands, or files outside this workspace.
+
+Use only source-derived evidence. Re-read the minimum necessary source files with `read_file` and `include_line_numbers=true`, then update the final report with `write_chained_vulnerability_report` to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
+
+Before finishing, perform these generic sweeps and record each result in the Candidate Chain Ledger:
+
+- source-controlled identifiers plus missing ownership or tenant checks
+- quiet helper prerequisites such as ID/token/reference generators, display helpers, summaries, and raw-label builders
+- query/filter/string-builder sinks
+- outbound fetch, redirect, webhook, or callback flows
+- reset/invite/session/token trust transitions
+- crypto/key fallback or legacy compatibility paths
+- template/deserialization/path/archive flows
+- race/state/background-job or delayed webhook sinks
+- verbose error or config exposure that can enable a follow-on action
+
+For each candidate, state whether it is complete, incomplete, or rejected because a safe control blocks it. Include file, symbol, line/range, confidence, missing evidence, and decoy/safe-control rejection rows.
+""".strip()
+REDACTED_PROMPT_FOR_REPORT = "<structured chained-audit benchmark prompt>"
 
 
 @dataclass(frozen=True)
@@ -72,6 +117,8 @@ class BenchmarkConfig:
     previous_report: Path | None = None
     proxy_run_url: str | None = None
     sanitize_source_hints: bool = False
+    structured_prepass: bool = True
+    corrective_second_pass: bool = True
 
 
 @dataclass(frozen=True)
@@ -109,7 +156,9 @@ class BenchmarkHarness:
             summary = self.run_case(case)
             summaries.append(summary)
             print(f"[{_now()}] Completed {case.key}", flush=True)
-        command = self._build_command(self.config.cases[0]) if self.config.cases else []
+        command = (
+            self._build_command(REDACTED_PROMPT_FOR_REPORT) if self.config.cases else []
+        )
         metadata = ReportMetadata(
             title="Development Chained Vulnerability Benchmark Report",
             report_root=self.output_dir,
@@ -137,11 +186,31 @@ class BenchmarkHarness:
         manifest = load_vulnerability_manifest(case.manifest)
         self._write_ground_truth(case, manifest)
         workspace = self.prepare_workspace(case)
-        attempts = self._run_with_retry(case, workspace)
+        prepass = self._build_prepass(case, workspace)
+        prompt = self._build_benchmark_prompt(prepass)
+        attempts = self._run_with_retry(case, workspace, prompt)
+        corrective_used = False
+        if self.config.corrective_second_pass and self._needs_corrective_pass(workspace):
+            print(f"[{_now()}] Running corrective pass for {case.key}", flush=True)
+            corrective_used = True
+            corrective = self._run_process(
+                case,
+                workspace,
+                len(attempts) + 1,
+                CORRECTIVE_BENCHMARK_PROMPT,
+            )
+            attempts.append(corrective)
+            self._write_attempt_logs(case, corrective)
         final = attempts[-1]
         self._write_text(self.output_dir / "logs" / f"{case.key}.events.jsonl", final.stdout)
         self._write_text(self.output_dir / "logs" / f"{case.key}.stderr.log", final.stderr)
-        summary = self._analyze(case, manifest, workspace, attempts)
+        summary = self._analyze(
+            case,
+            manifest,
+            workspace,
+            attempts,
+            corrective_used=corrective_used,
+        )
         write_json(self.output_dir / "analysis" / f"{case.key}.summary.json", summary)
         write_markdown(
             self.output_dir / "analysis" / f"{case.key}.analysis.md",
@@ -171,20 +240,18 @@ class BenchmarkHarness:
             )
         return workspace
 
-    def _run_with_retry(self, case: BenchmarkCase, workspace: Path) -> list[ProcessAttempt]:
+    def _run_with_retry(
+        self,
+        case: BenchmarkCase,
+        workspace: Path,
+        prompt: str,
+    ) -> list[ProcessAttempt]:
         attempts = []
         max_attempts = self.config.retries + 1
         for attempt_number in range(1, max_attempts + 1):
-            attempt = self._run_process(case, workspace, attempt_number)
+            attempt = self._run_process(case, workspace, attempt_number, prompt)
             attempts.append(attempt)
-            self._write_text(
-                self.output_dir / "logs" / f"{case.key}.attempt{attempt_number}.events.jsonl",
-                attempt.stdout,
-            )
-            self._write_text(
-                self.output_dir / "logs" / f"{case.key}.attempt{attempt_number}.stderr.log",
-                attempt.stderr,
-            )
+            self._write_attempt_logs(case, attempt)
             if not _should_retry(attempt):
                 break
             print(f"[{_now()}] Retrying transient failure for {case.key}", flush=True)
@@ -195,8 +262,9 @@ class BenchmarkHarness:
         case: BenchmarkCase,
         workspace: Path,
         attempt: int,
+        prompt: str,
     ) -> ProcessAttempt:
-        command = tuple(self._build_command(case))
+        command = tuple(self._build_command(prompt))
         env = dict(os.environ)
         env.pop("CODEGOPHER_TEST_MOCK_RESPONSE", None)
         env[self.config.api_key_env] = self.config.api_key_value
@@ -233,8 +301,7 @@ class BenchmarkHarness:
                 timed_out=True,
             )
 
-    def _build_command(self, case: BenchmarkCase) -> list[str]:
-        del case
+    def _build_command(self, prompt: str) -> list[str]:
         command = [
             *self.config.cgopher_command,
             "--events",
@@ -250,8 +317,76 @@ class BenchmarkHarness:
         ]
         if self.config.replay_reasoning_content:
             command.append("--replay-reasoning-content")
-        command.extend(["-p", BENCHMARK_PROMPT])
+        command.extend(["-p", prompt])
         return command
+
+    def _build_prepass(self, case: BenchmarkCase, workspace: Path) -> str:
+        if not self.config.structured_prepass:
+            return ""
+        prepass = build_static_prepass(workspace)
+        self._write_text(self.output_dir / "analysis" / f"{case.key}.prepass.md", prepass)
+        return prepass
+
+    def _build_benchmark_prompt(self, prepass: str) -> str:
+        sections = [BASE_BENCHMARK_PROMPT, CHAIN_FAMILY_CHECKLIST]
+        if prepass:
+            sections.append(prepass)
+        return "\n\n".join(sections)
+
+    def _write_attempt_logs(self, case: BenchmarkCase, attempt: ProcessAttempt) -> None:
+        self._write_text(
+            self.output_dir / "logs" / f"{case.key}.attempt{attempt.attempt}.events.jsonl",
+            attempt.stdout,
+        )
+        self._write_text(
+            self.output_dir / "logs" / f"{case.key}.attempt{attempt.attempt}.stderr.log",
+            attempt.stderr,
+        )
+
+    def _needs_corrective_pass(self, workspace: Path) -> bool:
+        report = self._read_workspace_report(workspace)
+        if not report:
+            return False
+        report_l = report.lower()
+        has_ledger = "candidate chain ledger" in report_l
+        has_line_refs = count_line_references(report) > 0
+        claims_no_complete_chain = any(
+            marker in report_l
+            for marker in (
+                "no complete chains",
+                "no chains detected",
+                "complete chains detected: 0",
+                "chain count: 0",
+            )
+        )
+        claims_complete_chain = any(
+            marker in report_l
+            for marker in (
+                "status: complete",
+                "complete chain",
+                "confirmed chain",
+                "full chain",
+                "| complete",
+                "| **complete**",
+            )
+        )
+        has_unresolved_completeness_marker = any(
+            marker in report_l
+            for marker in (
+                "no audit of",
+                "not reviewed",
+                "not fully reviewed",
+                "missing proof",
+                "missing required",
+                "missing prerequisite",
+                "not provably connected",
+                "not fully proven",
+                "unresolved evidence",
+            )
+        )
+        return (not has_ledger) or (not has_line_refs) or (
+            claims_no_complete_chain and not claims_complete_chain
+        ) or (claims_complete_chain and has_unresolved_completeness_marker)
 
     def _analyze(
         self,
@@ -259,6 +394,8 @@ class BenchmarkHarness:
         manifest: VulnerabilityManifest,
         workspace: Path,
         attempts: list[ProcessAttempt],
+        *,
+        corrective_used: bool,
     ) -> dict[str, Any]:
         final = attempts[-1]
         events = parse_events(final.stdout)
@@ -286,6 +423,7 @@ class BenchmarkHarness:
             "returncode": final.returncode,
             "command": list(final.command),
             "attempt_count": len(attempts),
+            "corrective_pass_used": corrective_used,
             "event_counts": event_counts(events),
             "tool_calls": tool_calls,
             "tool_results": tool_results,
@@ -317,6 +455,12 @@ class BenchmarkHarness:
         content = output_report.read_text(encoding="utf-8", errors="replace")
         self._write_text(target, content)
         return content
+
+    def _read_workspace_report(self, workspace: Path) -> str:
+        output_report = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+        if not output_report.exists():
+            return ""
+        return output_report.read_text(encoding="utf-8", errors="replace")
 
     def _write_ground_truth(
         self,

@@ -49,6 +49,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--previous-report", type=Path)
     parser.add_argument("--proxy-run-url")
     parser.add_argument("--sanitize-source-hints", action="store_true")
+    parser.add_argument(
+        "--no-structured-prepass",
+        action="store_true",
+        help="Disable the source-derived inventory prompt section.",
+    )
+    parser.add_argument(
+        "--no-corrective-second-pass",
+        action="store_true",
+        help="Disable the generic quality-gate corrective pass.",
+    )
     args = parser.parse_args(argv)
 
     cases = _cases_from_args(args.suite, args.app)
@@ -68,6 +78,8 @@ def main(argv: list[str] | None = None) -> int:
         previous_report=args.previous_report,
         proxy_run_url=args.proxy_run_url,
         sanitize_source_hints=args.sanitize_source_hints,
+        structured_prepass=not args.no_structured_prepass,
+        corrective_second_pass=not args.no_corrective_second_pass,
     )
     result = BenchmarkHarness(config).run()
     print(f"Wrote {result.report_path}")

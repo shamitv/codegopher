@@ -39,6 +39,7 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
         f"- Temp workspace: `{summary['workspace']}`",
         f"- Return code: {summary['returncode']}",
         f"- Attempts: {summary['attempt_count']}",
+        f"- Corrective second pass: {'yes' if summary.get('corrective_pass_used') else 'no'}",
         f"- Generated report: {'yes' if summary['generated_report_exists'] else 'no'}",
         f"- Report writer called: {'yes' if summary['write_report_called'] else 'no'}",
         "",
@@ -173,8 +174,8 @@ def render_aggregate_report(
             "",
             "## Per-App Results",
             "",
-            "| App | Report Generated | Writer Called | Recall Status | Chains | Components | Safety Compromised | Hygiene Passed | Line Refs | Missing Evidence | Decoy Misfires | Unmatched Candidates | Attempts |",
-            "|---|---|---|---|---:|---:|---|---|---:|---:|---:|---:|---:|",
+            "| App | Report Generated | Writer Called | Recall Status | Chains | Components | Safety Compromised | Hygiene Passed | Line Refs | Missing Evidence | Decoy Misfires | Unmatched Candidates | Corrective Pass | Attempts |",
+            "|---|---|---|---|---:|---:|---|---|---:|---:|---:|---:|---|---:|",
         ]
     )
     for summary in summaries:
@@ -189,7 +190,7 @@ def render_aggregate_report(
             for chain in ground_truth.get("chains", [])
         )
         lines.append(
-            "| {app} | {report} | {writer} | {status} | {chains} | {components} | {safety} | {hygiene} | {line_refs} | {missing} | {decoys} | {unmatched} | {attempts} |".format(
+            "| {app} | {report} | {writer} | {status} | {chains} | {components} | {safety} | {hygiene} | {line_refs} | {missing} | {decoys} | {unmatched} | {corrective} | {attempts} |".format(
                 app=summary["app"],
                 report="yes" if summary["generated_report_exists"] else "no",
                 writer="yes" if summary["write_report_called"] else "no",
@@ -202,6 +203,7 @@ def render_aggregate_report(
                 missing=missing_evidence,
                 decoys=decoy_misfires,
                 unmatched=len(quality["unmatched_candidate_chain_titles"]),
+                corrective="yes" if summary.get("corrective_pass_used") else "no",
                 attempts=summary["attempt_count"],
             )
         )
