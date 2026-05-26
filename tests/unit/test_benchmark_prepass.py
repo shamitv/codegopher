@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from codegopher.devtools.benchmark.prepass import build_static_prepass
+from codegopher.devtools.benchmark.prepass import (
+    MAX_MATCHES_PER_CATEGORY,
+    build_static_focus_queue,
+    build_static_prepass,
+)
 
 
 def test_static_prepass_finds_generic_security_inventory(tmp_path: Path) -> None:
@@ -45,7 +49,9 @@ def test_static_prepass_finds_generic_security_inventory(tmp_path: Path) -> None
 
     inventory = build_static_prepass(app)
 
-    assert "Source-Derived Static Inventory" in inventory
+    assert "Source-Derived Static Focus Queue" in inventory
+    assert "Focus Queue Summary" in inventory
+    assert "FQ001" in inventory
     assert "`BookingController.java:1`" in inventory
     assert "`BookingController.java:3`" in inventory
     assert "`BookingService.java:3`" in inventory
@@ -69,3 +75,24 @@ def test_static_prepass_skips_evaluator_and_vendor_noise(tmp_path: Path) -> None
     assert "server.ts:1" in inventory
     assert "node_modules" not in inventory
     assert "README.md" not in inventory
+
+
+def test_static_focus_queue_caps_matches_deterministically(tmp_path: Path) -> None:
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / "routes.py").write_text(
+        "\n".join(f"@app.route('/item/{index}')" for index in range(40)),
+        encoding="utf-8",
+    )
+
+    queue = build_static_focus_queue(app)
+    routes = next(
+        category
+        for category in queue.categories
+        if category.name == "Routes and entry points"
+    )
+
+    assert len(routes.items) == MAX_MATCHES_PER_CATEGORY
+    assert routes.items[0].item_id == "FQ001"
+    assert routes.items[0].path == "routes.py"
+    assert routes.items[-1].line == MAX_MATCHES_PER_CATEGORY

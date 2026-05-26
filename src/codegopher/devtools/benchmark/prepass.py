@@ -43,16 +43,34 @@ SKIP_DIRS = {
     "vendor",
 }
 MAX_FILE_BYTES = 256_000
-MAX_MATCHES_PER_CATEGORY = 24
+MAX_MATCHES_PER_CATEGORY = 16
+MAX_TOTAL_MATCHES = 128
 MAX_SNIPPET_CHARS = 180
+REMOVED_BASENAMES = {"readme.md", "impl_plan.md", ".vulns", "vulns.json", "scenarios.md"}
 
 
 @dataclass(frozen=True)
 class InventoryMatch:
     category: str
+    item_id: str
     path: str
     line: int
     snippet: str
+
+
+@dataclass(frozen=True)
+class FocusQueueCategory:
+    name: str
+    items: tuple[InventoryMatch, ...]
+
+
+@dataclass(frozen=True)
+class StaticFocusQueue:
+    categories: tuple[FocusQueueCategory, ...]
+
+    @property
+    def total_items(self) -> int:
+        return sum(len(category.items) for category in self.categories)
 
 
 CATEGORY_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = (
@@ -134,13 +152,17 @@ CATEGORY_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = (
 )
 
 
-def build_static_prepass(workspace: Path) -> str:
-    """Build a compact, source-only inventory for benchmark prompts."""
+def build_static_focus_queue(workspace: Path) -> StaticFocusQueue:
+    """Build a deterministic source-only navigation queue for chained audits."""
 
     matches_by_category: dict[str, list[InventoryMatch]] = {
         category: [] for category, _patterns in CATEGORY_PATTERNS
     }
+    total_matches = 0
+    item_counter = 1
     for path in _iter_source_files(workspace):
+        if total_matches >= MAX_TOTAL_MATCHES:
+            break
         try:
             if path.stat().st_size > MAX_FILE_BYTES:
                 continue
@@ -149,6 +171,8 @@ def build_static_prepass(workspace: Path) -> str:
             continue
         relative = path.relative_to(workspace).as_posix()
         for line_number, line in enumerate(lines, start=1):
+            if total_matches >= MAX_TOTAL_MATCHES:
+                break
             normalized = line.strip()
             if not normalized:
                 continue
@@ -160,27 +184,67 @@ def build_static_prepass(workspace: Path) -> str:
                     bucket.append(
                         InventoryMatch(
                             category=category,
+                            item_id=f"FQ{item_counter:03d}",
                             path=relative,
                             line=line_number,
                             snippet=_compact_snippet(normalized),
                         )
                     )
+                    item_counter += 1
+                    total_matches += 1
+                    if total_matches >= MAX_TOTAL_MATCHES:
+                        break
+
+    return StaticFocusQueue(
+        categories=tuple(
+            FocusQueueCategory(category, tuple(matches_by_category[category]))
+            for category, _patterns in CATEGORY_PATTERNS
+        )
+    )
+
+
+def build_static_prepass(workspace: Path) -> str:
+    """Build a compact, source-only inventory for benchmark prompts."""
+
+    queue = build_static_focus_queue(workspace)
+    return render_static_focus_queue(queue)
+
+
+def render_static_focus_queue(queue: StaticFocusQueue) -> str:
+    """Render the focus queue as prompt-ready Markdown."""
 
     lines_out = [
-        "## Source-Derived Static Inventory",
+        "## Source-Derived Static Focus Queue",
         "",
-        "This inventory was generated from the sanitized current workspace only. It is a navigation aid, not ground truth.",
+        "This queue was generated from the sanitized current workspace only. It is a navigation aid, not ground truth.",
+        "Use it to plan source-only coverage before drawing chained-audit conclusions.",
+        "",
+        "### Focus Queue Summary",
+        "",
+        "| Category | Items |",
+        "|---|---:|",
     ]
+    for category in queue.categories:
+        lines_out.append(f"| {category.name} | {len(category.items)} |")
+    lines_out.extend(
+        [
+            "",
+            "### Coverage Instructions",
+            "",
+            "- Review focus items by category and connect only source-supported source-hop-sink paths.",
+            "- Treat safe controls as path-specific: decide whether they block the exact candidate path or are merely nearby.",
+            "- Use full repository-relative paths and line numbers from this queue when re-reading evidence.",
+        ]
+    )
     any_matches = False
-    for category, _patterns in CATEGORY_PATTERNS:
-        matches = matches_by_category[category]
-        lines_out.extend(["", f"### {category}"])
-        if not matches:
+    for category in queue.categories:
+        lines_out.extend(["", f"### {category.name}"])
+        if not category.items:
             lines_out.append("- No compact matches found.")
             continue
         any_matches = True
-        for item in matches:
-            lines_out.append(f"- `{item.path}:{item.line}` {item.snippet}")
+        for item in category.items:
+            lines_out.append(f"- {item.item_id} `{item.path}:{item.line}` {item.snippet}")
     if not any_matches:
         lines_out.append("")
         lines_out.append("No high-signal source patterns were found in the sampled files.")
@@ -191,6 +255,8 @@ def _iter_source_files(workspace: Path) -> list[Path]:
     paths: list[Path] = []
     for path in workspace.rglob("*"):
         if not path.is_file():
+            continue
+        if path.name.lower() in REMOVED_BASENAMES:
             continue
         if any(part in SKIP_DIRS for part in path.relative_to(workspace).parts[:-1]):
             continue
