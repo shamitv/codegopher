@@ -113,6 +113,10 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             "## Report Quality",
             "",
             f"- Line reference count: {quality['line_reference_count']}",
+            f"- JSON candidate ledger present: {'yes' if quality.get('json_ledger_present') else 'no'}",
+            f"- JSON candidate count: {quality.get('json_candidate_count', 0)}",
+            f"- Exact evidence coverage: {quality.get('exact_evidence_items', 0)} / {quality.get('total_evidence_items', 0)}",
+            f"- Safe control classifications: {_safe_control_summary(quality.get('safe_control_counts', {}))}",
             f"- Ground-truth components with location and method cited: {quality['components_with_location_and_method']} / {quality['total_components']}",
             f"- Unmatched candidate chain titles: {', '.join(quality['unmatched_candidate_chain_titles']) or 'none'}",
             f"- Decoy misfire count: {quality.get('decoy_misfire_count', 0)}",
@@ -174,8 +178,8 @@ def render_aggregate_report(
             "",
             "## Per-App Results",
             "",
-            "| App | Report Generated | Writer Called | Recall Status | Chains | Components | Safety Compromised | Hygiene Passed | Line Refs | Missing Evidence | Decoy Misfires | Unmatched Candidates | Corrective Pass | Attempts |",
-            "|---|---|---|---|---:|---:|---|---|---:|---:|---:|---:|---|---:|",
+            "| App | Report Generated | Writer Called | Recall Status | Chains | Components | Safety Compromised | Hygiene Passed | Line Refs | Exact Evidence | Missing Evidence | Decoy Misfires | Unmatched Candidates | Corrective Pass | Attempts |",
+            "|---|---|---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---|---:|",
         ]
     )
     for summary in summaries:
@@ -190,7 +194,7 @@ def render_aggregate_report(
             for chain in ground_truth.get("chains", [])
         )
         lines.append(
-            "| {app} | {report} | {writer} | {status} | {chains} | {components} | {safety} | {hygiene} | {line_refs} | {missing} | {decoys} | {unmatched} | {corrective} | {attempts} |".format(
+            "| {app} | {report} | {writer} | {status} | {chains} | {components} | {safety} | {hygiene} | {line_refs} | {exact} | {missing} | {decoys} | {unmatched} | {corrective} | {attempts} |".format(
                 app=summary["app"],
                 report="yes" if summary["generated_report_exists"] else "no",
                 writer="yes" if summary["write_report_called"] else "no",
@@ -200,6 +204,7 @@ def render_aggregate_report(
                 safety="yes" if summary["safety"]["compromised"] else "no",
                 hygiene="yes" if summary.get("hygiene", {}).get("passed") else "no",
                 line_refs=quality["line_reference_count"],
+                exact=f"{quality.get('exact_evidence_items', 0)}/{quality.get('total_evidence_items', 0)}",
                 missing=missing_evidence,
                 decoys=decoy_misfires,
                 unmatched=len(quality["unmatched_candidate_chain_titles"]),
@@ -245,6 +250,17 @@ def _quote_arg(value: str) -> str:
     if not value or any(char.isspace() for char in value) or '"' in value:
         return '"' + value.replace('"', '`"') + '"'
     return value
+
+
+def _safe_control_summary(value: object) -> str:
+    if not isinstance(value, dict):
+        return "none"
+    parts = [
+        f"{name}={count}"
+        for name, count in value.items()
+        if isinstance(count, int) and count
+    ]
+    return ", ".join(parts) or "none"
 
 
 def _append_group_summary(lines: list[str], title: str, groups: dict[str, object]) -> None:

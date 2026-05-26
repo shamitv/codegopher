@@ -336,3 +336,173 @@ def test_corrective_pass_triggers_for_abbreviated_code_references(
     )
 
     assert harness._needs_corrective_pass(workspace) is True
+
+
+def test_corrective_pass_does_not_trigger_for_complete_json_ledger(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+    workspace = harness.prepare_workspace(case)
+    report_path = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        """
+# Report
+
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "hop": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "sink": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "safe_controls": [
+        {"path": "src/app.py", "symbol": "guard", "line": "2", "classification": "not_applicable"}
+      ],
+      "confidence": "high",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+
+Evidence: src/app.py:1 vulnerable.
+""",
+        encoding="utf-8",
+    )
+
+    assert harness._needs_corrective_pass(workspace) is False
+
+
+def test_corrective_pass_triggers_when_helper_focus_is_omitted(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+    workspace = harness.prepare_workspace(case)
+    report_path = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        """
+# Report
+
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "hop": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "sink": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "safe_controls": [],
+      "confidence": "high",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+
+Evidence: src/app.py:1 vulnerable.
+""",
+        encoding="utf-8",
+    )
+    prepass = """
+### Identifier, token, reference, and display helpers
+- FQ001 `src/helpers.py:4` def make_code(): pass
+"""
+
+    assert harness._needs_corrective_pass(workspace, prepass) is True
+
+
+def test_corrective_pass_triggers_for_nearby_guard_rejection(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+    workspace = harness.prepare_workspace(case)
+    report_path = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        """
+# Report
+
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "rejected",
+      "family": "idor",
+      "source": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "hop": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "sink": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "safe_controls": [
+        {"path": "src/app.py", "symbol": "guard", "line": "2", "classification": "nearby_only"}
+      ],
+      "confidence": "low",
+      "missing_evidence": ["same path guard"]
+    }
+  ]
+}
+```
+
+Evidence: src/app.py:1 vulnerable. The nearby guard rejected this path.
+""",
+        encoding="utf-8",
+    )
+
+    assert harness._needs_corrective_pass(workspace) is True

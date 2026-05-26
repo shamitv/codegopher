@@ -19,6 +19,7 @@ from codegopher.devtools.benchmark.evaluator import (
     evaluate_report_quality,
     evaluate_safety,
     evaluation_to_dict,
+    parse_candidate_chain_ledger,
     quality_to_dict,
     safety_to_dict,
 )
@@ -72,6 +73,9 @@ Use this generic chain-family checklist; do not assume any item exists unless so
 Report requirements:
 
 - Include a section titled "Candidate Chain Ledger".
+- Include a fenced JSON block with a top-level `candidate_chains` array.
+- Each JSON candidate must include `status`, `family`, `source`, `hop`, `sink`, `safe_controls`, `confidence`, and `missing_evidence`.
+- `source`, `hop`, `sink`, and `safe_controls` entries must use evidence objects with full repo-relative `path`, exact `symbol`, and `line` or `line_range`.
 - For every candidate chain, include source, hop, sink, file, symbol, line or line range, confidence, missing evidence, and safe control/decoy rejection.
 - Use `read_file` with `include_line_numbers=true` when gathering final evidence.
 - Cite code evidence as `relative/path.ext:line` or `relative/path.ext:line-line`.
@@ -86,6 +90,8 @@ Do not use manifests, removed evaluator files, parent directories, live probes, 
 Use only source-derived evidence. Re-read the minimum necessary source files with `read_file` and `include_line_numbers=true`, then update the final report with `write_chained_vulnerability_report` to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
 
 Every final evidence row must cite the full repository-relative path, exact symbol or method name, and line or line range. Replace abbreviated citations such as `Controller.java:40-47` with full citations such as `src/main/java/example/Controller.java:40-47`.
+
+Also include or repair the fenced JSON candidate ledger with a top-level `candidate_chains` array. Every `source`, `hop`, `sink`, and `safe_controls` evidence object must include `path`, `symbol`, and `line` or `line_range`.
 
 Before finishing, perform these generic sweeps and record each result in the Candidate Chain Ledger:
 
@@ -193,7 +199,7 @@ class BenchmarkHarness:
         prompt = self._build_benchmark_prompt(prepass)
         attempts = self._run_with_retry(case, workspace, prompt)
         corrective_used = False
-        if self.config.corrective_second_pass and self._needs_corrective_pass(workspace):
+        if self.config.corrective_second_pass and self._needs_corrective_pass(workspace, prepass):
             print(f"[{_now()}] Running corrective pass for {case.key}", flush=True)
             corrective_used = True
             corrective = self._run_process(
@@ -351,12 +357,14 @@ class BenchmarkHarness:
             attempt.stderr,
         )
 
-    def _needs_corrective_pass(self, workspace: Path) -> bool:
+    def _needs_corrective_pass(self, workspace: Path, prepass: str = "") -> bool:
         report = self._read_workspace_report(workspace)
         if not report:
             return False
         report_l = report.lower()
+        ledger = parse_candidate_chain_ledger(report)
         has_ledger = "candidate chain ledger" in report_l
+        has_json_ledger = bool(ledger["present"])
         has_line_refs = count_line_references(report) > 0
         claims_no_complete_chain = any(
             marker in report_l
@@ -392,12 +400,22 @@ class BenchmarkHarness:
                 "unresolved evidence",
             )
         )
-        has_exact_evidence_gap = _has_abbreviated_code_refs(report)
-        return (not has_ledger) or (not has_line_refs) or (
+        has_exact_evidence_gap = _has_abbreviated_code_refs(report) or (
+            has_json_ledger
+            and ledger["total_evidence_items"] > 0
+            and ledger["exact_evidence_items"] < ledger["total_evidence_items"]
+        )
+        has_missing_json_ledger = not has_json_ledger
+        has_helper_omission = _prepass_has_helper_items(prepass) and _omits_helper_review(
+            report
+        )
+        has_nearby_guard_over_rejection = _has_nearby_guard_over_rejection(report, ledger)
+        has_contradiction = _has_contradictory_conclusions(report)
+        return has_missing_json_ledger or (not has_ledger) or (not has_line_refs) or (
             claims_no_complete_chain and not claims_complete_chain
         ) or (claims_complete_chain and has_unresolved_completeness_marker) or (
             has_ledger and has_exact_evidence_gap
-        )
+        ) or has_helper_omission or has_nearby_guard_over_rejection or has_contradiction
 
     def _analyze(
         self,
@@ -584,7 +602,7 @@ def _events_stdin_prompt(*, prompt: str, workspace: Path, turn_id: str) -> str:
 
 def _has_abbreviated_code_refs(report: str) -> bool:
     file_line = re.compile(
-        r"\b([\w.-]+\.(?:py|ts|tsx|js|jsx|java|html|css)):\d+\b",
+        r"(?<![\w./\\-])([\w./\\-]+\.(?:py|ts|tsx|js|jsx|java|html|css)):\d+\b",
         flags=re.IGNORECASE,
     )
     for match in file_line.finditer(report):
@@ -592,3 +610,52 @@ def _has_abbreviated_code_refs(report: str) -> bool:
         if "/" not in path and "\\" not in path:
             return True
     return False
+
+
+def _prepass_has_helper_items(prepass: str) -> bool:
+    if "### Identifier, token, reference, and display helpers" not in prepass:
+        return False
+    section = prepass.split("### Identifier, token, reference, and display helpers", 1)[1]
+    section = section.split("\n### ", 1)[0]
+    return "FQ" in section
+
+
+def _omits_helper_review(report: str) -> bool:
+    report_l = report.lower()
+    helper_terms = (
+        "generator",
+        "generate",
+        "token",
+        "reference",
+        "identifier",
+        "display helper",
+        "summary",
+        "raw label",
+        "pnr",
+    )
+    return not any(term in report_l for term in helper_terms)
+
+
+def _has_nearby_guard_over_rejection(report: str, ledger: dict[str, Any]) -> bool:
+    counts = ledger.get("safe_control_counts", {})
+    nearby_count = counts.get("nearby_only", 0) if isinstance(counts, dict) else 0
+    report_l = report.lower()
+    text_marker = "nearby" in report_l and any(
+        marker in report_l for marker in ("reject", "rejected", "blocks", "blocked")
+    )
+    return bool(nearby_count and text_marker)
+
+
+def _has_contradictory_conclusions(report: str) -> bool:
+    report_l = report.lower()
+    complete_markers = ("complete chain", "confirmed chain", "status: complete", "| complete")
+    incomplete_markers = (
+        "same chain is incomplete",
+        "also incomplete",
+        "not fully proven",
+        "partially inferred",
+        "not provably connected",
+    )
+    return any(marker in report_l for marker in complete_markers) and any(
+        marker in report_l for marker in incomplete_markers
+    )

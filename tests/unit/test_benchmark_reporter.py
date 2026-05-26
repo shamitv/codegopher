@@ -66,6 +66,6 @@ def test_aggregate_report_marks_dev_only_and_unmatched_candidates() -> None:
     assert "## Recall By Difficulty" in report
     assert "| hard | 1/1 | 1/1 |" in report
     assert (
-        "| app-test | yes | yes | full | 1/1 | 1/1 | no | yes | 2 | 0 | 0 | 1 | no | 1 |"
+        "| app-test | yes | yes | full | 1/1 | 1/1 | no | yes | 2 | 0/0 | 0 | 0 | 1 | no | 1 |"
         in report
     )

@@ -7,6 +7,7 @@ from codegopher.devtools.benchmark.evaluator import (
     evaluate_report_quality,
     evaluate_safety,
     extract_candidate_chain_titles,
+    parse_candidate_chain_ledger,
 )
 from codegopher.devtools.benchmark.manifest import (
     ChainManifest,
@@ -116,6 +117,7 @@ Evidence: config.py:9.
     assert quality.components_with_location_and_method == 2
     assert quality.unmatched_candidate_chain_titles == ("Chain 02: Debug Console To RCE",)
     assert quality.decoy_misfire_count == 0
+    assert quality.json_ledger_present is False
 
 
 def test_report_quality_counts_decoy_only_when_used_as_exploit_evidence() -> None:
@@ -147,3 +149,87 @@ def test_extract_candidate_chain_titles_deduplicates_and_ignores_tables() -> Non
 ### Chain graph
 """
     ) == ("Chain 1: Booking IDOR", "Chain 2: Debug Console")
+
+
+def test_parse_candidate_chain_ledger_tracks_exact_evidence_and_controls() -> None:
+    ledger = parse_candidate_chain_ledger(
+        """
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"path": "src/controllers/bookings.py", "symbol": "get_booking", "line": "14"},
+      "hop": {"path": "src/services/bookings.py", "symbol": "find_by_id", "line_range": "22-29"},
+      "sink": {"path": "src/templates/detail.html", "symbol": "booking_detail", "line": "8"},
+      "safe_controls": [
+        {"path": "src/controllers/admin.py", "symbol": "guard", "line": "17", "classification": "nearby_only"}
+      ],
+      "confidence": "high",
+      "missing_evidence": []
+    },
+    {
+      "status": "incomplete",
+      "family": "ssrf",
+      "source": {"path": "webhook.py", "line": "3"},
+      "hop": "not found",
+      "sink": {"path": "client.py", "symbol": "fetch"},
+      "safe_controls": [{"classification": "same_path_blocker"}],
+      "confidence": "low",
+      "missing_evidence": ["line evidence"]
+    }
+  ]
+}
+```
+""",
+    )
+
+    assert ledger["present"] is True
+    assert len(ledger["candidate_chains"]) == 2
+    assert ledger["total_evidence_items"] == 7
+    assert ledger["exact_evidence_items"] == 4
+    assert ledger["safe_control_counts"]["nearby_only"] == 1
+    assert ledger["safe_control_counts"]["same_path_blocker"] == 1
+
+
+def test_report_quality_includes_json_ledger_exact_evidence_metrics() -> None:
+    quality = evaluate_report_quality(
+        manifest(),
+        """
+## Chain 01: Open Redirect To Admin
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"path": "app.py", "symbol": "redirect_user", "line": "12"},
+      "hop": {"path": "admin.py", "symbol": "forwarded request", "line": "20"},
+      "sink": {"path": "admin.py", "symbol": "admin_panel", "line": "44"},
+      "safe_controls": [
+        {"path": "app.py", "symbol": "safe_redirect", "line": "30", "classification": "not_applicable"}
+      ],
+      "confidence": "high",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+""",
+    )
+
+    assert quality.json_ledger_present is True
+    assert quality.json_candidate_count == 1
+    assert quality.exact_evidence_items == 4
+    assert quality.total_evidence_items == 4
+    assert quality.exact_evidence_coverage == 1.0
+    assert quality.safe_control_counts == {
+        "same_path_blocker": 0,
+        "nearby_only": 0,
+        "not_applicable": 1,
+        "unknown": 0,
+    }

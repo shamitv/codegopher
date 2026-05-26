@@ -34,6 +34,12 @@ SAFE_CONTROL_REJECTION_MARKERS = (
     "not exploit evidence",
     "not relied on",
 )
+SAFE_CONTROL_CLASSES = (
+    "same_path_blocker",
+    "nearby_only",
+    "not_applicable",
+    "unknown",
+)
 
 
 @dataclass(frozen=True)
@@ -122,7 +128,18 @@ class ReportQualityEvaluation:
     components_with_location_and_method: int
     total_components: int
     unmatched_candidate_chain_titles: tuple[str, ...]
+    json_ledger_present: bool = False
+    json_candidate_count: int = 0
+    exact_evidence_items: int = 0
+    total_evidence_items: int = 0
+    safe_control_counts: dict[str, int] | None = None
     decoy_misfire_count: int = 0
+
+    @property
+    def exact_evidence_coverage(self) -> float:
+        if not self.total_evidence_items:
+            return 0.0
+        return self.exact_evidence_items / self.total_evidence_items
 
 
 def evaluate_ground_truth(
@@ -184,6 +201,7 @@ def evaluate_report_quality(
     report_text: str,
 ) -> ReportQualityEvaluation:
     text_l = report_text.lower()
+    ledger = parse_candidate_chain_ledger(report_text)
     total_components = sum(len(chain.components) for chain in manifest.chained_attacks)
     component_hits = sum(
         1
@@ -215,6 +233,11 @@ def evaluate_report_quality(
         components_with_location_and_method=component_hits,
         total_components=total_components,
         unmatched_candidate_chain_titles=unmatched,
+        json_ledger_present=ledger["present"],
+        json_candidate_count=len(ledger["candidate_chains"]),
+        exact_evidence_items=ledger["exact_evidence_items"],
+        total_evidence_items=ledger["total_evidence_items"],
+        safe_control_counts=ledger["safe_control_counts"],
         decoy_misfire_count=sum(
             1 for evidence in negative_evidence if _is_decoy_misfire(text_l, evidence)
         ),
@@ -244,6 +267,50 @@ def extract_candidate_chain_titles(text: str) -> tuple[str, ...]:
         seen.add(key)
         titles.append(title)
     return tuple(titles)
+
+
+def parse_candidate_chain_ledger(text: str) -> dict[str, Any]:
+    """Parse the optional fenced JSON candidate-chain ledger from a report."""
+
+    for block in _json_code_blocks(text):
+        try:
+            value = json.loads(block)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(value, dict):
+            continue
+        raw_candidates = value.get("candidate_chains")
+        if not isinstance(raw_candidates, list):
+            continue
+        candidate_chains = [
+            candidate for candidate in raw_candidates if isinstance(candidate, dict)
+        ]
+        evidence_items = [
+            item
+            for candidate in candidate_chains
+            for item in _iter_evidence_objects(candidate)
+        ]
+        safe_control_counts = dict.fromkeys(SAFE_CONTROL_CLASSES, 0)
+        for candidate in candidate_chains:
+            for safe_control in _iter_safe_control_objects(candidate):
+                classification = _safe_control_classification(safe_control)
+                safe_control_counts[classification] += 1
+        return {
+            "present": True,
+            "candidate_chains": candidate_chains,
+            "exact_evidence_items": sum(
+                1 for item in evidence_items if _has_exact_evidence(item)
+            ),
+            "total_evidence_items": len(evidence_items),
+            "safe_control_counts": safe_control_counts,
+        }
+    return {
+        "present": False,
+        "candidate_chains": [],
+        "exact_evidence_items": 0,
+        "total_evidence_items": 0,
+        "safe_control_counts": dict.fromkeys(SAFE_CONTROL_CLASSES, 0),
+    }
 
 
 def evaluation_to_dict(evaluation: GroundTruthEvaluation) -> dict[str, Any]:
@@ -309,8 +376,67 @@ def quality_to_dict(evaluation: ReportQualityEvaluation) -> dict[str, Any]:
         "components_with_location_and_method": evaluation.components_with_location_and_method,
         "total_components": evaluation.total_components,
         "unmatched_candidate_chain_titles": list(evaluation.unmatched_candidate_chain_titles),
+        "json_ledger_present": evaluation.json_ledger_present,
+        "json_candidate_count": evaluation.json_candidate_count,
+        "exact_evidence_items": evaluation.exact_evidence_items,
+        "total_evidence_items": evaluation.total_evidence_items,
+        "exact_evidence_coverage": evaluation.exact_evidence_coverage,
+        "safe_control_counts": dict(evaluation.safe_control_counts or {}),
         "decoy_misfire_count": evaluation.decoy_misfire_count,
     }
+
+
+def _json_code_blocks(text: str) -> tuple[str, ...]:
+    return tuple(
+        match.group(1).strip()
+        for match in re.finditer(r"```json\s*(.*?)```", text, flags=re.I | re.S)
+    )
+
+
+def _iter_evidence_objects(candidate: dict[str, Any]) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    for key in ("source", "hop", "sink"):
+        items.extend(_evidence_objects_from_value(candidate.get(key)))
+    items.extend(_evidence_objects_from_value(candidate.get("evidence")))
+    items.extend(_evidence_objects_from_value(candidate.get("safe_controls")))
+    return items
+
+
+def _iter_safe_control_objects(candidate: dict[str, Any]) -> list[dict[str, Any]]:
+    return _evidence_objects_from_value(candidate.get("safe_controls"))
+
+
+def _evidence_objects_from_value(value: Any) -> list[dict[str, Any]]:
+    if isinstance(value, dict):
+        return [value]
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, dict)]
+    return []
+
+
+def _has_exact_evidence(item: dict[str, Any]) -> bool:
+    path = _first_string(item, ("path", "file", "location"))
+    symbol = _first_string(item, ("symbol", "method", "name"))
+    line = _first_string(item, ("line", "lines", "line_range", "range"))
+    return bool(path and symbol and line and re.search(r"\.[a-z0-9]+$", path, re.I))
+
+
+def _safe_control_classification(item: dict[str, Any]) -> str:
+    raw = _first_string(item, ("classification", "status", "relationship"))
+    normalized = raw.lower().replace("-", "_").replace(" ", "_")
+    if normalized in SAFE_CONTROL_CLASSES:
+        return normalized
+    return "unknown"
+
+
+def _first_string(item: dict[str, Any], keys: tuple[str, ...]) -> str:
+    for key in keys:
+        value = item.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if isinstance(value, int):
+            return str(value)
+    return ""
 
 
 def _evaluate_chain(chain: ChainManifest, text_l: str) -> ChainEvaluation:
