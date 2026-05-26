@@ -115,10 +115,35 @@ Evidence: config.py:9.
     assert quality.line_reference_count == 3
     assert quality.components_with_location_and_method == 2
     assert quality.unmatched_candidate_chain_titles == ("Chain 02: Debug Console To RCE",)
-    assert quality.decoy_misfire_count == 2
+    assert quality.decoy_misfire_count == 0
+
+
+def test_report_quality_counts_decoy_only_when_used_as_exploit_evidence() -> None:
+    quality = evaluate_report_quality(
+        manifest(),
+        """
+## Chain 01: Open Redirect To Admin
+Evidence: app.py:12 redirect_user and admin.py:44 admin_panel.
+The exploit works because safe_admin_guard accepts the attacker supplied forwarded request.
+""",
+    )
+
+    assert quality.decoy_misfire_count == 1
 
 
 def test_extract_candidate_chain_titles_ignores_common_subsections() -> None:
     assert extract_candidate_chain_titles(
         "## Chain One\n### Source\n### Remediation\n"
     ) == ("Chain One",)
+
+
+def test_extract_candidate_chain_titles_deduplicates_and_ignores_tables() -> None:
+    assert extract_candidate_chain_titles(
+        """
+## Chain 1: Booking IDOR
+### Chain #1 Table
+## Chain: Booking IDOR
+## Chain 2: Debug Console
+### Chain graph
+"""
+    ) == ("Chain 1: Booking IDOR", "Chain 2: Debug Console")
