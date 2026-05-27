@@ -120,6 +120,8 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"- Exact evidence coverage: {quality.get('exact_evidence_items', 0)} / {quality.get('total_evidence_items', 0)}",
             f"- Safe control classifications: {_safe_control_summary(quality.get('safe_control_counts', {}))}",
             f"- Safe controls missing classification: {quality.get('safe_control_missing_classification_count', 0)}",
+            f"- Focus coverage: {_coverage_label(summary.get('focus_coverage', {}))}",
+            f"- High-signal focus gaps: {', '.join(summary.get('focus_coverage', {}).get('high_signal_uncovered_categories', [])) or 'none'}",
             f"- Corrective reasons: {', '.join(summary.get('corrective_reasons', [])) or 'none'}",
             f"- Ground-truth components with location and method cited: {quality['components_with_location_and_method']} / {quality['total_components']}",
             f"- Unmatched candidate chain titles: {', '.join(quality['unmatched_candidate_chain_titles']) or 'none'}",
@@ -182,8 +184,8 @@ def render_aggregate_report(
             "",
             "## Per-App Results",
             "",
-            "| App | Report Generated | Writer Called | Recall Status | Chains | Components | Safety Compromised | Hygiene Passed | Ledger Valid | Line Refs | Exact Evidence | Missing Evidence | Decoy Misfires | Unmatched Candidates | Corrective Pass | Attempts |",
-            "|---|---|---|---|---:|---:|---|---|---|---:|---:|---:|---:|---:|---|---:|",
+            "| App | Report Generated | Writer Called | Recall Status | Chains | Components | Safety Compromised | Hygiene Passed | Ledger Valid | Focus Coverage | Line Refs | Exact Evidence | Missing Evidence | Decoy Misfires | Unmatched Candidates | Corrective Pass | Attempts |",
+            "|---|---|---|---|---:|---:|---|---|---|---:|---:|---:|---:|---:|---:|---|---:|",
         ]
     )
     for summary in summaries:
@@ -198,7 +200,7 @@ def render_aggregate_report(
             for chain in ground_truth.get("chains", [])
         )
         lines.append(
-            "| {app} | {report} | {writer} | {status} | {chains} | {components} | {safety} | {hygiene} | {ledger_valid} | {line_refs} | {exact} | {missing} | {decoys} | {unmatched} | {corrective} | {attempts} |".format(
+            "| {app} | {report} | {writer} | {status} | {chains} | {components} | {safety} | {hygiene} | {ledger_valid} | {focus} | {line_refs} | {exact} | {missing} | {decoys} | {unmatched} | {corrective} | {attempts} |".format(
                 app=summary["app"],
                 report="yes" if summary["generated_report_exists"] else "no",
                 writer="yes" if summary["write_report_called"] else "no",
@@ -208,6 +210,7 @@ def render_aggregate_report(
                 safety="yes" if summary["safety"]["compromised"] else "no",
                 hygiene="yes" if summary.get("hygiene", {}).get("passed") else "no",
                 ledger_valid="yes" if quality.get("ledger_valid") else "no",
+                focus=_coverage_label(summary.get("focus_coverage", {})),
                 line_refs=quality["line_reference_count"],
                 exact=f"{quality.get('exact_evidence_items', 0)}/{quality.get('total_evidence_items', 0)}",
                 missing=missing_evidence,
@@ -266,6 +269,14 @@ def _safe_control_summary(value: object) -> str:
         if isinstance(count, int) and count
     ]
     return ", ".join(parts) or "none"
+
+
+def _coverage_label(value: object) -> str:
+    if not isinstance(value, dict):
+        return "n/a"
+    covered = value.get("covered_items", 0)
+    total = value.get("total_items", 0)
+    return f"{covered}/{total}"
 
 
 def _append_group_summary(lines: list[str], title: str, groups: dict[str, object]) -> None:

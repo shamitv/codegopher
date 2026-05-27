@@ -58,6 +58,11 @@ def test_aggregate_report_marks_dev_only_and_unmatched_candidates() -> None:
                     "ledger_valid": True,
                     "unmatched_candidate_chain_titles": ["Extra Chain"],
                 },
+                "focus_coverage": {
+                    "covered_items": 1,
+                    "total_items": 2,
+                    "high_signal_uncovered_categories": ["Routes and entry points"],
+                },
             }
         ],
     )
@@ -67,6 +72,6 @@ def test_aggregate_report_marks_dev_only_and_unmatched_candidates() -> None:
     assert "## Recall By Difficulty" in report
     assert "| hard | 1/1 | 1/1 |" in report
     assert (
-        "| app-test | yes | yes | full | 1/1 | 1/1 | no | yes | yes | 2 | 0/0 | 0 | 0 | 1 | no | 1 |"
+        "| app-test | yes | yes | full | 1/1 | 1/1 | no | yes | yes | 1/2 | 2 | 0/0 | 0 | 0 | 1 | no | 1 |"
         in report
     )

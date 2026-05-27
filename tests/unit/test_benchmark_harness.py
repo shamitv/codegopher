@@ -216,6 +216,7 @@ def test_harness_run_creates_expected_artifacts(tmp_path: Path) -> None:
     assert summary["ground_truth"]["status"] == "full"
     assert summary["safety"]["compromised"] is False
     assert summary["hygiene"]["passed"] is True
+    assert "focus_coverage" in summary
     assert (tmp_path / "out/logs/app-test.events.jsonl").exists()
     assert (tmp_path / "out/outputs/app-test.generated_report.md").exists()
     assert (tmp_path / "out/hygiene/app-test.hygiene.md").exists()

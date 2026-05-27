@@ -13,6 +13,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from codegopher.devtools.benchmark.coverage import (
+    evaluate_focus_coverage,
+    focus_coverage_to_dict,
+)
 from codegopher.devtools.benchmark.evaluator import (
     count_line_references,
     evaluate_ground_truth,
@@ -40,7 +44,11 @@ from codegopher.devtools.benchmark.manifest import (
     VulnerabilityManifest,
     load_vulnerability_manifest,
 )
-from codegopher.devtools.benchmark.prepass import build_static_prepass
+from codegopher.devtools.benchmark.prepass import (
+    StaticFocusQueue,
+    build_static_focus_queue,
+    render_static_focus_queue,
+)
 from codegopher.devtools.benchmark.reporter import (
     ReportMetadata,
     render_aggregate_report,
@@ -161,6 +169,7 @@ class BenchmarkHarness:
             / f"codegopher-dev-chain-{self.output_dir.name}"
         )
         self._hygiene_reports: dict[str, HygieneReport] = {}
+        self._focus_queues: dict[str, StaticFocusQueue] = {}
 
     def run(self) -> BenchmarkRunResult:
         self._ensure_dirs()
@@ -202,7 +211,16 @@ class BenchmarkHarness:
         prompt = self._build_benchmark_prompt(prepass)
         attempts = self._run_with_retry(case, workspace, prompt)
         corrective_used = False
-        corrective_reasons = self._corrective_reasons(workspace, prepass)
+        initial_events = parse_events(attempts[-1].stdout)
+        initial_tool_calls = [
+            event for event in initial_events if event.get("type") == "tool_call"
+        ]
+        corrective_reasons = self._corrective_reasons(
+            workspace,
+            prepass,
+            self._focus_queues.get(case.key),
+            initial_tool_calls,
+        )
         if self.config.corrective_second_pass and corrective_reasons:
             print(f"[{_now()}] Running corrective pass for {case.key}", flush=True)
             corrective_used = True
@@ -342,7 +360,9 @@ class BenchmarkHarness:
     def _build_prepass(self, case: BenchmarkCase, workspace: Path) -> str:
         if not self.config.structured_prepass:
             return ""
-        prepass = build_static_prepass(workspace)
+        queue = build_static_focus_queue(workspace)
+        self._focus_queues[case.key] = queue
+        prepass = render_static_focus_queue(queue)
         self._write_text(self.output_dir / "analysis" / f"{case.key}.prepass.md", prepass)
         return prepass
 
@@ -363,9 +383,15 @@ class BenchmarkHarness:
         )
 
     def _needs_corrective_pass(self, workspace: Path, prepass: str = "") -> bool:
-        return bool(self._corrective_reasons(workspace, prepass))
+        return bool(self._corrective_reasons(workspace, prepass, None, []))
 
-    def _corrective_reasons(self, workspace: Path, prepass: str = "") -> tuple[str, ...]:
+    def _corrective_reasons(
+        self,
+        workspace: Path,
+        prepass: str = "",
+        focus_queue: StaticFocusQueue | None = None,
+        tool_calls: list[dict[str, Any]] | None = None,
+    ) -> tuple[str, ...]:
         report = self._read_workspace_report(workspace)
         if not report:
             return ()
@@ -421,6 +447,11 @@ class BenchmarkHarness:
         has_nearby_guard_over_rejection = _has_nearby_guard_over_rejection(report, ledger)
         has_unknown_safe_controls = _has_only_unknown_safe_controls(ledger)
         has_contradiction = _has_contradictory_conclusions(report)
+        focus_coverage = evaluate_focus_coverage(
+            focus_queue,
+            tool_calls=tool_calls or [],
+            report_text=report,
+        )
         if has_missing_json_ledger:
             reasons.append("missing JSON candidate ledger")
         if ledger.get("validation_errors"):
@@ -443,6 +474,8 @@ class BenchmarkHarness:
             reasons.append("safe controls lack specific classifications")
         if has_contradiction:
             reasons.append("report has contradictory complete/incomplete conclusions")
+        for category in focus_coverage.high_signal_uncovered_categories:
+            reasons.append(f"high-signal focus category was not reviewed: {category}")
         return tuple(dict.fromkeys(reasons))
 
     def _analyze(
@@ -474,6 +507,11 @@ class BenchmarkHarness:
         )
         ground_truth = evaluate_ground_truth(manifest, generated_report + "\n" + final_text)
         quality = evaluate_report_quality(manifest, generated_report)
+        focus_coverage = evaluate_focus_coverage(
+            self._focus_queues.get(case.key),
+            tool_calls=tool_calls,
+            report_text=generated_report + "\n" + final_text,
+        )
         return {
             "app": case.key,
             "display_name": case.display_name,
@@ -496,6 +534,7 @@ class BenchmarkHarness:
             "safety": safety_to_dict(safety),
             "ground_truth": evaluation_to_dict(ground_truth),
             "report_quality": quality_to_dict(quality),
+            "focus_coverage": focus_coverage_to_dict(focus_coverage),
             "hygiene": hygiene_to_dict(
                 self._hygiene_reports.get(case.key, HygieneReport((), (), ()))
             ),
