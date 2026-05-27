@@ -119,6 +119,7 @@ Before finishing, perform these generic sweeps and record each result in the Can
 For each candidate, state whether it is complete, incomplete, or rejected because a safe control blocks it. Include file, symbol, line/range, confidence, missing evidence, and decoy/safe-control rejection rows.
 """.strip()
 REDACTED_PROMPT_FOR_REPORT = "<structured chained-audit benchmark prompt via events stdin>"
+MAX_CORRECTIVE_FOCUS_ITEMS = 12
 
 
 @dataclass(frozen=True)
@@ -215,20 +216,27 @@ class BenchmarkHarness:
         initial_tool_calls = [
             event for event in initial_events if event.get("type") == "tool_call"
         ]
+        focus_queue = self._focus_queues.get(case.key)
         corrective_reasons = self._corrective_reasons(
             workspace,
             prepass,
-            self._focus_queues.get(case.key),
+            focus_queue,
             initial_tool_calls,
         )
         if self.config.corrective_second_pass and corrective_reasons:
             print(f"[{_now()}] Running corrective pass for {case.key}", flush=True)
             corrective_used = True
+            corrective_prompt = self._build_corrective_prompt(
+                workspace,
+                corrective_reasons,
+                focus_queue,
+                initial_tool_calls,
+            )
             corrective = self._run_process(
                 case,
                 workspace,
                 len(attempts) + 1,
-                CORRECTIVE_BENCHMARK_PROMPT,
+                corrective_prompt,
             )
             attempts.append(corrective)
             self._write_attempt_logs(case, corrective)
@@ -384,6 +392,81 @@ class BenchmarkHarness:
 
     def _needs_corrective_pass(self, workspace: Path, prepass: str = "") -> bool:
         return bool(self._corrective_reasons(workspace, prepass, None, []))
+
+    def _build_corrective_prompt(
+        self,
+        workspace: Path,
+        reasons: tuple[str, ...],
+        focus_queue: StaticFocusQueue | None,
+        tool_calls: list[dict[str, Any]] | None,
+    ) -> str:
+        sections = [CORRECTIVE_BENCHMARK_PROMPT]
+        if reasons:
+            sections.append(
+                "Quality gate failures to repair:\n"
+                + "\n".join(f"- {reason}" for reason in reasons[:12])
+            )
+        focus_guidance = self._render_uncovered_focus_worklist(
+            workspace,
+            focus_queue,
+            tool_calls,
+        )
+        if focus_guidance:
+            sections.append(focus_guidance)
+        return "\n\n".join(sections)
+
+    def _render_uncovered_focus_worklist(
+        self,
+        workspace: Path,
+        focus_queue: StaticFocusQueue | None,
+        tool_calls: list[dict[str, Any]] | None,
+    ) -> str:
+        if focus_queue is None:
+            return ""
+        report = self._read_workspace_report(workspace)
+        coverage = evaluate_focus_coverage(
+            focus_queue,
+            tool_calls=tool_calls or [],
+            report_text=report,
+        )
+        if not coverage.high_signal_uncovered_categories:
+            return ""
+        covered_paths_by_category = {
+            category.category: set(category.covered_paths)
+            for category in coverage.categories
+        }
+        lines = [
+            "Targeted uncovered focus worklist:",
+            "- Re-read only the minimum source files needed to close these source-only coverage gaps.",
+            "- Do not restart the whole audit; repair chain consistency and evidence for these items.",
+        ]
+        item_count = 0
+        for category_name in coverage.high_signal_uncovered_categories:
+            queue_category = next(
+                (
+                    category
+                    for category in focus_queue.categories
+                    if category.name == category_name
+                ),
+                None,
+            )
+            if queue_category is None:
+                continue
+            covered_paths = covered_paths_by_category.get(category_name, set())
+            uncovered = [
+                item
+                for item in queue_category.items
+                if item.path not in covered_paths
+            ][:4]
+            if not uncovered:
+                continue
+            lines.append(f"- {category_name}:")
+            for item in uncovered:
+                lines.append(f"  - {item.item_id} `{item.path}:{item.line}` {item.snippet}")
+                item_count += 1
+                if item_count >= MAX_CORRECTIVE_FOCUS_ITEMS:
+                    return "\n".join(lines)
+        return "\n".join(lines) if item_count else ""
 
     def _corrective_reasons(
         self,

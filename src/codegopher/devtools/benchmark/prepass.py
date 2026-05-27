@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 SOURCE_EXTENSIONS = {
@@ -44,8 +44,10 @@ SKIP_DIRS = {
 }
 MAX_FILE_BYTES = 256_000
 MAX_MATCHES_PER_CATEGORY = 16
+MAX_CANDIDATES_PER_CATEGORY = 64
 MAX_TOTAL_MATCHES = 128
-MAX_SOURCE_GRAPH_EDGES = 32
+MAX_TOTAL_CANDIDATES = 512
+MAX_SOURCE_GRAPH_EDGES = 20
 MAX_SNIPPET_CHARS = 180
 REMOVED_BASENAMES = {"readme.md", "impl_plan.md", ".vulns", "vulns.json", "scenarios.md"}
 TOKEN_STOPWORDS = {
@@ -221,13 +223,12 @@ CATEGORY_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = (
 def build_static_focus_queue(workspace: Path) -> StaticFocusQueue:
     """Build a deterministic source-only navigation queue for chained audits."""
 
-    matches_by_category: dict[str, list[InventoryMatch]] = {
+    candidates_by_category: dict[str, list[InventoryMatch]] = {
         category: [] for category, _patterns in CATEGORY_PATTERNS
     }
-    total_matches = 0
-    item_counter = 1
+    total_candidates = 0
     for path in _iter_source_files(workspace):
-        if total_matches >= MAX_TOTAL_MATCHES:
+        if total_candidates >= MAX_TOTAL_CANDIDATES:
             break
         try:
             if path.stat().st_size > MAX_FILE_BYTES:
@@ -237,33 +238,45 @@ def build_static_focus_queue(workspace: Path) -> StaticFocusQueue:
             continue
         relative = path.relative_to(workspace).as_posix()
         for line_number, line in enumerate(lines, start=1):
-            if total_matches >= MAX_TOTAL_MATCHES:
+            if total_candidates >= MAX_TOTAL_CANDIDATES:
                 break
             normalized = line.strip()
             if not normalized:
                 continue
             for category, patterns in CATEGORY_PATTERNS:
-                bucket = matches_by_category[category]
-                if len(bucket) >= MAX_MATCHES_PER_CATEGORY:
+                bucket = candidates_by_category[category]
+                if len(bucket) >= MAX_CANDIDATES_PER_CATEGORY:
                     continue
                 if any(pattern.search(normalized) for pattern in patterns):
                     bucket.append(
                         InventoryMatch(
                             category=category,
-                            item_id=f"FQ{item_counter:03d}",
+                            item_id="",
                             path=relative,
                             line=line_number,
                             snippet=_compact_snippet(normalized),
                         )
                     )
-                    item_counter += 1
-                    total_matches += 1
-                    if total_matches >= MAX_TOTAL_MATCHES:
+                    total_candidates += 1
+                    if total_candidates >= MAX_TOTAL_CANDIDATES:
                         break
+
+    item_counter = 1
+    matches_by_category: dict[str, list[InventoryMatch]] = {}
+    for category, _patterns in CATEGORY_PATTERNS:
+        selected: list[InventoryMatch] = []
+        for match in _select_representative_matches(candidates_by_category[category]):
+            selected.append(replace(match, item_id=f"FQ{item_counter:03d}"))
+            item_counter += 1
+            if item_counter > MAX_TOTAL_MATCHES:
+                break
+        matches_by_category[category] = selected
+        if item_counter > MAX_TOTAL_MATCHES:
+            break
 
     return StaticFocusQueue(
         categories=tuple(
-            FocusQueueCategory(category, tuple(matches_by_category[category]))
+            FocusQueueCategory(category, tuple(matches_by_category.get(category, ())))
             for category, _patterns in CATEGORY_PATTERNS
         )
     )
@@ -349,6 +362,8 @@ def build_source_graph(queue: StaticFocusQueue) -> SourceGraph:
         for target in targets:
             if source == target:
                 continue
+            if source.path == target.path and source.category == target.category:
+                continue
             if source.category == target.category and source.path != target.path:
                 continue
             target_tokens = _item_tokens(target)
@@ -427,6 +442,22 @@ def _items_for_categories(
         if category.name in categories
         for item in category.items
     )
+
+
+def _select_representative_matches(
+    matches: list[InventoryMatch],
+) -> tuple[InventoryMatch, ...]:
+    ordered = sorted(matches, key=lambda item: (item.path, item.line, item.snippet))
+    seen_paths: set[str] = set()
+    representatives: list[InventoryMatch] = []
+    remaining: list[InventoryMatch] = []
+    for match in ordered:
+        if match.path in seen_paths:
+            remaining.append(match)
+            continue
+        seen_paths.add(match.path)
+        representatives.append(match)
+    return tuple((representatives + remaining)[:MAX_MATCHES_PER_CATEGORY])
 
 
 def _item_tokens(item: InventoryMatch) -> set[str]:

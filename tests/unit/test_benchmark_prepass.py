@@ -102,6 +102,34 @@ def test_static_focus_queue_caps_matches_deterministically(tmp_path: Path) -> No
     assert routes.items[-1].line == MAX_MATCHES_PER_CATEGORY
 
 
+def test_static_focus_queue_prefers_representative_paths_before_duplicates(
+    tmp_path: Path,
+) -> None:
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / "a_routes.py").write_text(
+        "\n".join(
+            f"@app.route('/a/{index}')" for index in range(MAX_MATCHES_PER_CATEGORY * 2)
+        ),
+        encoding="utf-8",
+    )
+    (app / "z_routes.py").write_text(
+        "@app.route('/z')\n",
+        encoding="utf-8",
+    )
+
+    queue = build_static_focus_queue(app)
+    routes = next(
+        category
+        for category in queue.categories
+        if category.name == "Routes and entry points"
+    )
+
+    assert len(routes.items) == MAX_MATCHES_PER_CATEGORY
+    assert routes.items[0].path == "a_routes.py"
+    assert routes.items[1].path == "z_routes.py"
+
+
 def test_source_graph_links_related_source_items_without_manifest_hints(
     tmp_path: Path,
 ) -> None:

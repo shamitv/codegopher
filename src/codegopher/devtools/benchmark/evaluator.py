@@ -40,6 +40,50 @@ SAFE_CONTROL_CLASSES = (
     "not_applicable",
     "unknown",
 )
+TITLE_TOKEN_ALIASES = {
+    "bypass": "bypass",
+    "bypassed": "bypass",
+    "bypasses": "bypass",
+    "enumerate": "enumeration",
+    "enumeration": "enumeration",
+    "forged": "forgery",
+    "forge": "forgery",
+    "forgery": "forgery",
+    "forging": "forgery",
+    "modify": "mutation",
+    "modification": "mutation",
+    "mutation": "mutation",
+    "mutate": "mutation",
+    "mutating": "mutation",
+    "redirect": "redirect",
+    "redirection": "redirect",
+    "session": "session",
+    "sessions": "session",
+    "ssrf": "ssrf",
+    "update": "mutation",
+    "updated": "mutation",
+    "updates": "mutation",
+}
+TITLE_STOPWORDS = {
+    "attack",
+    "candidate",
+    "chain",
+    "complete",
+    "confirmed",
+    "family",
+    "from",
+    "high",
+    "into",
+    "issue",
+    "path",
+    "possible",
+    "probable",
+    "rejected",
+    "source",
+    "status",
+    "through",
+    "with",
+}
 
 
 @dataclass(frozen=True)
@@ -705,6 +749,8 @@ def _is_candidate_chain_title(title: str) -> bool:
 
 def _normalized_title_key(title: str) -> str:
     title = re.sub(r"^(?:attack\s+)?chain\s*(?:#?\d+)?\s*[:.-]?\s*", "", title, flags=re.I)
+    title = re.sub(r"\b(?:status|family|source|hop|sink)\s*[:=]\s*", " ", title, flags=re.I)
+    title = title.replace("->", " ").replace("=>", " ")
     tokens = _meaningful_tokens(title)
     return " ".join(sorted(tokens)) or title.lower()
 
@@ -724,7 +770,7 @@ def _is_decoy_misfire(text_l: str, evidence: str) -> bool:
 
 def _meaningful_tokens(value: str) -> set[str]:
     return {
-        token
+        TITLE_TOKEN_ALIASES.get(token, token)
         for token in re.findall(r"[a-z0-9]+", value.lower())
-        if len(token) >= 4 and token not in {"chain", "with", "from", "into"}
+        if len(token) >= 4 and token not in TITLE_STOPWORDS
     }

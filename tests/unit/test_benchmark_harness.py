@@ -566,3 +566,56 @@ Evidence: src/app.py:1 vulnerable.
     assert "safe controls lack specific classifications" in harness._corrective_reasons(
         workspace
     )
+
+
+def test_corrective_prompt_includes_compact_uncovered_focus_worklist(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    (app / "routes.py").write_text(
+        "@app.route('/items/<item_id>')\ndef show_item(item_id): return service.show(item_id)\n",
+        encoding="utf-8",
+    )
+    (app / "helpers.py").write_text(
+        "def make_reference(user_id): return 'REF-' + str(user_id)\n",
+        encoding="utf-8",
+    )
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+    workspace = harness.prepare_workspace(case)
+    prepass = harness._build_prepass(case, workspace)
+    report_path = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text("# Report\n\nNo complete chains were found.\n", encoding="utf-8")
+    reasons = harness._corrective_reasons(
+        workspace,
+        prepass,
+        harness._focus_queues[case.key],
+        [],
+    )
+
+    prompt = harness._build_corrective_prompt(
+        workspace,
+        reasons,
+        harness._focus_queues[case.key],
+        [],
+    )
+
+    assert "Targeted uncovered focus worklist" in prompt
+    assert "Routes and entry points" in prompt
+    assert "routes.py:1" in prompt
+    assert "helpers.py:1" in prompt

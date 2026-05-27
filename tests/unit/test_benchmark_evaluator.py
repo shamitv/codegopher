@@ -121,6 +121,21 @@ Evidence: config.py:9.
     assert quality.ledger_valid is False
 
 
+def test_report_quality_normalizes_candidate_title_aliases() -> None:
+    quality = evaluate_report_quality(
+        manifest(),
+        """
+## Chain: Redirect Bypass -> Forwarded Admin Trust
+Evidence: app.py:12 redirect_user and admin.py:44 admin_panel.
+
+## Chain: Debug Console To RCE
+Evidence: config.py:9.
+""",
+    )
+
+    assert quality.unmatched_candidate_chain_titles == ("Chain: Debug Console To RCE",)
+
+
 def test_report_quality_counts_decoy_only_when_used_as_exploit_evidence() -> None:
     quality = evaluate_report_quality(
         manifest(),
