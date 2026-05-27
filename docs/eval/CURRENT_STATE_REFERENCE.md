@@ -79,9 +79,9 @@ Current capabilities include:
 
 ## Source Material
 
-- Baseline Responses report: `docs/plans/v0.10/report/20260526-231207-gpt54nano-complex2-responses/REPORT.md`
-- Structured two-app report: `docs/plans/v0.10/report/20260527-000753-gpt54nano-complex2-structured/REPORT.md`
-- Follow-up two-app report: `docs/plans/v0.10/report/20260527-003016-gpt54nano-complex2-followup/REPORT.md`
-- Harness2 level-5 report: `docs/plans/v0.10/report/20260527-005709-gpt54nano-level5-harness2/REPORT.md`
-- Harness3 level-5 report: `docs/plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/REPORT.md`
-- Harness3 comparison: `docs/plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/COMPARISON_WITH_PREVIOUS.md`
+- Baseline Responses report: [docs/plans/v0.10/report/20260526-231207-gpt54nano-complex2-responses/REPORT.md](../plans/v0.10/report/20260526-231207-gpt54nano-complex2-responses/REPORT.md)
+- Structured two-app report: [docs/plans/v0.10/report/20260527-000753-gpt54nano-complex2-structured/REPORT.md](../plans/v0.10/report/20260527-000753-gpt54nano-complex2-structured/REPORT.md)
+- Follow-up two-app report: [docs/plans/v0.10/report/20260527-003016-gpt54nano-complex2-followup/REPORT.md](../plans/v0.10/report/20260527-003016-gpt54nano-complex2-followup/REPORT.md)
+- Harness2 level-5 report: [docs/plans/v0.10/report/20260527-005709-gpt54nano-level5-harness2/REPORT.md](../plans/v0.10/report/20260527-005709-gpt54nano-level5-harness2/REPORT.md)
+- Harness3 level-5 report: [docs/plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/REPORT.md](../plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/REPORT.md)
+- Harness3 comparison: [docs/plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/COMPARISON_WITH_PREVIOUS.md](../plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/COMPARISON_WITH_PREVIOUS.md)
