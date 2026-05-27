@@ -106,6 +106,33 @@ print(json.dumps({"type": "turn_complete", "final_text": "done"}))
     return script
 
 
+def write_nonwriting_corrective_fake_cgopher(path: Path) -> Path:
+    script = path / "fake_cgopher_nonwriting_corrective.py"
+    script.write_text(
+        """
+from pathlib import Path
+import json
+import sys
+
+stdin_text = sys.stdin.read()
+prompt = " ".join(sys.argv) + "\\n" + stdin_text
+target = Path("docs/security/CHAINED_VULNERABILITIES_REVIEW.md")
+if "Continue the same static-only chained vulnerability review" not in prompt:
+    report = "# Report\\n\\nNo complete chains were found.\\n"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(report, encoding="utf-8")
+    print(json.dumps({"type": "tool_call", "tool_id": "call-1", "tool_name": "write_chained_vulnerability_report", "arguments_summary": "{\\"content\\":\\"# Report\\"}"}))
+    print(json.dumps({"type": "tool_result", "tool_id": "call-1", "is_error": False, "result_summary": "Wrote docs/security/CHAINED_VULNERABILITIES_REVIEW.md"}))
+else:
+    print(json.dumps({"type": "tool_call", "tool_id": "call-2", "tool_name": "read_file", "arguments_summary": "{\\"path\\":\\"app.py\\"}"}))
+    print(json.dumps({"type": "tool_result", "tool_id": "call-2", "is_error": False, "result_summary": "def vulnerable(): pass"}))
+print(json.dumps({"type": "turn_complete", "final_text": "done"}))
+""".strip(),
+        encoding="utf-8",
+    )
+    return script
+
+
 def test_prepare_workspace_removes_agent_visible_docs(tmp_path: Path) -> None:
     app = write_app(tmp_path)
     case = BenchmarkCase(
@@ -144,6 +171,7 @@ def test_prepare_workspace_sanitizes_source_hints(tmp_path: Path) -> None:
         "\n".join(
             [
                 "# OWASP A02: benchmark hint",
+                "# CHAIN LINK 1: source-to-sink hint",
                 "def vulnerable():",
                 "    return True  # vulnerable decoy",
             ]
@@ -182,7 +210,7 @@ def test_prepare_workspace_sanitizes_source_hints(tmp_path: Path) -> None:
         (tmp_path / "out/hygiene/app-test.hygiene.json").read_text(encoding="utf-8")
     )
     assert hygiene["passed"] is True
-    assert len(hygiene["sanitized_locations"]) == 4
+    assert len(hygiene["sanitized_locations"]) == 5
 
 
 def test_harness_run_creates_expected_artifacts(tmp_path: Path) -> None:
@@ -253,6 +281,40 @@ def test_harness_runs_corrective_second_pass_for_missing_quality_gates(
     assert summary["attempt_count"] == 2
     assert summary["report_quality"]["line_reference_count"] >= 1
     assert (tmp_path / "out/logs/app-test.attempt2.events.jsonl").exists()
+
+
+def test_harness_analysis_aggregates_tool_calls_across_attempts(tmp_path: Path) -> None:
+    app = write_app(tmp_path)
+    fake = write_nonwriting_corrective_fake_cgopher(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, str(fake)),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+            sanitize_source_hints=True,
+        )
+    )
+
+    harness.run()
+
+    summary = json.loads((tmp_path / "out/analysis/app-test.summary.json").read_text())
+    assert summary["corrective_pass_used"] is True
+    assert summary["generated_report_exists"] is True
+    assert summary["write_report_called"] is True
+    assert summary["event_counts"]["tool_call"] == 2
+    assert [call["tool_name"] for call in summary["tool_calls"]] == [
+        "write_chained_vulnerability_report",
+        "read_file",
+    ]
 
 
 def test_corrective_pass_triggers_for_unresolved_completeness_markers(

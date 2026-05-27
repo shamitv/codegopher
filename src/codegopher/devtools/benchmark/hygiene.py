@@ -10,7 +10,7 @@ REMOVED_NAMES = ("README.md", "impl_plan.md", ".vulns", "vulns.json", "scenarios
 
 HINT_PATTERN = re.compile(
     r"(?<![A-Za-z0-9])(?:planted|vulnerabilit(?:y|ies)|vulnerable|owasp|cwe|"
-    r"a(?:0[1-9]|10)|decoy|ground\s+truth|sandbox|security\s+analysis|"
+    r"a(?:0[1-9]|10)|chain\s+link|decoy|ground\s+truth|sandbox|security\s+analysis|"
     r"visualizer|target\s+a(?:0[1-9]|10)|idor|xss|cross-site\s+scripting|"
     r"cross\s+site\s+scripting|trivially\s+enumerable|prerequisite|"
     r"links\s+that\s+follow|exploit)(?![A-Za-z0-9])",
@@ -199,7 +199,7 @@ def _is_hint_only_text(stripped: str) -> bool:
     return bool(
         re.match(
             r"^(?:a(?:0[1-9]|10)|owasp|cwe|vulnerabilit|visualizer|"
-            r"security\s+analysis|target\s+a(?:0[1-9]|10)|idor|xss)",
+            r"security\s+analysis|target\s+a(?:0[1-9]|10)|chain\s+link|idor|xss)",
             stripped,
             re.I,
         )

@@ -30,6 +30,7 @@ from codegopher.core.mission import TaskLedger, select_mission_contract, todo_so
 from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
 from codegopher.memory import MemoryStore
 from codegopher.providers.base import Provider
+from codegopher.providers.openai_compat import model_requires_reasoning_content_replay
 from codegopher.security.policy import (
     create_static_audit_registry,
     uses_chained_vulnerability_skill,
@@ -560,11 +561,12 @@ class AgentSession:
 
     def _reasoning_content_for_replay(self, reasoning_parts: list[str]) -> str | None:
         entry = selected_provider_entry(self.settings)
-        if (
-            entry is None
-            or entry.api_family is not ProviderApiFamily.chat_completions
-            or not entry.replay_reasoning_content
-        ):
+        api_family = entry.api_family if entry is not None else ProviderApiFamily.chat_completions
+        should_replay = (
+            bool(entry and entry.replay_reasoning_content)
+            or model_requires_reasoning_content_replay(self.settings.model.name)
+        )
+        if api_family is not ProviderApiFamily.chat_completions or not should_replay:
             return None
         reasoning_content = "".join(reasoning_parts)
         return reasoning_content or None

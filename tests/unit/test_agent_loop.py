@@ -216,6 +216,42 @@ async def test_agent_loop_replays_reasoning_content_when_enabled(tmp_path: Path)
 
 
 @pytest.mark.asyncio
+async def test_agent_loop_replays_reasoning_content_for_deepseek_model(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "need file"},
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    await run_agent(
+        prompt="Inspect",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(
+            approval_mode=ApprovalMode.yolo,
+            model={"name": "deepseek-v4-flash"},
+        ),
+        cwd=tmp_path,
+    )
+
+    assistant_message = provider.calls[1][2]
+    assert assistant_message["reasoning_content"] == "need file"
+
+
+@pytest.mark.asyncio
 async def test_agent_loop_does_not_replay_reasoning_content_for_responses_api(
     tmp_path: Path,
 ) -> None:

@@ -1,0 +1,85 @@
+{
+  "stamp": "20260527-223118",
+  "round": "round-1",
+  "app": "app-01",
+  "model": "deepseek-v4-flash",
+  "returncode": 0,
+  "attempt_count": 2,
+  "corrective_pass_used": false,
+  "report_generated": false,
+  "report_writer_called": false,
+  "safety_compromised": false,
+  "hygiene_passed": true,
+  "quantity": {
+    "recall_status": "missed",
+    "full_chains_detected": 0,
+    "total_chains": 1,
+    "components_detected": 0,
+    "total_components": 3,
+    "component_recall": 0.0,
+    "full_chain_recall": 0.0
+  },
+  "quality": {
+    "ledger_valid": false,
+    "json_candidate_count": 0,
+    "validated_candidate_count": 0,
+    "line_reference_count": 0,
+    "exact_evidence_items": 0,
+    "total_evidence_items": 0,
+    "safe_control_counts": {
+      "same_path_blocker": 0,
+      "nearby_only": 0,
+      "not_applicable": 0,
+      "unknown": 0
+    },
+    "safe_controls_missing_classification": 0,
+    "decoy_misfire_count": 0,
+    "unmatched_candidate_count": 0,
+    "candidate_status_counts": {},
+    "candidate_count_from_report": 0
+  },
+  "discovery": {
+    "complete": false,
+    "reviewed_high_risk_families": [],
+    "missing_high_risk_families": [
+      "auth_session",
+      "config_secrets",
+      "controllers_routes",
+      "jobs",
+      "repositories_query",
+      "state_changing",
+      "static_html_signal",
+      "static_js_sink",
+      "validators",
+      "webhooks_outbound"
+    ],
+    "weak_high_risk_families": [],
+    "representative_paths": 56,
+    "covered_representative_paths": 0,
+    "focus_coverage": 0.0,
+    "high_signal_focus_gaps": [
+      "Routes and entry points",
+      "Auth and authorization controls",
+      "Query, LDAP, and expression sinks",
+      "Outbound fetch and SSRF surfaces",
+      "Identifier, token, reference, and display helpers",
+      "Rendering and raw HTML sinks",
+      "State-changing and privileged sinks"
+    ]
+  },
+  "proxy": {
+    "proxy_run_id": 22,
+    "request_count": null,
+    "error_count": null,
+    "total_tokens": null,
+    "total_tokens_display": null,
+    "total_cost_usd": null,
+    "total_cost_display": null,
+    "llm_wall_time_ms": null,
+    "llm_wall_time_display": null,
+    "output_tokens_per_second": null
+  },
+  "errors": [
+    "Provider request failed: Error code: 400 - {'error': {'message': 'The `reasoning_content` in the thinking mode must be passed back to the API.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_request_error'}}"
+  ]
+}

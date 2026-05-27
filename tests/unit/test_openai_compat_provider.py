@@ -74,7 +74,28 @@ async def test_openai_compat_provider_builds_request() -> None:
     assert client.chat.completions.kwargs["model"] == "gpt-test"
     assert client.chat.completions.kwargs["temperature"] == 0.2
     assert client.chat.completions.kwargs["max_tokens"] == 128
+    assert "max_completion_tokens" not in client.chat.completions.kwargs
     assert client.chat.completions.kwargs["stream"] is True
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_uses_completion_token_limit_for_gpt5() -> None:
+    client = FakeClient()
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    _ = [
+        event
+        async for event in provider.stream(
+            [{"role": "user", "content": "hello"}],
+            [],
+            model="gpt-5.4-nano",
+            temperature=0.2,
+            max_output_tokens=128,
+        )
+    ]
+
+    assert client.chat.completions.kwargs["max_completion_tokens"] == 128
+    assert "max_tokens" not in client.chat.completions.kwargs
 
 
 @pytest.mark.asyncio
@@ -140,6 +161,27 @@ async def test_openai_compat_provider_replays_reasoning_content_when_enabled() -
             [{"role": "assistant", "content": None, "reasoning_content": "private"}],
             [],
             model="gpt-test",
+            temperature=0.2,
+            max_output_tokens=128,
+        )
+    ]
+
+    assert client.chat.completions.kwargs["messages"] == [
+        {"role": "assistant", "content": None, "reasoning_content": "private"}
+    ]
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_replays_reasoning_content_for_deepseek() -> None:
+    client = FakeClient()
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    _ = [
+        event
+        async for event in provider.stream(
+            [{"role": "assistant", "content": None, "reasoning_content": "private"}],
+            [],
+            model="deepseek-v4-flash",
             temperature=0.2,
             max_output_tokens=128,
         )

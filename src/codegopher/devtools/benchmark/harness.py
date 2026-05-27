@@ -674,10 +674,15 @@ class BenchmarkHarness:
         corrective_reasons: tuple[str, ...],
     ) -> dict[str, Any]:
         final = attempts[-1]
-        events = parse_events(final.stdout)
-        tool_calls = [event for event in events if event.get("type") == "tool_call"]
-        tool_results = [event for event in events if event.get("type") == "tool_result"]
-        final_text = final_text_from_events(events)
+        final_events = parse_events(final.stdout)
+        all_events = [
+            event
+            for attempt in attempts
+            for event in parse_events(attempt.stdout)
+        ]
+        tool_calls = [event for event in all_events if event.get("type") == "tool_call"]
+        tool_results = [event for event in all_events if event.get("type") == "tool_result"]
+        final_text = final_text_from_events(final_events)
         generated_report = self._read_generated_report(case, workspace)
         self._write_text(
             self.output_dir / "outputs" / f"{case.key}.final_text.md",
@@ -714,7 +719,7 @@ class BenchmarkHarness:
             "corrective_reason_categories": _corrective_reason_categories(
                 corrective_reasons
             ),
-            "event_counts": event_counts(events),
+            "event_counts": event_counts(all_events),
             "tool_calls": tool_calls,
             "tool_results": tool_results,
             "write_report_called": any(

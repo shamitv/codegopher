@@ -34,6 +34,19 @@ def _chat_messages(
     ]
 
 
+def model_requires_reasoning_content_replay(model: str) -> bool:
+    """Return true for Chat Completions upstreams that require reasoning replay."""
+
+    return model.lower().startswith("deepseek")
+
+
+def _token_limit_parameter(model: str) -> str:
+    model_l = model.lower()
+    if model_l.startswith(("gpt-5", "o1", "o3", "o4")):
+        return "max_completion_tokens"
+    return "max_tokens"
+
+
 class OpenAICompatProvider:
     capabilities = ProviderCapabilities(streaming=True, tool_calls=True, token_counting=True)
 
@@ -65,16 +78,20 @@ class OpenAICompatProvider:
         max_output_tokens: int,
     ) -> AsyncIterator[StreamEvent]:
         try:
+            replay_reasoning_content = (
+                self.replay_reasoning_content
+                or model_requires_reasoning_content_replay(model)
+            )
             request_args: dict[str, Any] = {
                 "model": model,
                 "messages": _chat_messages(
                     messages,
-                    replay_reasoning_content=self.replay_reasoning_content,
+                    replay_reasoning_content=replay_reasoning_content,
                 ),
                 "temperature": temperature,
-                "max_tokens": max_output_tokens,
                 "stream": True,
             }
+            request_args[_token_limit_parameter(model)] = max_output_tokens
             if tools:
                 request_args["tools"] = tools
                 request_args["tool_choice"] = "auto"
