@@ -45,8 +45,56 @@ SKIP_DIRS = {
 MAX_FILE_BYTES = 256_000
 MAX_MATCHES_PER_CATEGORY = 16
 MAX_TOTAL_MATCHES = 128
+MAX_SOURCE_GRAPH_EDGES = 32
 MAX_SNIPPET_CHARS = 180
 REMOVED_BASENAMES = {"readme.md", "impl_plan.md", ".vulns", "vulns.json", "scenarios.md"}
+TOKEN_STOPWORDS = {
+    "admin",
+    "api",
+    "app",
+    "auth",
+    "class",
+    "config",
+    "controller",
+    "data",
+    "entity",
+    "error",
+    "get",
+    "html",
+    "http",
+    "java",
+    "json",
+    "main",
+    "model",
+    "post",
+    "public",
+    "return",
+    "route",
+    "service",
+    "src",
+    "string",
+    "test",
+    "this",
+    "true",
+    "type",
+    "util",
+    "void",
+}
+SOURCE_GRAPH_SOURCE_CATEGORIES = {
+    "Routes and entry points",
+    "Auth and authorization controls",
+    "Identifier, token, reference, and display helpers",
+}
+SOURCE_GRAPH_TARGET_CATEGORIES = {
+    "Auth and authorization controls",
+    "Query, LDAP, and expression sinks",
+    "Outbound fetch and SSRF surfaces",
+    "Identifier, token, reference, and display helpers",
+    "Rendering and raw HTML sinks",
+    "Verbose errors and config exposure",
+    "State-changing and privileged sinks",
+    "Safe controls and possible decoys",
+}
 
 
 @dataclass(frozen=True)
@@ -71,6 +119,24 @@ class StaticFocusQueue:
     @property
     def total_items(self) -> int:
         return sum(len(category.items) for category in self.categories)
+
+
+@dataclass(frozen=True)
+class SourceGraphEdge:
+    edge_id: str
+    source_category: str
+    source_path: str
+    source_line: int
+    target_category: str
+    target_path: str
+    target_line: int
+    relation: str
+    shared_tokens: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class SourceGraph:
+    edges: tuple[SourceGraphEdge, ...]
 
 
 CATEGORY_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = (
@@ -213,6 +279,7 @@ def build_static_prepass(workspace: Path) -> str:
 def render_static_focus_queue(queue: StaticFocusQueue) -> str:
     """Render the focus queue as prompt-ready Markdown."""
 
+    graph = build_source_graph(queue)
     lines_out = [
         "## Source-Derived Static Focus Queue",
         "",
@@ -236,6 +303,25 @@ def render_static_focus_queue(queue: StaticFocusQueue) -> str:
             "- Use full repository-relative paths and line numbers from this queue when re-reading evidence.",
         ]
     )
+    lines_out.extend(["", "### Lightweight Source Graph"])
+    if graph.edges:
+        lines_out.extend(
+            [
+                "",
+                "These source-derived edges are approximate navigation hints inferred from file names, symbols, snippets, and same-file proximity.",
+                "Validate every edge by reading source before using it as evidence.",
+            ]
+        )
+        for edge in graph.edges:
+            tokens = ", ".join(edge.shared_tokens) if edge.shared_tokens else "same file"
+            lines_out.append(
+                f"- {edge.edge_id} {edge.source_category} `{edge.source_path}:{edge.source_line}` "
+                f"-> {edge.target_category} `{edge.target_path}:{edge.target_line}` "
+                f"({edge.relation}; tokens: {tokens})"
+            )
+    else:
+        lines_out.append("")
+        lines_out.append("- No compact source graph edges inferred from the sampled source.")
     any_matches = False
     for category in queue.categories:
         lines_out.extend(["", f"### {category.name}"])
@@ -249,6 +335,65 @@ def render_static_focus_queue(queue: StaticFocusQueue) -> str:
         lines_out.append("")
         lines_out.append("No high-signal source patterns were found in the sampled files.")
     return "\n".join(lines_out)
+
+
+def build_source_graph(queue: StaticFocusQueue) -> SourceGraph:
+    """Infer a bounded source-only graph from focus queue items."""
+
+    sources = _items_for_categories(queue, SOURCE_GRAPH_SOURCE_CATEGORIES)
+    targets = _items_for_categories(queue, SOURCE_GRAPH_TARGET_CATEGORIES)
+    ranked: list[tuple[int, int, InventoryMatch, InventoryMatch, tuple[str, ...], str]] = []
+    order = 0
+    for source in sources:
+        source_tokens = _item_tokens(source)
+        for target in targets:
+            if source == target:
+                continue
+            if source.category == target.category and source.path != target.path:
+                continue
+            target_tokens = _item_tokens(target)
+            shared = tuple(sorted(source_tokens & target_tokens))
+            same_file = source.path == target.path
+            if not shared and not same_file:
+                continue
+            relation = _edge_relation(source, target, shared, same_file)
+            score = len(shared) * 10 + (5 if same_file else 0)
+            ranked.append((score, order, source, target, shared[:5], relation))
+            order += 1
+
+    ranked.sort(
+        key=lambda item: (
+            -item[0],
+            item[2].path,
+            item[2].line,
+            item[3].path,
+            item[3].line,
+            item[1],
+        )
+    )
+    edges: list[SourceGraphEdge] = []
+    seen: set[tuple[str, int, str, int, str]] = set()
+    for _score, _order, source, target, shared, relation in ranked:
+        key = (source.path, source.line, target.path, target.line, target.category)
+        if key in seen:
+            continue
+        seen.add(key)
+        edges.append(
+            SourceGraphEdge(
+                edge_id=f"SG{len(edges) + 1:03d}",
+                source_category=source.category,
+                source_path=source.path,
+                source_line=source.line,
+                target_category=target.category,
+                target_path=target.path,
+                target_line=target.line,
+                relation=relation,
+                shared_tokens=shared,
+            )
+        )
+        if len(edges) >= MAX_SOURCE_GRAPH_EDGES:
+            break
+    return SourceGraph(edges=tuple(edges))
 
 
 def _iter_source_files(workspace: Path) -> list[Path]:
@@ -271,3 +416,47 @@ def _compact_snippet(value: str) -> str:
     if len(value) <= MAX_SNIPPET_CHARS:
         return value
     return value[: MAX_SNIPPET_CHARS - 3].rstrip() + "..."
+
+
+def _items_for_categories(
+    queue: StaticFocusQueue, categories: set[str]
+) -> tuple[InventoryMatch, ...]:
+    return tuple(
+        item
+        for category in queue.categories
+        if category.name in categories
+        for item in category.items
+    )
+
+
+def _item_tokens(item: InventoryMatch) -> set[str]:
+    text = f"{item.path} {item.snippet}"
+    raw_tokens = re.findall(r"[A-Za-z][A-Za-z0-9]{2,}", text)
+    tokens: set[str] = set()
+    for token in raw_tokens:
+        for part in _split_identifier(token):
+            normalized = part.lower()
+            if len(normalized) < 3 or normalized in TOKEN_STOPWORDS:
+                continue
+            tokens.add(normalized)
+    return tokens
+
+
+def _split_identifier(value: str) -> tuple[str, ...]:
+    expanded = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", value)
+    return tuple(re.split(r"[^A-Za-z0-9]+", expanded))
+
+
+def _edge_relation(
+    source: InventoryMatch,
+    target: InventoryMatch,
+    shared_tokens: tuple[str, ...],
+    same_file: bool,
+) -> str:
+    if same_file:
+        return "same-file proximity"
+    if source.path.rsplit("/", 1)[0] == target.path.rsplit("/", 1)[0]:
+        return "same-directory shared symbols"
+    if shared_tokens:
+        return "shared source symbols"
+    return "source-derived proximity"
