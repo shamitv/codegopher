@@ -130,6 +130,83 @@ def test_static_focus_queue_prefers_representative_paths_before_duplicates(
     assert routes.items[1].path == "z_routes.py"
 
 
+def test_static_focus_queue_prioritizes_high_risk_files_over_static_noise(
+    tmp_path: Path,
+) -> None:
+    app = tmp_path / "app"
+    static_css = app / "services/catalog-service/static/css"
+    static_css.mkdir(parents=True)
+    (static_css / "main.css").write_text(
+        "\n".join(f".c{index} {{ display: flex; }}" for index in range(40)),
+        encoding="utf-8",
+    )
+    controller = app / "services/catalog-service/src/controllers/bulk_upload_controller.py"
+    controller.parent.mkdir(parents=True)
+    controller.write_text(
+        "\n".join(
+            [
+                "from flask import request, session",
+                "def bulk_upload_products():",
+                "    supplier_id = request.json.get('supplierId')",
+                "    return save_products(supplier_id)",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    validator = app / "packages/domain/validators.py"
+    validator.parent.mkdir(parents=True)
+    validator.write_text(
+        "def validate_supplier_id(value): return str(value)\n",
+        encoding="utf-8",
+    )
+    widget = app / "apps/typescript/app-01-supplier-portal/src/components/DashboardWidgets.tsx"
+    widget.parent.mkdir(parents=True)
+    widget.write_text(
+        "export function CustomWidgetRenderer({html}) { return <div dangerouslySetInnerHTML={{__html: html}} />; }\n",
+        encoding="utf-8",
+    )
+
+    queue = build_static_focus_queue(app)
+    auth = next(
+        category
+        for category in queue.categories
+        if category.name == "Auth and authorization controls"
+    )
+    rendering = next(
+        category
+        for category in queue.categories
+        if category.name == "Rendering and raw HTML sinks"
+    )
+
+    assert auth.items[0].path.endswith("bulk_upload_controller.py")
+    assert auth.items[0].source_family in {"controllers_routes", "auth_session", "uploads"}
+    assert rendering.items[0].path.endswith("DashboardWidgets.tsx")
+    assert rendering.items[0].source_family == "tsx_render_sink"
+    assert all(item.source_family != "css_low_signal" for item in rendering.items[:2])
+    prepass = build_static_prepass(app)
+    assert "### High-Risk Source Family Coverage Targets" in prepass
+    assert "bulk_upload_controller.py" in prepass
+
+
+def test_static_focus_queue_detects_flask_add_url_rule_routes(tmp_path: Path) -> None:
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / "user_routes.py").write_text(
+        "users_bp.add_url_rule('/users/exists', view_func=user_controller.user_exists, methods=['GET'])\n",
+        encoding="utf-8",
+    )
+
+    queue = build_static_focus_queue(app)
+    routes = next(
+        category
+        for category in queue.categories
+        if category.name == "Routes and entry points"
+    )
+
+    assert routes.items
+    assert routes.items[0].path == "user_routes.py"
+
+
 def test_source_graph_links_related_source_items_without_manifest_hints(
     tmp_path: Path,
 ) -> None:
@@ -177,3 +254,29 @@ def test_source_graph_links_related_source_items_without_manifest_hints(
     )
     assert "do not leak me" not in inventory
     assert ".vulns" not in inventory
+
+
+def test_source_graph_prioritizes_chain_shaped_family_edges(tmp_path: Path) -> None:
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / "BulkUploadController.py").write_text(
+        "@bp.route('/bulk', methods=['POST'])\ndef bulk_upload(): return validate_supplier_id(request.json['supplierId'])\n",
+        encoding="utf-8",
+    )
+    (app / "validators.py").write_text(
+        "def validate_supplier_id(value): return str(value)\n",
+        encoding="utf-8",
+    )
+    (app / "style.css").write_text(
+        "\n".join(f".x{index} {{ display: flex; }}" for index in range(20)),
+        encoding="utf-8",
+    )
+
+    graph = build_source_graph(build_static_focus_queue(app))
+
+    assert graph.edges
+    assert graph.edges[0].relation == "chain-shaped source family edge"
+    assert {
+        graph.edges[0].source_path,
+        graph.edges[0].target_path,
+    } >= {"BulkUploadController.py", "validators.py"}

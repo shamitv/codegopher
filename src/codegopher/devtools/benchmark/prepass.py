@@ -97,6 +97,50 @@ SOURCE_GRAPH_TARGET_CATEGORIES = {
     "State-changing and privileged sinks",
     "Safe controls and possible decoys",
 }
+HIGH_RISK_SOURCE_FAMILIES = {
+    "controllers_routes",
+    "auth_session",
+    "config_secrets",
+    "validators",
+    "uploads",
+    "jobs",
+    "webhooks_outbound",
+    "repositories_query",
+    "state_changing",
+    "tsx_render_sink",
+    "static_js_sink",
+    "static_html_signal",
+}
+SOURCE_FAMILY_LABELS = {
+    "controllers_routes": "controllers/routes",
+    "auth_session": "auth/session",
+    "config_secrets": "config/secrets",
+    "validators": "validators",
+    "uploads": "uploads",
+    "jobs": "jobs/background work",
+    "webhooks_outbound": "webhooks/outbound calls",
+    "repositories_query": "repositories/query sinks",
+    "state_changing": "state-changing sinks",
+    "tsx_render_sink": "TS/TSX render sinks",
+    "static_js_sink": "static JS sinks",
+    "static_html_signal": "static HTML signals",
+    "css_low_signal": "CSS/static styling",
+    "general": "general source",
+}
+SOURCE_FAMILY_DISCOVERY_ORDER = (
+    "controllers_routes",
+    "auth_session",
+    "config_secrets",
+    "validators",
+    "uploads",
+    "repositories_query",
+    "state_changing",
+    "tsx_render_sink",
+    "static_js_sink",
+    "webhooks_outbound",
+    "jobs",
+    "static_html_signal",
+)
 
 
 @dataclass(frozen=True)
@@ -106,6 +150,8 @@ class InventoryMatch:
     path: str
     line: int
     snippet: str
+    source_family: str = "general"
+    priority: int = 50
 
 
 @dataclass(frozen=True)
@@ -148,6 +194,7 @@ CATEGORY_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = (
             re.compile(r"@\s*(?:Get|Post|Put|Delete|Patch|Request)Mapping\b"),
             re.compile(r"\b(?:app|router)\.(?:get|post|put|delete|patch)\s*\("),
             re.compile(r"@\s*(?:app|bp)\.route\s*\("),
+            re.compile(r"\badd_url_rule\s*\("),
             re.compile(r"\burlpatterns\b|\bpath\s*\(|\bre_path\s*\("),
             re.compile(r"@\s*(?:RestController|Controller)\b"),
         ),
@@ -197,7 +244,10 @@ CATEGORY_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = (
         "Verbose errors and config exposure",
         (
             re.compile(r"\b(?:getMessage|printStackTrace|stacktrace|debug|trace)\b", re.I),
-            re.compile(r"\b(?:api[_-]?key|secret|token|password|connectionString)\b", re.I),
+            re.compile(
+                r"\b(?:api[_-]?key|secret[_-]?key|secret|token|password|connectionString)\b",
+                re.I,
+            ),
             re.compile(r"\b(?:actuator|env|heapdump|config|profile)\b", re.I),
         ),
     ),
@@ -248,13 +298,21 @@ def build_static_focus_queue(workspace: Path) -> StaticFocusQueue:
                 if len(bucket) >= MAX_CANDIDATES_PER_CATEGORY:
                     continue
                 if any(pattern.search(normalized) for pattern in patterns):
+                    snippet = _compact_snippet(normalized)
+                    family, priority = _classify_source_family(
+                        relative,
+                        category,
+                        snippet,
+                    )
                     bucket.append(
                         InventoryMatch(
                             category=category,
                             item_id="",
                             path=relative,
                             line=line_number,
-                            snippet=_compact_snippet(normalized),
+                            snippet=snippet,
+                            source_family=family,
+                            priority=priority,
                         )
                     )
                     total_candidates += 1
@@ -316,6 +374,7 @@ def render_static_focus_queue(queue: StaticFocusQueue) -> str:
             "- Use full repository-relative paths and line numbers from this queue when re-reading evidence.",
         ]
     )
+    lines_out.extend(_render_high_risk_family_targets(queue))
     lines_out.extend(["", "### Lightweight Source Graph"])
     if graph.edges:
         lines_out.extend(
@@ -343,11 +402,41 @@ def render_static_focus_queue(queue: StaticFocusQueue) -> str:
             continue
         any_matches = True
         for item in category.items:
-            lines_out.append(f"- {item.item_id} `{item.path}:{item.line}` {item.snippet}")
+            family = SOURCE_FAMILY_LABELS.get(item.source_family, item.source_family)
+            lines_out.append(
+                f"- {item.item_id} `{item.path}:{item.line}` [{family}] {item.snippet}"
+            )
     if not any_matches:
         lines_out.append("")
         lines_out.append("No high-signal source patterns were found in the sampled files.")
     return "\n".join(lines_out)
+
+
+def _render_high_risk_family_targets(queue: StaticFocusQueue) -> list[str]:
+    lines: list[str] = [
+        "",
+        "### High-Risk Source Family Coverage Targets",
+        "",
+        "Read representative files from each listed family before final no-chain or complete-chain conclusions.",
+    ]
+    rendered_any = False
+    for family in SOURCE_FAMILY_DISCOVERY_ORDER:
+        items = [
+            item
+            for category in queue.categories
+            for item in category.items
+            if item.source_family == family
+        ]
+        if not items:
+            continue
+        rendered_any = True
+        label = SOURCE_FAMILY_LABELS.get(family, family)
+        lines.append(f"- {label}:")
+        for item in _rank_family_targets(items)[:6]:
+            lines.append(f"  - {item.item_id} `{item.path}:{item.line}` {item.snippet}")
+    if not rendered_any:
+        lines.append("- No high-risk source-family targets were inferred.")
+    return lines
 
 
 def build_source_graph(queue: StaticFocusQueue) -> SourceGraph:
@@ -369,10 +458,16 @@ def build_source_graph(queue: StaticFocusQueue) -> SourceGraph:
             target_tokens = _item_tokens(target)
             shared = tuple(sorted(source_tokens & target_tokens))
             same_file = source.path == target.path
-            if not shared and not same_file:
+            family_bonus = _chain_edge_bonus(source, target)
+            if not shared and not same_file and family_bonus < 60:
                 continue
             relation = _edge_relation(source, target, shared, same_file)
-            score = len(shared) * 10 + (5 if same_file else 0)
+            score = (
+                len(shared) * 10
+                + (5 if same_file else 0)
+                + family_bonus
+                + max(source.priority, target.priority) // 20
+            )
             ranked.append((score, order, source, target, shared[:5], relation))
             order += 1
 
@@ -447,8 +542,18 @@ def _items_for_categories(
 def _select_representative_matches(
     matches: list[InventoryMatch],
 ) -> tuple[InventoryMatch, ...]:
-    ordered = sorted(matches, key=lambda item: (item.path, item.line, item.snippet))
+    ordered = sorted(
+        matches,
+        key=lambda item: (
+            -item.priority,
+            item.source_family,
+            item.path,
+            item.line,
+            item.snippet,
+        ),
+    )
     seen_paths: set[str] = set()
+    seen_families: set[str] = set()
     representatives: list[InventoryMatch] = []
     remaining: list[InventoryMatch] = []
     for match in ordered:
@@ -456,8 +561,96 @@ def _select_representative_matches(
             remaining.append(match)
             continue
         seen_paths.add(match.path)
+        if match.source_family in seen_families and match.priority < 90:
+            remaining.append(match)
+            continue
+        seen_families.add(match.source_family)
         representatives.append(match)
+    remaining = sorted(
+        remaining,
+        key=lambda item: (
+            -item.priority,
+            item.source_family,
+            item.path,
+            item.line,
+            item.snippet,
+        ),
+    )
     return tuple((representatives + remaining)[:MAX_MATCHES_PER_CATEGORY])
+
+
+def _rank_family_targets(items: list[InventoryMatch]) -> tuple[InventoryMatch, ...]:
+    ordered = sorted(
+        items,
+        key=lambda item: (
+            -_family_target_score(item),
+            item.path,
+            item.line,
+            item.snippet,
+        ),
+    )
+    seen_paths: set[str] = set()
+    ranked: list[InventoryMatch] = []
+    for item in ordered:
+        if item.path in seen_paths:
+            continue
+        seen_paths.add(item.path)
+        ranked.append(item)
+    return tuple(ranked)
+
+
+def _family_target_score(item: InventoryMatch) -> int:
+    category_bonus = {
+        "Routes and entry points": 35,
+        "State-changing and privileged sinks": 30,
+        "Auth and authorization controls": 25,
+        "Query, LDAP, and expression sinks": 20,
+        "Outbound fetch and SSRF surfaces": 20,
+        "Rendering and raw HTML sinks": 20,
+        "Safe controls and possible decoys": 15,
+        "Verbose errors and config exposure": 10,
+    }.get(item.category, 0)
+    combined = f"{item.path.lower()} {item.snippet.lower()}"
+    score = item.priority + category_bonus
+    if "/static/" in combined and item.source_family not in {
+        "static_js_sink",
+        "static_html_signal",
+    }:
+        score -= 25
+    if "health" in combined:
+        score -= 45
+    if _contains_any(
+        combined,
+        (
+            "admin",
+            "auth",
+            "bulk",
+            "callback",
+            "create",
+            "delete",
+            "flag",
+            "login",
+            "product",
+            "report",
+            "secret",
+            "session",
+            "settings",
+            "supplier",
+            "update",
+            "upload",
+            "user",
+            "validator",
+            "webhook",
+        ),
+    ):
+        score += 25
+    if "settings.py" in combined or "secret_key" in combined:
+        score += 30
+    if "add_url_rule" in combined:
+        score += 15
+    if "def " in combined or combined.strip().startswith("@"):
+        score += 10
+    return score
 
 
 def _item_tokens(item: InventoryMatch) -> set[str]:
@@ -484,6 +677,8 @@ def _edge_relation(
     shared_tokens: tuple[str, ...],
     same_file: bool,
 ) -> str:
+    if _chain_edge_bonus(source, target) >= 40:
+        return "chain-shaped source family edge"
     if same_file:
         return "same-file proximity"
     if source.path.rsplit("/", 1)[0] == target.path.rsplit("/", 1)[0]:
@@ -491,3 +686,118 @@ def _edge_relation(
     if shared_tokens:
         return "shared source symbols"
     return "source-derived proximity"
+
+
+def _classify_source_family(path: str, category: str, snippet: str) -> tuple[str, int]:
+    path_l = path.lower()
+    snippet_l = snippet.lower()
+    suffix = Path(path_l).suffix
+    combined = f"{path_l} {snippet_l}"
+    path_parts = set(Path(path_l).parts)
+
+    if suffix in {".tsx", ".jsx"} and _has_render_sink(snippet_l):
+        return "tsx_render_sink", 125
+    if _contains_any(combined, ("controller", "controllers", "routes", "_routes", "route")):
+        priority = 120
+        if "health" in snippet_l and "route" in snippet_l:
+            priority = 85
+        return "controllers_routes", priority
+    if _contains_any(combined, ("auth", "session", "principal", "role", "permission", "login")):
+        return "auth_session", 118
+    if _contains_any(combined, ("settings", "config", "secret", "api_key", "apikey", "password")):
+        priority = 124 if "settings.py" in path_l or "secret_key" in combined else 114
+        return "config_secrets", priority
+    if _contains_any(combined, ("validator", "validators", "validate_", "validate", "guard")):
+        return "validators", 110
+    if _contains_any(combined, ("upload", "bulk", "csv", "multipart", "file")):
+        return "uploads", 108
+    if _contains_any(combined, ("job", "queue", "scheduler", "consumer", "worker")):
+        return "jobs", 106
+    if _contains_any(
+        combined,
+        ("webhook", "callback", "requests.", "httpx", "urllib", "fetch(", "axios"),
+    ):
+        return "webhooks_outbound", 104
+    if _contains_any(
+        combined,
+        ("repository", "repositories", "dao", "query", "select ", "update ", "delete ", "insert "),
+    ):
+        return "repositories_query", 102
+    if category == "State-changing and privileged sinks" or _contains_any(
+        combined,
+        ("create_", "update_", "delete_", "save_", "approve", "refund", "transfer", "admin"),
+    ):
+        return "state_changing", 98
+    if suffix in {".ts", ".tsx", ".js", ".jsx"} and _has_render_sink(snippet_l):
+        return "static_js_sink", 92
+    if suffix in {".js", ".jsx", ".ts", ".tsx"} and _contains_any(
+        combined,
+        ("fetch(", "token", "credential", "innerhtml", "api/auth", "api/"),
+    ):
+        return "static_js_sink", 84
+    if suffix == ".html" and _contains_any(
+        combined,
+        ("credential", "password", "token", "script", "form", "input", "admin"),
+    ):
+        return "static_html_signal", 72
+    if suffix == ".css" or "static/css" in path_l or "css" in path_parts:
+        if _contains_any(snippet_l, ("@import", "url(")):
+            return "css_low_signal", 35
+        return "css_low_signal", 10
+    if "static" in path_parts:
+        return "general", 35
+    return "general", 50
+
+
+def _chain_edge_bonus(source: InventoryMatch, target: InventoryMatch) -> int:
+    pair = (source.source_family, target.source_family)
+    chain_pairs = {
+        ("controllers_routes", "auth_session"),
+        ("controllers_routes", "state_changing"),
+        ("controllers_routes", "repositories_query"),
+        ("controllers_routes", "validators"),
+        ("auth_session", "state_changing"),
+        ("auth_session", "config_secrets"),
+        ("config_secrets", "auth_session"),
+        ("validators", "controllers_routes"),
+        ("validators", "uploads"),
+        ("uploads", "state_changing"),
+        ("webhooks_outbound", "webhooks_outbound"),
+        ("webhooks_outbound", "jobs"),
+        ("jobs", "webhooks_outbound"),
+        ("repositories_query", "state_changing"),
+        ("static_js_sink", "repositories_query"),
+        ("static_js_sink", "controllers_routes"),
+        ("tsx_render_sink", "controllers_routes"),
+        ("controllers_routes", "tsx_render_sink"),
+        ("state_changing", "repositories_query"),
+    }
+    if pair in chain_pairs:
+        return 60
+    if (
+        source.source_family in HIGH_RISK_SOURCE_FAMILIES
+        and target.source_family in HIGH_RISK_SOURCE_FAMILIES
+    ):
+        return 25
+    return 0
+
+
+def _contains_any(value: str, needles: tuple[str, ...]) -> bool:
+    return any(needle in value for needle in needles)
+
+
+def _has_render_sink(value: str) -> bool:
+    return any(
+        marker in value
+        for marker in (
+            "innerhtml",
+            "outerhtml",
+            "dangerouslysetinnerhtml",
+            "v-html",
+            "render_template_string",
+            "mark_safe",
+            "rawhtml",
+            "safehtml",
+            "th:utext",
+        )
+    )
