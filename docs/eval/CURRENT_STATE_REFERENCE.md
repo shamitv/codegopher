@@ -11,13 +11,13 @@ The current practical read is:
 
 ## Timeline
 
-| Run | Scope | Full chains | Components | Evidence quality | Requests | Tokens | Cost | Read |
-|---|---|---:|---:|---|---:|---:|---:|---|
-| `20260526-231207-gpt54nano-complex2-responses` | Two complex apps | `1/4` | `7/12` | Low line-reference coverage; decoy handling weak on Warehouse | 38 | 410,192 | `$0.04541176` | Safe execution, weak detection. |
-| `20260527-000753-gpt54nano-complex2-structured` | Same two apps | `2/4` | `10/12` | Line references and candidate ledgers appeared; decoy misfires dropped to zero | 18 | 285,323 | `$0.05061751` | Better structure and component recall, still incomplete. |
-| `20260527-003016-gpt54nano-complex2-followup` | Same two apps | `3/4` | `11/12` | More source-reading effort and corrective behavior | 32 | 486,006 | `$0.06689424` | Reached 75% full-chain recall at higher cost. |
-| `20260527-005709-gpt54nano-level5-harness2` | Nine level-5 apps | `9/11` | `30/32` | JSON ledgers mostly present, but exact evidence only `21/98` | 159 | 2,243,454 | `$0.33409596` | Best observed detection baseline. |
-| `20260527-091723-gpt54nano-level5-harness3` | Same nine level-5 apps | `7/11` | `27/32` | Exact evidence `117/117`; valid ledgers `7/9`; focus coverage `629/967` | 153 primary, 161 full proxy | 2,535,758 primary, 2,703,113 full proxy | `$0.36991300` primary, `$0.38679010` full proxy | Better evidence validator, worse vulnerability finder. |
+| Date/Time | Run | Scope | Full chains | Components | Evidence quality | Requests | Tokens | Cost | Read |
+|---|---|---|---:|---:|---|---:|---:|---:|---|
+| May 26, 2026 11:12 PM | `20260526-231207-gpt54nano-complex2-responses` | Two complex apps | `1/4` | `7/12` | Low line-reference coverage; decoy handling weak on Warehouse | 38 | 410,192 | `$0.05` | Safe execution, weak detection. |
+| May 27, 2026 12:07 AM | `20260527-000753-gpt54nano-complex2-structured` | Same two apps | `2/4` | `10/12` | Line references and candidate ledgers appeared; decoy misfires dropped to zero | 18 | 285,323 | `$0.05` | Better structure and component recall, still incomplete. |
+| May 27, 2026 12:30 AM | `20260527-003016-gpt54nano-complex2-followup` | Same two apps | `3/4` | `11/12` | More source-reading effort and corrective behavior | 32 | 486,006 | `$0.07` | Reached 75% full-chain recall at higher cost. |
+| May 27, 2026 12:57 AM | `20260527-005709-gpt54nano-level5-harness2` | Nine level-5 apps | `9/11` | `30/32` | JSON ledgers mostly present, but exact evidence only `21/98` | 159 | 2,243,454 | `$0.33` | Best observed detection baseline. |
+| May 27, 2026 9:17 AM | `20260527-091723-gpt54nano-level5-harness3` | Same nine level-5 apps | `7/11` | `27/32` | Exact evidence `117/117`; valid ledgers `7/9`; focus coverage `629/967` | 153 primary, 161 full proxy | 2,535,758 primary, 2,703,113 full proxy | `$0.37` primary, `$0.39` full proxy | Better evidence validator, worse vulnerability finder. |
 
 Harness3's full proxy bucket included eight successful Chat Completions requests routed to a different visible model. The primary benchmark stats are the cleaner cost basis for `gpt-5.4-nano` Responses API evaluation.
 
@@ -37,11 +37,11 @@ Harness3's full proxy bucket included eight successful Chat Completions requests
 - Focus coverage was measured better than it was used. Harness3 recorded `629/967 = 65.0%` focus-category coverage, below target, but the corrective pass did not reliably recover missed high-signal areas.
 - Evidence and conclusion could still diverge. Earlier structured runs showed reports that cited expected components while marking a chain rejected or incomplete.
 - Candidate headings remain noisy. Unmatched candidate headings rose in richer ledger outputs, so title normalization still needs work.
-- Cost efficiency worsened in harness3. Primary cost per completed full chain was `$0.0528`, compared with harness2's `$0.0371`.
+- Cost efficiency worsened in harness3. Primary cost per completed full chain was `$0.05`, compared with harness2's `$0.04`.
 
 ## Cost And Efficiency
 
-Harness2 cost `$0.33409596` for `9` completed full chains, or about `$0.0371` per completed full chain. Harness3 primary benchmark cost `$0.36991300` for `7` completed full chains, or about `$0.0528` per completed full chain. The full harness3 proxy bucket cost was `$0.38679010`, but it included a mixed-model caveat.
+Harness2 cost `$0.33` for `9` completed full chains, or about `$0.04` per completed full chain. Harness3 primary benchmark cost `$0.37` for `7` completed full chains, or about `$0.05` per completed full chain. The full harness3 proxy bucket cost was `$0.39`, but it included a mixed-model caveat.
 
 Token usage followed the same pattern. Harness3 primary usage was `2,535,758` tokens, up from harness2's `2,243,454`, while completed full chains decreased. The next implementation pass should reduce prompt bulk and use targeted focus worklists instead of adding more generic instructions.
 
@@ -85,4 +85,3 @@ Current capabilities include:
 - Harness2 level-5 report: `docs/plans/v0.10/report/20260527-005709-gpt54nano-level5-harness2/REPORT.md`
 - Harness3 level-5 report: `docs/plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/REPORT.md`
 - Harness3 comparison: `docs/plans/v0.10/report/20260527-091723-gpt54nano-level5-harness3/COMPARISON_WITH_PREVIOUS.md`
-
