@@ -64,9 +64,9 @@ from codegopher.security.report import DEFAULT_CHAINED_VULNERABILITY_REPORT
 BASE_BENCHMARK_PROMPT = (
     "Use @skill:chained-vulnerability-static-audit to perform a static-only chained "
     "vulnerability review of this codebase. Inspect only the current working directory. "
-    "Do not use live probes, dynamic scanners, shell commands, or files outside this "
-    "workspace. Write the final report with write_chained_vulnerability_report to "
-    "docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
+    "Do not use live probes, dynamic scanners, shell commands, hidden evaluator "
+    "metadata, dotfiles, or files outside this workspace. Write the final report with "
+    "write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
 )
 CHAIN_FAMILY_CHECKLIST = """
 Use this generic chain-family checklist; do not assume any item exists unless source evidence supports it:
@@ -97,7 +97,7 @@ Report requirements:
 CORRECTIVE_BENCHMARK_PROMPT = """
 Continue the same static-only chained vulnerability review. The current audit is missing one or more generic quality gates: line-numbered evidence, a Candidate Chain Ledger, or a clear complete-chain/incomplete-chain conclusion.
 
-Do not use manifests, removed evaluator files, parent directories, live probes, dynamic scanners, shell commands, or files outside this workspace.
+Do not use hidden manifests, removed evaluator files, dotfiles, parent directories, live probes, dynamic scanners, shell commands, or files outside this workspace.
 
 Use only source-derived evidence. Re-read the minimum necessary source files with `read_file` and `include_line_numbers=true`, then update the final report with `write_chained_vulnerability_report` to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
 

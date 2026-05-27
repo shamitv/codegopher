@@ -348,6 +348,8 @@ def _normalize_path(value: str) -> str:
     value = value.strip().strip("`\"' ")
     value = value.replace("\\", "/")
     value = re.sub(r":\d+(?:-\d+)?$", "", value)
+    if "/workspace/" in value:
+        value = value.split("/workspace/", 1)[1]
     if value in {"", ".", "./"}:
         return ""
     while value.startswith("./"):

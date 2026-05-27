@@ -117,6 +117,24 @@ def test_discovery_quality_does_not_count_report_citations_as_review() -> None:
     )
 
 
+def test_discovery_quality_normalizes_absolute_workspace_paths() -> None:
+    discovery = evaluate_discovery_quality(
+        queue(),
+        tool_calls=[
+            {
+                "tool_name": "read_file",
+                "arguments_summary": (
+                    '{"path":"/tmp/run/app-01/workspace/src/controllers/orders.py"}'
+                ),
+            }
+        ],
+        report_text="",
+    )
+
+    assert discovery.reviewed_high_risk_families == ("controllers_routes",)
+    assert discovery.missing_high_risk_families == ("repositories_query",)
+
+
 def test_discovery_quality_flags_under_reviewed_large_families() -> None:
     queue = StaticFocusQueue(
         categories=(
