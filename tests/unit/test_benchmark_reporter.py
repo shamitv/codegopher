@@ -56,12 +56,22 @@ def test_aggregate_report_marks_dev_only_and_unmatched_candidates() -> None:
                 "report_quality": {
                     "line_reference_count": 2,
                     "ledger_valid": True,
+                    "exact_evidence_items": 2,
+                    "total_evidence_items": 2,
                     "unmatched_candidate_chain_titles": ["Extra Chain"],
                 },
                 "focus_coverage": {
                     "covered_items": 1,
                     "total_items": 2,
                     "high_signal_uncovered_categories": ["Routes and entry points"],
+                },
+                "discovery_quality": {
+                    "discovery_complete": False,
+                    "reviewed_high_risk_families": ["controllers_routes"],
+                    "missing_high_risk_families": ["repositories_query"],
+                    "weak_high_risk_families": [],
+                    "representative_high_risk_paths": 2,
+                    "covered_representative_high_risk_paths": 1,
                 },
             }
         ],
@@ -72,6 +82,12 @@ def test_aggregate_report_marks_dev_only_and_unmatched_candidates() -> None:
     assert "## Recall By Difficulty" in report
     assert "| hard | 1/1 | 1/1 |" in report
     assert (
-        "| app-test | yes | yes | full | 1/1 | 1/1 | no | yes | yes | 1/2 | 2 | 0/0 | 0 | 0 | 1 | no | 1 |"
+        "| app-test | yes | yes | full | 1/1 | 1/1 | no | yes | yes | "
+        "1/2 | 2 | 2/2 | 0 | 0 | 1 | no | 1 |"
         in report
     )
+    assert "## Quality Dimensions" in report
+    assert (
+        "| app-test | clean | valid ledger, exact evidence 2/2 | "
+        "repair repositories_query | 1/1 chains; 1/1 components |"
+    ) in report

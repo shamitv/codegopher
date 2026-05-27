@@ -108,6 +108,7 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             )
         lines.append("")
     quality = summary["report_quality"]
+    discovery = summary.get("discovery_quality", {})
     lines.extend(
         [
             "## Report Quality",
@@ -123,9 +124,21 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"- Focus coverage: {_coverage_label(summary.get('focus_coverage', {}))}",
             f"- High-signal focus gaps: {', '.join(summary.get('focus_coverage', {}).get('high_signal_uncovered_categories', [])) or 'none'}",
             f"- Corrective reasons: {', '.join(summary.get('corrective_reasons', [])) or 'none'}",
+            "- Corrective reason categories: "
+            + _format_reason_categories(summary.get("corrective_reason_categories", {})),
             f"- Ground-truth components with location and method cited: {quality['components_with_location_and_method']} / {quality['total_components']}",
             f"- Unmatched candidate chain titles: {', '.join(quality['unmatched_candidate_chain_titles']) or 'none'}",
             f"- Decoy misfire count: {quality.get('decoy_misfire_count', 0)}",
+            "",
+            "## Discovery Quality",
+            "",
+            f"- Discovery complete: {'yes' if discovery.get('discovery_complete') else 'no'}",
+            f"- High-risk families reviewed: {', '.join(discovery.get('reviewed_high_risk_families', [])) or 'none'}",
+            f"- High-risk families missing: {', '.join(discovery.get('missing_high_risk_families', [])) or 'none'}",
+            f"- High-risk families under-reviewed: {', '.join(discovery.get('weak_high_risk_families', [])) or 'none'}",
+            "- Representative high-risk paths covered: "
+            f"{discovery.get('covered_representative_high_risk_paths', 0)} / "
+            f"{discovery.get('representative_high_risk_paths', 0)}",
             "",
             "## Tool Calls",
             "",
@@ -218,6 +231,52 @@ def render_aggregate_report(
                 unmatched=len(quality["unmatched_candidate_chain_titles"]),
                 corrective="yes" if summary.get("corrective_pass_used") else "no",
                 attempts=summary["attempt_count"],
+            )
+        )
+    lines.extend(["", "## Quality Dimensions", ""])
+    lines.extend(
+        [
+            "| App | Safety Quality | Report Quality | Discovery Quality | Hidden Recall |",
+            "|---|---|---|---|---|",
+        ]
+    )
+    for summary in summaries:
+        quality = summary["report_quality"]
+        discovery = summary.get("discovery_quality", {})
+        ground_truth = summary["ground_truth"]
+        report_quality = (
+            "valid ledger"
+            if quality.get("ledger_valid")
+            else "ledger needs repair"
+        )
+        if quality.get("total_evidence_items", 0):
+            report_quality += (
+                f", exact evidence {quality.get('exact_evidence_items', 0)}/"
+                f"{quality.get('total_evidence_items', 0)}"
+            )
+        discovery_quality = (
+            "complete"
+            if discovery.get("discovery_complete")
+            else "repair " + (
+                ", ".join(
+                    (
+                        discovery.get("missing_high_risk_families", [])
+                        + discovery.get("weak_high_risk_families", [])
+                    )[:4]
+                )
+                or "high-risk coverage"
+            )
+        )
+        lines.append(
+            "| {app} | {safety} | {report} | {discovery} | {recall} |".format(
+                app=summary["app"],
+                safety="clean" if not summary["safety"]["compromised"] else "compromised",
+                report=report_quality,
+                discovery=discovery_quality,
+                recall=(
+                    f"{ground_truth.get('full_chains', 0)}/{ground_truth.get('total_chains', 0)} chains; "
+                    f"{ground_truth['detected_components']}/{ground_truth['total_components']} components"
+                ),
             )
         )
     _append_baseline_comparison(lines, metadata.previous_report, summaries)
@@ -381,6 +440,17 @@ def _load_previous_summaries(previous_report: Path) -> dict[str, dict[str, Any]]
         if isinstance(value, dict) and isinstance(value.get("app"), str):
             summaries[value["app"]] = value
     return summaries
+
+
+def _format_reason_categories(categories: Any) -> str:
+    if not isinstance(categories, dict) or not categories:
+        return "none"
+    ordered = ("discovery", "report_format", "safety", "other")
+    return ", ".join(
+        f"{name}={int(categories.get(name, 0))}"
+        for name in ordered
+        if int(categories.get(name, 0))
+    ) or "none"
 
 
 def _recall_label(summary: dict[str, Any]) -> str:

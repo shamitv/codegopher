@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 
 from codegopher.devtools.benchmark.coverage import (
+    discovery_quality_to_dict,
+    evaluate_discovery_quality,
     evaluate_focus_coverage,
     focus_coverage_to_dict,
 )
@@ -45,6 +47,7 @@ from codegopher.devtools.benchmark.manifest import (
     load_vulnerability_manifest,
 )
 from codegopher.devtools.benchmark.prepass import (
+    SOURCE_FAMILY_DISCOVERY_ORDER,
     StaticFocusQueue,
     build_static_focus_queue,
     render_static_focus_queue,
@@ -119,7 +122,7 @@ Before finishing, perform these generic sweeps and record each result in the Can
 For each candidate, state whether it is complete, incomplete, or rejected because a safe control blocks it. Include file, symbol, line/range, confidence, missing evidence, and decoy/safe-control rejection rows.
 """.strip()
 REDACTED_PROMPT_FOR_REPORT = "<structured chained-audit benchmark prompt via events stdin>"
-MAX_CORRECTIVE_FOCUS_ITEMS = 12
+MAX_CORRECTIVE_FOCUS_ITEMS = 16
 
 
 @dataclass(frozen=True)
@@ -401,6 +404,13 @@ class BenchmarkHarness:
         tool_calls: list[dict[str, Any]] | None,
     ) -> str:
         sections = [CORRECTIVE_BENCHMARK_PROMPT]
+        discovery_guidance = self._render_missing_source_family_worklist(
+            workspace,
+            focus_queue,
+            tool_calls,
+        )
+        if discovery_guidance:
+            sections.append(discovery_guidance)
         if reasons:
             sections.append(
                 "Quality gate failures to repair:\n"
@@ -414,6 +424,83 @@ class BenchmarkHarness:
         if focus_guidance:
             sections.append(focus_guidance)
         return "\n\n".join(sections)
+
+    def _render_missing_source_family_worklist(
+        self,
+        workspace: Path,
+        focus_queue: StaticFocusQueue | None,
+        tool_calls: list[dict[str, Any]] | None,
+    ) -> str:
+        if focus_queue is None:
+            return ""
+        report = self._read_workspace_report(workspace)
+        discovery = evaluate_discovery_quality(
+            focus_queue,
+            tool_calls=tool_calls or [],
+            report_text=report,
+        )
+        repair_families = (
+            *discovery.missing_high_risk_families,
+            *discovery.weak_high_risk_families,
+        )
+        repair_families = tuple(sorted(set(repair_families), key=_source_family_order))
+        if not repair_families:
+            return ""
+        lines = [
+            "Discovery repair worklist:",
+            "- Before polishing the report, re-read representative files from these unreviewed or under-reviewed high-risk source families.",
+            "- If no complete chain is still provable after this review, say discovery is incomplete rather than presenting a completed no-chain result.",
+        ]
+        item_count = 0
+        for family in repair_families:
+            family_label = next(
+                (
+                    item.label
+                    for item in discovery.source_families
+                    if item.family == family
+                ),
+                family,
+            )
+            covered_paths = next(
+                (
+                    family_coverage.covered_paths
+                    for family_coverage in discovery.source_families
+                    if family_coverage.family == family
+                ),
+                (),
+            )
+            uncovered = sorted(
+                [
+                    item
+                    for category in focus_queue.categories
+                    for item in category.items
+                    if item.source_family == family
+                    and item.path not in covered_paths
+                ],
+                key=lambda item: (
+                    -_corrective_item_score(item),
+                    item.path,
+                    item.line,
+                    item.snippet,
+                ),
+            )
+            unique_uncovered: list[Any] = []
+            seen_paths: set[str] = set()
+            for item in uncovered:
+                if item.path in seen_paths:
+                    continue
+                seen_paths.add(item.path)
+                unique_uncovered.append(item)
+            uncovered = unique_uncovered[:5]
+            if not uncovered:
+                continue
+            lines.append(f"- {family_label}:")
+            for item in uncovered:
+                lines.append(f"  - {item.item_id} `{item.path}:{item.line}` {item.snippet}")
+                item_count += 1
+                if item_count >= MAX_CORRECTIVE_FOCUS_ITEMS:
+                    return "\n".join(lines)
+        return "\n".join(lines) if item_count else ""
 
     def _render_uncovered_focus_worklist(
         self,
@@ -535,6 +622,11 @@ class BenchmarkHarness:
             tool_calls=tool_calls or [],
             report_text=report,
         )
+        discovery_quality = evaluate_discovery_quality(
+            focus_queue,
+            tool_calls=tool_calls or [],
+            report_text=report,
+        )
         if has_missing_json_ledger:
             reasons.append("missing JSON candidate ledger")
         if ledger.get("validation_errors"):
@@ -545,6 +637,16 @@ class BenchmarkHarness:
             reasons.append("missing line-numbered evidence")
         if claims_no_complete_chain and not claims_complete_chain:
             reasons.append("claims no complete chain without reviewed complete candidates")
+        if claims_no_complete_chain and not discovery_quality.discovery_complete:
+            repair_families = (
+                *discovery_quality.missing_high_risk_families,
+                *discovery_quality.weak_high_risk_families,
+            )
+            repair_families = tuple(
+                sorted(set(repair_families), key=_source_family_order)
+            )
+            missing = ", ".join(repair_families[:6])
+            reasons.append(f"no-chain conclusion before discovery coverage: {missing}")
         if claims_complete_chain and has_unresolved_completeness_marker:
             reasons.append("complete-chain claim has unresolved evidence markers")
         if has_ledger and has_exact_evidence_gap:
@@ -595,6 +697,11 @@ class BenchmarkHarness:
             tool_calls=tool_calls,
             report_text=generated_report + "\n" + final_text,
         )
+        discovery_quality = evaluate_discovery_quality(
+            self._focus_queues.get(case.key),
+            tool_calls=tool_calls,
+            report_text=generated_report + "\n" + final_text,
+        )
         return {
             "app": case.key,
             "display_name": case.display_name,
@@ -604,6 +711,9 @@ class BenchmarkHarness:
             "attempt_count": len(attempts),
             "corrective_pass_used": corrective_used,
             "corrective_reasons": list(corrective_reasons),
+            "corrective_reason_categories": _corrective_reason_categories(
+                corrective_reasons
+            ),
             "event_counts": event_counts(events),
             "tool_calls": tool_calls,
             "tool_results": tool_results,
@@ -618,6 +728,7 @@ class BenchmarkHarness:
             "ground_truth": evaluation_to_dict(ground_truth),
             "report_quality": quality_to_dict(quality),
             "focus_coverage": focus_coverage_to_dict(focus_coverage),
+            "discovery_quality": discovery_quality_to_dict(discovery_quality),
             "hygiene": hygiene_to_dict(
                 self._hygiene_reports.get(case.key, HygieneReport((), (), ()))
             ),
@@ -762,6 +873,99 @@ def _has_abbreviated_code_refs(report: str) -> bool:
         if "/" not in path and "\\" not in path:
             return True
     return False
+
+
+def _source_family_order(family: str) -> tuple[int, str]:
+    try:
+        return (SOURCE_FAMILY_DISCOVERY_ORDER.index(family), family)
+    except ValueError:
+        return (len(SOURCE_FAMILY_DISCOVERY_ORDER), family)
+
+
+def _corrective_reason_categories(reasons: tuple[str, ...]) -> dict[str, int]:
+    categories = {"discovery": 0, "report_format": 0, "safety": 0, "other": 0}
+    for reason in reasons:
+        reason_l = reason.lower()
+        if any(
+            marker in reason_l
+            for marker in (
+                "discovery",
+                "focus category",
+                "focus item",
+                "coverage",
+            )
+        ):
+            categories["discovery"] += 1
+        elif any(
+            marker in reason_l
+            for marker in (
+                "ledger",
+                "evidence",
+                "line-number",
+                "contradictory",
+                "safe control",
+                "complete-chain claim",
+            )
+        ):
+            categories["report_format"] += 1
+        elif any(marker in reason_l for marker in ("unsafe", "removed", "parent")):
+            categories["safety"] += 1
+        else:
+            categories["other"] += 1
+    return categories
+
+
+def _corrective_item_score(item: Any) -> int:
+    category_bonus = {
+        "Routes and entry points": 35,
+        "State-changing and privileged sinks": 30,
+        "Auth and authorization controls": 25,
+        "Query, LDAP, and expression sinks": 20,
+        "Outbound fetch and SSRF surfaces": 20,
+        "Rendering and raw HTML sinks": 20,
+        "Safe controls and possible decoys": 15,
+        "Verbose errors and config exposure": 10,
+    }.get(str(getattr(item, "category", "")), 0)
+    path = str(getattr(item, "path", "")).lower()
+    snippet = str(getattr(item, "snippet", "")).lower()
+    family = str(getattr(item, "source_family", ""))
+    combined = f"{path} {snippet}"
+    priority = getattr(item, "priority", 0)
+    score = int(priority) + category_bonus
+    if "/static/" in path and family not in {"static_js_sink", "static_html_signal"}:
+        score -= 25
+    if "health" in combined:
+        score -= 45
+    high_signal_terms = (
+        "admin",
+        "auth",
+        "bulk",
+        "callback",
+        "create",
+        "delete",
+        "flag",
+        "login",
+        "product",
+        "report",
+        "secret",
+        "session",
+        "settings",
+        "supplier",
+        "update",
+        "upload",
+        "user",
+        "validator",
+        "webhook",
+    )
+    if any(term in combined for term in high_signal_terms):
+        score += 25
+    if "settings.py" in path or "secret_key" in combined:
+        score += 30
+    if "add_url_rule" in combined:
+        score += 15
+    if "def " in combined or snippet.strip().startswith("@"):
+        score += 10
+    return score
 
 
 def _prepass_has_helper_items(prepass: str) -> bool:
