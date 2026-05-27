@@ -571,6 +571,64 @@ Evidence: src/app.py:1 vulnerable. The nearby guard rejected this path.
     assert harness._needs_corrective_pass(workspace) is True
 
 
+def test_corrective_pass_ignores_decoy_rejection_with_nearby_control(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+    workspace = harness.prepare_workspace(case)
+    report_path = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        """
+# Report
+
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "hop": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "sink": {"path": "src/app.py", "symbol": "vulnerable", "line": "1"},
+      "safe_controls": [
+        {"path": "src/app.py", "symbol": "guard", "line": "2", "classification": "nearby_only"}
+      ],
+      "confidence": "high",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+
+Evidence: src/app.py:1 vulnerable. A separate decoy was rejected.
+""",
+        encoding="utf-8",
+    )
+
+    assert "nearby-only safe control appears to reject a chain" not in (
+        harness._corrective_reasons(workspace)
+    )
+
+
 def test_corrective_pass_triggers_for_unknown_safe_control_classifications(
     tmp_path: Path,
 ) -> None:

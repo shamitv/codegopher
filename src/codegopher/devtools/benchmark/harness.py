@@ -1001,10 +1001,26 @@ def _has_nearby_guard_over_rejection(report: str, ledger: dict[str, Any]) -> boo
     counts = ledger.get("safe_control_counts", {})
     nearby_count = counts.get("nearby_only", 0) if isinstance(counts, dict) else 0
     report_l = report.lower()
-    text_marker = "nearby" in report_l and any(
-        marker in report_l for marker in ("reject", "rejected", "blocks", "blocked")
+    if not nearby_count:
+        return False
+    nearby_markers = ("nearby_only", "nearby only", "nearby guard", "present nearby")
+    blocking_markers = (
+        "blocks the chain",
+        "blocks this chain",
+        "blocked the chain",
+        "prevents the chain",
+        "prevents this chain",
+        "rejected this path",
+        "rejects this path",
     )
-    return bool(nearby_count and text_marker)
+    for marker in nearby_markers:
+        start = 0
+        while (index := report_l.find(marker, start)) >= 0:
+            window = report_l[max(0, index - 160) : index + 160]
+            if any(blocker in window for blocker in blocking_markers):
+                return True
+            start = index + len(marker)
+    return False
 
 
 def _has_only_unknown_safe_controls(ledger: dict[str, Any]) -> bool:
