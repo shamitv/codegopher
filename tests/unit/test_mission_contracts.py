@@ -17,6 +17,14 @@ def test_selects_skill_specific_contract_before_generic_prompt() -> None:
     assert contract is not None
     assert contract.id == "chained-vulnerability-static-audit"
     assert contract.required_tool_calls == ["write_chained_vulnerability_report"]
+    contract_text = "\n".join(
+        [
+            *contract.required_todos,
+            *contract.evidence_requirements,
+        ]
+    ).lower()
+    assert "high-risk source families" in contract_text
+    assert "discovery is incomplete" in contract_text
 
 
 def test_simple_prompt_does_not_activate_contract() -> None:

@@ -255,7 +255,9 @@ _CHAINED_VULNERABILITY_AUDIT = MissionContract(
     goal="Complete a static attack-chain review and write the chained vulnerability report artifact.",
     required_todos=[
         "Map attack surface: routes, handlers, auth/session, config, jobs, uploads, and external calls.",
+        "Review high-risk source families before final conclusions: controllers/routes, auth/session, validators, state-changing endpoints, query sinks, external calls, uploads, jobs, and render sinks.",
         "Inventory weaknesses, safe decoys, and source-controlled assumptions.",
+        "Use incomplete findings as pivots into adjacent source, such as secret keys to session/auth/role checks.",
         "Synthesize source-hop-sink chains with file, symbol, and line evidence.",
         "Calibrate confidence, remediation, unknowns, and no-chain findings.",
         "Write and self-check docs/security/CHAINED_VULNERABILITIES_REVIEW.md.",
@@ -265,7 +267,8 @@ _CHAINED_VULNERABILITY_AUDIT = MissionContract(
     evidence_requirements=[
         "Every chain link needs file path, line or line range, symbol, and evidence.",
         "Safe decoy evidence must be rejected explicitly when it appears near a vulnerable flow.",
-        "If no complete chains are found, still write a no-chains report.",
+        "If no complete chains are found after adequate discovery, write a no-chains report.",
+        "If high-risk source families were not reviewed, state that discovery is incomplete instead of presenting a completed no-chain result.",
     ],
     completion_gates=[
         "write_chained_vulnerability_report called",
