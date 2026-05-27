@@ -202,7 +202,8 @@ class BenchmarkHarness:
         prompt = self._build_benchmark_prompt(prepass)
         attempts = self._run_with_retry(case, workspace, prompt)
         corrective_used = False
-        if self.config.corrective_second_pass and self._needs_corrective_pass(workspace, prepass):
+        corrective_reasons = self._corrective_reasons(workspace, prepass)
+        if self.config.corrective_second_pass and corrective_reasons:
             print(f"[{_now()}] Running corrective pass for {case.key}", flush=True)
             corrective_used = True
             corrective = self._run_process(
@@ -222,6 +223,7 @@ class BenchmarkHarness:
             workspace,
             attempts,
             corrective_used=corrective_used,
+            corrective_reasons=corrective_reasons,
         )
         write_json(self.output_dir / "analysis" / f"{case.key}.summary.json", summary)
         write_markdown(
@@ -361,11 +363,15 @@ class BenchmarkHarness:
         )
 
     def _needs_corrective_pass(self, workspace: Path, prepass: str = "") -> bool:
+        return bool(self._corrective_reasons(workspace, prepass))
+
+    def _corrective_reasons(self, workspace: Path, prepass: str = "") -> tuple[str, ...]:
         report = self._read_workspace_report(workspace)
         if not report:
-            return False
+            return ()
         report_l = report.lower()
         ledger = parse_candidate_chain_ledger(report)
+        reasons: list[str] = []
         has_ledger = "candidate chain ledger" in report_l
         has_json_ledger = bool(ledger["present"])
         has_line_refs = count_line_references(report) > 0
@@ -415,13 +421,29 @@ class BenchmarkHarness:
         has_nearby_guard_over_rejection = _has_nearby_guard_over_rejection(report, ledger)
         has_unknown_safe_controls = _has_only_unknown_safe_controls(ledger)
         has_contradiction = _has_contradictory_conclusions(report)
-        return has_missing_json_ledger or (not has_ledger) or (not has_line_refs) or (
-            claims_no_complete_chain and not claims_complete_chain
-        ) or (claims_complete_chain and has_unresolved_completeness_marker) or (
-            has_ledger and has_exact_evidence_gap
-        ) or has_helper_omission or has_nearby_guard_over_rejection or (
-            has_unknown_safe_controls
-        ) or has_contradiction
+        if has_missing_json_ledger:
+            reasons.append("missing JSON candidate ledger")
+        if ledger.get("validation_errors"):
+            reasons.extend(str(error) for error in ledger["validation_errors"])
+        if not has_ledger:
+            reasons.append("missing Candidate Chain Ledger section")
+        if not has_line_refs:
+            reasons.append("missing line-numbered evidence")
+        if claims_no_complete_chain and not claims_complete_chain:
+            reasons.append("claims no complete chain without reviewed complete candidates")
+        if claims_complete_chain and has_unresolved_completeness_marker:
+            reasons.append("complete-chain claim has unresolved evidence markers")
+        if has_ledger and has_exact_evidence_gap:
+            reasons.append("ledger has incomplete exact path/symbol/line evidence")
+        if has_helper_omission:
+            reasons.append("helper/generator focus items were not discussed")
+        if has_nearby_guard_over_rejection:
+            reasons.append("nearby-only safe control appears to reject a chain")
+        if has_unknown_safe_controls:
+            reasons.append("safe controls lack specific classifications")
+        if has_contradiction:
+            reasons.append("report has contradictory complete/incomplete conclusions")
+        return tuple(dict.fromkeys(reasons))
 
     def _analyze(
         self,
@@ -431,6 +453,7 @@ class BenchmarkHarness:
         attempts: list[ProcessAttempt],
         *,
         corrective_used: bool,
+        corrective_reasons: tuple[str, ...],
     ) -> dict[str, Any]:
         final = attempts[-1]
         events = parse_events(final.stdout)
@@ -459,6 +482,7 @@ class BenchmarkHarness:
             "command": list(final.command),
             "attempt_count": len(attempts),
             "corrective_pass_used": corrective_used,
+            "corrective_reasons": list(corrective_reasons),
             "event_counts": event_counts(events),
             "tool_calls": tool_calls,
             "tool_results": tool_results,

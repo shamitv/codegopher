@@ -130,9 +130,14 @@ class ReportQualityEvaluation:
     unmatched_candidate_chain_titles: tuple[str, ...]
     json_ledger_present: bool = False
     json_candidate_count: int = 0
+    ledger_valid: bool = False
+    ledger_validation_errors: tuple[str, ...] = ()
+    validated_candidate_count: int = 0
+    invalid_candidate_count: int = 0
     exact_evidence_items: int = 0
     total_evidence_items: int = 0
     safe_control_counts: dict[str, int] | None = None
+    safe_control_missing_classification_count: int = 0
     decoy_misfire_count: int = 0
 
     @property
@@ -235,9 +240,16 @@ def evaluate_report_quality(
         unmatched_candidate_chain_titles=unmatched,
         json_ledger_present=ledger["present"],
         json_candidate_count=len(ledger["candidate_chains"]),
+        ledger_valid=ledger["valid"],
+        ledger_validation_errors=tuple(ledger["validation_errors"]),
+        validated_candidate_count=ledger["validated_candidate_count"],
+        invalid_candidate_count=ledger["invalid_candidate_count"],
         exact_evidence_items=ledger["exact_evidence_items"],
         total_evidence_items=ledger["total_evidence_items"],
         safe_control_counts=ledger["safe_control_counts"],
+        safe_control_missing_classification_count=ledger[
+            "safe_control_missing_classification_count"
+        ],
         decoy_misfire_count=sum(
             1 for evidence in negative_evidence if _is_decoy_misfire(text_l, evidence)
         ),
@@ -291,25 +303,48 @@ def parse_candidate_chain_ledger(text: str) -> dict[str, Any]:
             for item in _iter_evidence_objects(candidate)
         ]
         safe_control_counts = dict.fromkeys(SAFE_CONTROL_CLASSES, 0)
+        missing_classification = 0
         for candidate in candidate_chains:
             for safe_control in _iter_safe_control_objects(candidate):
                 classification = _safe_control_classification(safe_control)
                 safe_control_counts[classification] += 1
+                if not _safe_control_has_explicit_classification(safe_control):
+                    missing_classification += 1
+        validation_errors = [
+            error
+            for index, candidate in enumerate(candidate_chains, start=1)
+            for error in _validate_candidate_chain(candidate, index)
+        ]
+        invalid_indexes = {
+            int(match.group(1))
+            for error in validation_errors
+            if (match := re.match(r"candidate\s+(\d+)\b", error))
+        }
         return {
             "present": True,
             "candidate_chains": candidate_chains,
+            "valid": bool(candidate_chains) and not validation_errors,
+            "validation_errors": validation_errors,
+            "validated_candidate_count": len(candidate_chains) - len(invalid_indexes),
+            "invalid_candidate_count": len(invalid_indexes),
             "exact_evidence_items": sum(
                 1 for item in evidence_items if _has_exact_evidence(item)
             ),
             "total_evidence_items": len(evidence_items),
             "safe_control_counts": safe_control_counts,
+            "safe_control_missing_classification_count": missing_classification,
         }
     return {
         "present": False,
         "candidate_chains": [],
+        "valid": False,
+        "validation_errors": ["missing candidate_chains JSON ledger"],
+        "validated_candidate_count": 0,
+        "invalid_candidate_count": 0,
         "exact_evidence_items": 0,
         "total_evidence_items": 0,
         "safe_control_counts": dict.fromkeys(SAFE_CONTROL_CLASSES, 0),
+        "safe_control_missing_classification_count": 0,
     }
 
 
@@ -378,10 +413,17 @@ def quality_to_dict(evaluation: ReportQualityEvaluation) -> dict[str, Any]:
         "unmatched_candidate_chain_titles": list(evaluation.unmatched_candidate_chain_titles),
         "json_ledger_present": evaluation.json_ledger_present,
         "json_candidate_count": evaluation.json_candidate_count,
+        "ledger_valid": evaluation.ledger_valid,
+        "ledger_validation_errors": list(evaluation.ledger_validation_errors),
+        "validated_candidate_count": evaluation.validated_candidate_count,
+        "invalid_candidate_count": evaluation.invalid_candidate_count,
         "exact_evidence_items": evaluation.exact_evidence_items,
         "total_evidence_items": evaluation.total_evidence_items,
         "exact_evidence_coverage": evaluation.exact_evidence_coverage,
         "safe_control_counts": dict(evaluation.safe_control_counts or {}),
+        "safe_control_missing_classification_count": (
+            evaluation.safe_control_missing_classification_count
+        ),
         "decoy_misfire_count": evaluation.decoy_misfire_count,
     }
 
@@ -433,6 +475,49 @@ def _has_exact_evidence(item: dict[str, Any]) -> bool:
     return bool(path and symbol and line and re.search(r"\.[a-z0-9]+$", path, re.I))
 
 
+def _validate_candidate_chain(candidate: dict[str, Any], index: int) -> list[str]:
+    errors: list[str] = []
+    required = (
+        "status",
+        "family",
+        "source",
+        "hop",
+        "sink",
+        "safe_controls",
+        "confidence",
+        "missing_evidence",
+    )
+    for field in required:
+        if field not in candidate:
+            errors.append(f"candidate {index} missing required field: {field}")
+    for role in ("source", "hop", "sink"):
+        evidence = _evidence_objects_from_value(candidate.get(role))
+        if not evidence:
+            errors.append(f"candidate {index} {role} has no evidence object")
+        elif not any(_has_exact_evidence(item) for item in evidence):
+            errors.append(f"candidate {index} {role} lacks exact path/symbol/line evidence")
+    if "safe_controls" in candidate:
+        raw_safe_controls = candidate.get("safe_controls")
+        if raw_safe_controls not in (None, "") and not isinstance(
+            raw_safe_controls, (dict, list)
+        ):
+            errors.append(f"candidate {index} safe_controls must be an object or list")
+        for control_index, safe_control in enumerate(
+            _iter_safe_control_objects(candidate),
+            start=1,
+        ):
+            if not _safe_control_has_explicit_classification(safe_control):
+                errors.append(
+                    f"candidate {index} safe_control {control_index} lacks valid classification"
+                )
+            evidence = _evidence_objects_from_value(safe_control)
+            if evidence and not any(_has_exact_evidence(item) for item in evidence):
+                errors.append(
+                    f"candidate {index} safe_control {control_index} lacks exact evidence"
+                )
+    return errors
+
+
 def _looks_like_evidence_object(item: dict[str, Any]) -> bool:
     return any(
         key in item
@@ -457,6 +542,12 @@ def _safe_control_classification(item: dict[str, Any]) -> str:
     if normalized in SAFE_CONTROL_CLASSES:
         return normalized
     return "unknown"
+
+
+def _safe_control_has_explicit_classification(item: dict[str, Any]) -> bool:
+    raw = _first_string(item, ("classification", "status", "relationship"))
+    normalized = raw.lower().replace("-", "_").replace(" ", "_")
+    return normalized in SAFE_CONTROL_CLASSES
 
 
 def _first_string(item: dict[str, Any], keys: tuple[str, ...]) -> str:

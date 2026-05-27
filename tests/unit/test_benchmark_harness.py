@@ -562,3 +562,6 @@ Evidence: src/app.py:1 vulnerable.
     )
 
     assert harness._needs_corrective_pass(workspace) is True
+    assert "safe controls lack specific classifications" in harness._corrective_reasons(
+        workspace
+    )

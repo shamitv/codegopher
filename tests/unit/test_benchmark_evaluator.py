@@ -118,6 +118,7 @@ Evidence: config.py:9.
     assert quality.unmatched_candidate_chain_titles == ("Chain 02: Debug Console To RCE",)
     assert quality.decoy_misfire_count == 0
     assert quality.json_ledger_present is False
+    assert quality.ledger_valid is False
 
 
 def test_report_quality_counts_decoy_only_when_used_as_exploit_evidence() -> None:
@@ -189,11 +190,15 @@ def test_parse_candidate_chain_ledger_tracks_exact_evidence_and_controls() -> No
     )
 
     assert ledger["present"] is True
+    assert ledger["valid"] is False
     assert len(ledger["candidate_chains"]) == 2
     assert ledger["total_evidence_items"] == 6
     assert ledger["exact_evidence_items"] == 4
     assert ledger["safe_control_counts"]["nearby_only"] == 1
     assert ledger["safe_control_counts"]["same_path_blocker"] == 1
+    assert ledger["safe_control_missing_classification_count"] == 0
+    assert ledger["validated_candidate_count"] == 1
+    assert ledger["invalid_candidate_count"] == 1
 
 
 def test_report_quality_includes_json_ledger_exact_evidence_metrics() -> None:
@@ -224,7 +229,10 @@ def test_report_quality_includes_json_ledger_exact_evidence_metrics() -> None:
     )
 
     assert quality.json_ledger_present is True
+    assert quality.ledger_valid is True
     assert quality.json_candidate_count == 1
+    assert quality.validated_candidate_count == 1
+    assert quality.invalid_candidate_count == 0
     assert quality.exact_evidence_items == 4
     assert quality.total_evidence_items == 4
     assert quality.exact_evidence_coverage == 1.0
@@ -234,6 +242,7 @@ def test_report_quality_includes_json_ledger_exact_evidence_metrics() -> None:
         "not_applicable": 1,
         "unknown": 0,
     }
+    assert quality.safe_control_missing_classification_count == 0
 
 
 def test_parse_candidate_chain_ledger_counts_nested_evidence_wrappers() -> None:
@@ -263,6 +272,46 @@ def test_parse_candidate_chain_ledger_counts_nested_evidence_wrappers() -> None:
     )
 
     assert ledger["present"] is True
+    assert ledger["valid"] is True
     assert ledger["total_evidence_items"] == 4
     assert ledger["exact_evidence_items"] == 4
     assert ledger["safe_control_counts"]["nearby_only"] == 1
+
+
+def test_parse_candidate_chain_ledger_reports_validation_errors() -> None:
+    ledger = parse_candidate_chain_ledger(
+        """
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"path": "src/a.py", "line": "1"},
+      "hop": {"path": "src/b.py", "symbol": "hop"},
+      "sink": {"path": "src/c.py", "symbol": "sink", "line": "3"},
+      "safe_controls": [
+        {"path": "src/guard.py", "symbol": "guard", "line": "4"}
+      ],
+      "confidence": "medium",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+""",
+    )
+
+    assert ledger["valid"] is False
+    assert ledger["validated_candidate_count"] == 0
+    assert ledger["invalid_candidate_count"] == 1
+    assert "candidate 1 source lacks exact path/symbol/line evidence" in ledger[
+        "validation_errors"
+    ]
+    assert "candidate 1 hop lacks exact path/symbol/line evidence" in ledger[
+        "validation_errors"
+    ]
+    assert "candidate 1 safe_control 1 lacks valid classification" in ledger[
+        "validation_errors"
+    ]
+    assert ledger["safe_control_missing_classification_count"] == 1
