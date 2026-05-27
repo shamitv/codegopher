@@ -8,7 +8,11 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import Any
 
-from codegopher.devtools.benchmark.prepass import StaticFocusQueue
+from codegopher.devtools.benchmark.prepass import (
+    HIGH_RISK_SOURCE_FAMILIES,
+    SOURCE_FAMILY_LABELS,
+    StaticFocusQueue,
+)
 
 HIGH_SIGNAL_CATEGORIES = {
     "Routes and entry points",
@@ -20,6 +24,8 @@ HIGH_SIGNAL_CATEGORIES = {
     "State-changing and privileged sinks",
     "Safe controls and possible decoys",
 }
+MIN_HIGH_RISK_PATH_COVERAGE = 0.5
+MIN_PATHS_FOR_WEAK_COVERAGE = 3
 TRACKED_TOOL_NAMES = {"read_file", "grep_search", "glob_search", "list_dir"}
 
 
@@ -65,6 +71,77 @@ class FocusCoverageEvaluation:
         )
 
 
+@dataclass(frozen=True)
+class SourceFamilyCoverage:
+    family: str
+    label: str
+    total_items: int
+    covered_items: int
+    total_paths: int
+    covered_paths: tuple[str, ...]
+    high_risk: bool
+
+    @property
+    def coverage(self) -> float:
+        if not self.total_items:
+            return 1.0
+        return self.covered_items / self.total_items
+
+    @property
+    def path_coverage(self) -> float:
+        if not self.total_paths:
+            return 1.0
+        return len(self.covered_paths) / self.total_paths
+
+
+@dataclass(frozen=True)
+class DiscoveryQualityEvaluation:
+    source_families: tuple[SourceFamilyCoverage, ...]
+
+    @property
+    def high_risk_families(self) -> tuple[str, ...]:
+        return tuple(family.family for family in self.source_families if family.high_risk)
+
+    @property
+    def reviewed_high_risk_families(self) -> tuple[str, ...]:
+        return tuple(
+            family.family
+            for family in self.source_families
+            if family.high_risk and family.covered_items > 0
+        )
+
+    @property
+    def missing_high_risk_families(self) -> tuple[str, ...]:
+        return tuple(
+            family.family
+            for family in self.source_families
+            if family.high_risk and family.total_items and family.covered_items == 0
+        )
+
+    @property
+    def weak_high_risk_families(self) -> tuple[str, ...]:
+        return tuple(
+            family.family
+            for family in self.source_families
+            if family.high_risk
+            and family.family not in self.missing_high_risk_families
+            and family.total_paths >= MIN_PATHS_FOR_WEAK_COVERAGE
+            and family.path_coverage < MIN_HIGH_RISK_PATH_COVERAGE
+        )
+
+    @property
+    def representative_high_risk_paths(self) -> int:
+        return sum(family.total_paths for family in self.source_families if family.high_risk)
+
+    @property
+    def covered_representative_high_risk_paths(self) -> int:
+        return sum(len(family.covered_paths) for family in self.source_families if family.high_risk)
+
+    @property
+    def discovery_complete(self) -> bool:
+        return not self.missing_high_risk_families and not self.weak_high_risk_families
+
+
 def evaluate_focus_coverage(
     queue: StaticFocusQueue | None,
     *,
@@ -100,6 +177,47 @@ def evaluate_focus_coverage(
     return FocusCoverageEvaluation(tuple(categories))
 
 
+def evaluate_discovery_quality(
+    queue: StaticFocusQueue | None,
+    *,
+    tool_calls: list[dict[str, Any]],
+    report_text: str,
+) -> DiscoveryQualityEvaluation:
+    if queue is None:
+        return DiscoveryQualityEvaluation(())
+    del report_text
+    reviewed_paths = _reviewed_paths(tool_calls=tool_calls, report_text="")
+    family_items: dict[str, list[tuple[str, bool]]] = {}
+    for category in queue.categories:
+        for item in category.items:
+            family = item.source_family or "general"
+            reviewed = _path_was_reviewed(item.path, reviewed_paths, "")
+            family_items.setdefault(family, []).append((item.path, reviewed))
+
+    families = []
+    for family, items in sorted(
+        family_items.items(),
+        key=lambda item: (
+            item[0] not in HIGH_RISK_SOURCE_FAMILIES,
+            SOURCE_FAMILY_LABELS.get(item[0], item[0]),
+        ),
+    ):
+        total_paths = {path for path, _reviewed in items}
+        covered_paths = sorted({path for path, reviewed in items if reviewed})
+        families.append(
+            SourceFamilyCoverage(
+                family=family,
+                label=SOURCE_FAMILY_LABELS.get(family, family),
+                total_items=len(items),
+                covered_items=sum(1 for _path, reviewed in items if reviewed),
+                total_paths=len(total_paths),
+                covered_paths=tuple(covered_paths),
+                high_risk=family in HIGH_RISK_SOURCE_FAMILIES,
+            )
+        )
+    return DiscoveryQualityEvaluation(tuple(families))
+
+
 def focus_coverage_to_dict(evaluation: FocusCoverageEvaluation) -> dict[str, Any]:
     return {
         "covered_items": evaluation.covered_items,
@@ -118,6 +236,34 @@ def focus_coverage_to_dict(evaluation: FocusCoverageEvaluation) -> dict[str, Any
                 "high_signal": category.high_signal,
             }
             for category in evaluation.categories
+        ],
+    }
+
+
+def discovery_quality_to_dict(evaluation: DiscoveryQualityEvaluation) -> dict[str, Any]:
+    return {
+        "discovery_complete": evaluation.discovery_complete,
+        "high_risk_families": list(evaluation.high_risk_families),
+        "reviewed_high_risk_families": list(evaluation.reviewed_high_risk_families),
+        "missing_high_risk_families": list(evaluation.missing_high_risk_families),
+        "weak_high_risk_families": list(evaluation.weak_high_risk_families),
+        "covered_representative_high_risk_paths": (
+            evaluation.covered_representative_high_risk_paths
+        ),
+        "representative_high_risk_paths": evaluation.representative_high_risk_paths,
+        "source_families": [
+            {
+                "family": family.family,
+                "label": family.label,
+                "total_items": family.total_items,
+                "covered_items": family.covered_items,
+                "coverage": family.coverage,
+                "total_paths": family.total_paths,
+                "covered_paths": list(family.covered_paths),
+                "path_coverage": family.path_coverage,
+                "high_risk": family.high_risk,
+            }
+            for family in evaluation.source_families
         ],
     }
 
