@@ -12,7 +12,13 @@ MemoryScope: TypeAlias = Literal["session", "project"]
 MemorySource: TypeAlias = Literal["user", "tool", "system"]
 SkillSource: TypeAlias = Literal["project", "user", "builtin"]
 CompactionReason: TypeAlias = Literal["manual", "automatic"]
-TodoStatus: TypeAlias = Literal["pending", "in_progress", "done"]
+TodoStatus: TypeAlias = Literal[
+    "pending",
+    "in_progress",
+    "blocked",
+    "done",
+    "cancelled",
+]
 
 
 class Message(TypedDict, total=False):
@@ -110,3 +116,26 @@ class TodoItem(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     source: str | None = None
+    reason: str | None = None
+    related_files: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+EpisodeKind: TypeAlias = Literal[
+    "file_read",
+    "search",
+    "directory_listing",
+    "todo_update",
+    "report_write",
+    "tool_error",
+    "final_decision",
+    "note",
+]
+
+
+class EpisodeEntry(BaseModel):
+    id: str = Field(min_length=1)
+    kind: EpisodeKind
+    summary: str = Field(min_length=1)
+    refs: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

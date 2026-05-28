@@ -17,6 +17,7 @@ def build_system_prompt(
     approval_mode: ApprovalMode,
     *,
     memories: Iterable[str] = (),
+    episode_items: Iterable[str] = (),
     skills: Iterable[str] = (),
     todo_items: Iterable[str] = (),
     mission_items: Iterable[str] = (),
@@ -34,6 +35,15 @@ def build_system_prompt(
     if memory_items:
         prompt += "\nSelected memories:\n" + "\n".join(
             f"- {memory}" for memory in memory_items
+        )
+    episode_context = list(episode_items)
+    if episode_context:
+        prompt += (
+            "\nRuntime episode memory:\n"
+            "These are task-local observations from this active session, not persistent memory. "
+            "Use them to avoid losing inspected evidence and unresolved pivots; do not save them "
+            "to long-term memory unless the user explicitly asks.\n"
+            + "\n".join(f"- {item}" for item in episode_context)
         )
     skill_items = list(skills)
     if skill_items:
@@ -58,6 +68,7 @@ def build_messages(
     registry: ToolRegistry,
     approval_mode: ApprovalMode,
     memories: Iterable[str] = (),
+    episode_items: Iterable[str] = (),
     skills: Iterable[str] = (),
     todo_items: Iterable[str] = (),
     mission_items: Iterable[str] = (),
@@ -70,6 +81,7 @@ def build_messages(
                 registry,
                 approval_mode,
                 memories=memories,
+                episode_items=episode_items,
                 skills=skills,
                 todo_items=todo_items,
                 mission_items=mission_items,
