@@ -95,7 +95,14 @@ class OpenAICompatProvider:
             if tools:
                 request_args["tools"] = tools
                 request_args["tool_choice"] = "auto"
-            stream = await self._client.chat.completions.create(**request_args)
+            request_args["stream_options"] = {"include_usage": True}
+            try:
+                stream = await self._client.chat.completions.create(**request_args)
+            except Exception as exc:
+                if not _is_stream_options_unsupported(exc):
+                    raise
+                request_args.pop("stream_options", None)
+                stream = await self._client.chat.completions.create(**request_args)
         except Exception as exc:
             yield {"type": "error", "message": f"Provider request failed: {exc}"}
             yield {"type": "done"}
@@ -142,3 +149,8 @@ class OpenAICompatProvider:
                 },
             }
         yield {"type": "done"}
+
+
+def _is_stream_options_unsupported(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return "stream_options" in message or "include_usage" in message

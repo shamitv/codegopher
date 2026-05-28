@@ -46,18 +46,18 @@ class ProxyRunClient:
                     return run
         return None
 
-    def ensure_no_foreign_active_run(self) -> None:
+    def ensure_no_active_run(self) -> None:
         active = self.active_run()
         if active is None:
             return
         name = str(active.get("name", ""))
-        if not name.lower().startswith("codegopher"):
-            raise ProxyRunError(
-                f"active proxy run is not owned by this workflow: {name or '<unnamed>'}"
-            )
+        raise ProxyRunError(
+            "active proxy run would contaminate benchmark stats: "
+            f"{name or '<unnamed>'}"
+        )
 
     def start_run(self, *, name: str, notes: str) -> ProxyRunHandle:
-        self.ensure_no_foreign_active_run()
+        self.ensure_no_active_run()
         payload = self._request(
             "POST",
             "/admin/api/runs/start",
