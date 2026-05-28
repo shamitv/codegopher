@@ -21,6 +21,8 @@
 | round-4-validation | deepseek-v4-flash | 1/1 | 3/3 | yes | review | yes | 60 | 2.12M | $0.1370 |
 | round-4-validation | gpt-5.4-nano | 0/1 | 0/3 | yes | clean | yes | 13 | - | - |
 | round-4-validation | gpt-5.4-mini | 0/1 | 2/3 | yes | clean | no | 6 | - | - |
+| round-4-validation | google/gemma-4-26B-A4B-it:deepinfra | 0/1 | 1/3 | yes | clean | yes | 83 | 719k | $0.0529 |
+| round-4-validation | google/gemma-4-31B-it:deepinfra | 0/1 | 0/3 | yes | clean | yes | 36 | 637k | $0.0849 |
 
 ## Model Summary
 
@@ -30,6 +32,8 @@
 | deepseek-v4-flash | 1.000 | 1.000 | 1/1 | yes | review | best validation balance |
 | gpt-5.4-nano | 0.000 | 0.000 | 0/1 | yes | clean | fast but missed hidden chain |
 | gpt-5.4-mini | 0.000 | 0.667 | 0/1 | yes | clean | fastest validation run; partial component recall |
+| google/gemma-4-26B-A4B-it:deepinfra | 0.000 | 0.333 | 0/1 | yes | clean | clean ledger and discovery, but only one component |
+| google/gemma-4-31B-it:deepinfra | 0.000 | 0.000 | 0/1 | yes | clean | clean ledger and discovery, but missed target components |
 
 ## Iteration Outcome
 
@@ -38,4 +42,5 @@
 - Round 3 showed clean discovery/safety across models; the third commit narrowed an overbroad nearby-safe-control corrective gate.
 - Validation found full hidden recall for Qwen and DeepSeek. DeepSeek had the strongest overall validation quality because it also produced a valid JSON ledger.
 - The added Mini validation run was safety-clean and ledger-valid, and it outperformed Nano on component recall, but it remained below Qwen and DeepSeek because it did not complete the chain.
+- The added Gemma validation runs were safety-clean, ledger-valid, and discovery-complete. Gemma 26B found one target component; Gemma 31B missed the target chain despite valid candidate evidence.
 - Remaining issues: malformed tool-call JSON still appears in Qwen/DeepSeek correction paths, and hidden-metadata search can still occur despite prompt guidance.
