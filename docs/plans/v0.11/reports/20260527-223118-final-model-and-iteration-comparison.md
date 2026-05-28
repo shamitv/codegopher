@@ -20,6 +20,7 @@
 | round-4-validation | Qwen/Qwen3.6-35B-A3B:deepinfra | 1/1 | 3/3 | no | clean | yes | 61 | 2.16M | $0.4091 |
 | round-4-validation | deepseek-v4-flash | 1/1 | 3/3 | yes | review | yes | 60 | 2.12M | $0.1370 |
 | round-4-validation | gpt-5.4-nano | 0/1 | 0/3 | yes | clean | yes | 13 | - | - |
+| round-4-validation | gpt-5.4-mini | 0/1 | 2/3 | yes | clean | no | 6 | - | - |
 
 ## Model Summary
 
@@ -28,6 +29,7 @@
 | Qwen/Qwen3.6-35B-A3B:deepinfra | 1.000 | 1.000 | 1/1 | no | clean | full validation recall but ledger invalid |
 | deepseek-v4-flash | 1.000 | 1.000 | 1/1 | yes | review | best validation balance |
 | gpt-5.4-nano | 0.000 | 0.000 | 0/1 | yes | clean | fast but missed hidden chain |
+| gpt-5.4-mini | 0.000 | 0.667 | 0/1 | yes | clean | fastest validation run; partial component recall |
 
 ## Iteration Outcome
 
@@ -35,4 +37,5 @@
 - Round 2 produced real scans across all models; the second commit fixed absolute workspace-path normalization and strengthened hidden metadata guidance.
 - Round 3 showed clean discovery/safety across models; the third commit narrowed an overbroad nearby-safe-control corrective gate.
 - Validation found full hidden recall for Qwen and DeepSeek. DeepSeek had the strongest overall validation quality because it also produced a valid JSON ledger.
+- The added Mini validation run was safety-clean and ledger-valid, and it outperformed Nano on component recall, but it remained below Qwen and DeepSeek because it did not complete the chain.
 - Remaining issues: malformed tool-call JSON still appears in Qwen/DeepSeek correction paths, and hidden-metadata search can still occur despite prompt guidance.
