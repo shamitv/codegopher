@@ -337,6 +337,37 @@ async def test_agent_session_update_todo_tool_reaches_next_provider_context(
 
 
 @pytest.mark.asyncio
+async def test_agent_session_records_episode_memory_for_tool_results(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "app.py").write_text("print('hello')\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "app.py"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "read"}, {"type": "done"}],
+        ]
+    )
+    session = make_session(tmp_path, provider)
+
+    await session.run_turn("read app")
+
+    system_prompt = str(provider.calls[1][0]["content"])
+    assert "Runtime episode memory" in system_prompt
+    assert "file_read: Read app.py" in system_prompt
+    assert "refs=app.py" in system_prompt
+
+
+@pytest.mark.asyncio
 async def test_agent_session_manual_compaction_replaces_older_history(
     tmp_path: Path,
 ) -> None:
@@ -435,6 +466,7 @@ async def test_agent_session_compaction_includes_extra_context(
         memory_context=["Project memory"],
         skill_context=["Skill context"],
         todo_context=["TODO context"],
+        episode_context=["Episode context"],
     )
 
     await session.compact()
@@ -443,6 +475,7 @@ async def test_agent_session_compaction_includes_extra_context(
     assert "Project memory" in prompt
     assert "Skill context" in prompt
     assert "TODO context" in prompt
+    assert "Episode context" in prompt
 
 
 @pytest.mark.asyncio

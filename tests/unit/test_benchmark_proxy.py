@@ -5,7 +5,7 @@ import pytest
 from codegopher.devtools.benchmark.proxy import ProxyRunClient, ProxyRunError
 
 
-def test_proxy_run_client_starts_and_ends_owned_run() -> None:
+def test_proxy_run_client_starts_and_ends_run_when_proxy_is_idle() -> None:
     calls: list[tuple[str, str, dict[str, object] | None]] = []
 
     def transport(
@@ -15,7 +15,7 @@ def test_proxy_run_client_starts_and_ends_owned_run() -> None:
     ) -> dict[str, object]:
         calls.append((method, path, payload))
         if path == "/admin/api/runs":
-            return {"active_run": {"id": 7, "name": "CodeGopher stale", "status": "active"}}
+            return {"active_run": None}
         if path == "/admin/api/runs/start":
             return {"run": {"id": 8, "name": payload["name"], "status": "active"}}
         if path == "/admin/api/runs/8":
@@ -41,7 +41,7 @@ def test_proxy_run_client_starts_and_ends_owned_run() -> None:
     )
 
 
-def test_proxy_run_client_aborts_for_foreign_active_run() -> None:
+def test_proxy_run_client_aborts_for_any_active_run() -> None:
     def transport(
         method: str,
         path: str,
@@ -54,7 +54,30 @@ def test_proxy_run_client_aborts_for_foreign_active_run() -> None:
 
     client = ProxyRunClient("http://proxy.example/admin", transport=transport)
 
-    with pytest.raises(ProxyRunError, match="not owned"):
+    with pytest.raises(ProxyRunError, match="contaminate"):
+        client.start_run(name="CodeGopher test", notes="")
+
+
+def test_proxy_run_client_aborts_for_owned_active_run() -> None:
+    def transport(
+        method: str,
+        path: str,
+        payload: dict[str, object] | None,
+    ) -> dict[str, object]:
+        assert method == "GET"
+        assert path == "/admin/api/runs"
+        assert payload is None
+        return {
+            "active_run": {
+                "id": 7,
+                "name": "CodeGopher previous benchmark",
+                "status": "active",
+            }
+        }
+
+    client = ProxyRunClient("http://proxy.example/admin", transport=transport)
+
+    with pytest.raises(ProxyRunError, match="contaminate"):
         client.start_run(name="CodeGopher test", notes="")
 
 

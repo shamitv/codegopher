@@ -104,4 +104,4 @@ def test_todo_item_model_supports_expected_shape() -> None:
 
 def test_todo_item_rejects_invalid_status() -> None:
     with pytest.raises(ValidationError):
-        TodoItem(id="todo-1", text="Add schema tests", status="blocked")
+        TodoItem(id="todo-1", text="Add schema tests", status="paused")

@@ -104,6 +104,17 @@ def test_build_compaction_prompt_includes_mission_context(tmp_path: Path) -> Non
     assert "Mission: Chained audit" in prompt
 
 
+def test_build_compaction_prompt_includes_episode_memory(tmp_path: Path) -> None:
+    prompt = build_compaction_prompt(
+        sample_messages(),
+        cwd=tmp_path,
+        episode_items=["[episode-1] search: Ran grep search"],
+    )
+
+    assert "Runtime episode memory to preserve" in prompt
+    assert "[episode-1] search: Ran grep search" in prompt
+
+
 def test_compacted_messages_preserves_recent_turns_verbatim() -> None:
     messages: list[Message] = [
         {"role": "user", "content": "old question"},

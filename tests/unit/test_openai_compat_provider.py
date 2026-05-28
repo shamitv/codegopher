@@ -20,15 +20,21 @@ class AsyncStream:
 
 
 class FakeCompletions:
-    def __init__(self, stream: AsyncStream | None = None, error: Exception | None = None) -> None:
+    def __init__(
+        self,
+        stream: AsyncStream | None = None,
+        error: Exception | list[Exception] | None = None,
+    ) -> None:
         self.kwargs = {}
+        self.calls: list[dict[str, object]] = []
         self.stream = stream or AsyncStream()
-        self.error = error
+        self.errors = list(error) if isinstance(error, list) else ([error] if error else [])
 
     async def create(self, **kwargs):
         self.kwargs = kwargs
-        if self.error:
-            raise self.error
+        self.calls.append(kwargs)
+        if self.errors:
+            raise self.errors.pop(0)
         return self.stream
 
 
@@ -76,6 +82,7 @@ async def test_openai_compat_provider_builds_request() -> None:
     assert client.chat.completions.kwargs["max_tokens"] == 128
     assert "max_completion_tokens" not in client.chat.completions.kwargs
     assert client.chat.completions.kwargs["stream"] is True
+    assert client.chat.completions.kwargs["stream_options"] == {"include_usage": True}
 
 
 @pytest.mark.asyncio
@@ -326,3 +333,49 @@ async def test_openai_compat_provider_normalizes_request_errors() -> None:
         {"type": "error", "message": "Provider request failed: boom"},
         {"type": "done"},
     ]
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_retries_without_stream_options_when_unsupported() -> None:
+    client = FakeClient(error=[RuntimeError("stream_options is unsupported")])
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    events = [
+        event
+        async for event in provider.stream(
+            [],
+            [],
+            model="m",
+            temperature=0,
+            max_output_tokens=1,
+        )
+    ]
+
+    assert events == [{"type": "done"}]
+    assert "stream_options" in client.chat.completions.calls[0]
+    assert "stream_options" not in client.chat.completions.calls[1]
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_ignores_usage_only_stream_chunks() -> None:
+    client = FakeClient(
+        AsyncStream(
+            [
+                {"choices": [], "usage": {"prompt_tokens": 10, "completion_tokens": 3}},
+            ]
+        )
+    )
+    provider = OpenAICompatProvider(environ={"OPENAI_API_KEY": "sk-test"}, client=client)
+
+    events = [
+        event
+        async for event in provider.stream(
+            [],
+            [],
+            model="m",
+            temperature=0,
+            max_output_tokens=1,
+        )
+    ]
+
+    assert events == [{"type": "done"}]

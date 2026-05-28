@@ -60,13 +60,31 @@ def test_task_ledger_validates_required_tools_and_artifacts(tmp_path: Path) -> N
 
     report = tmp_path / "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
     report.parent.mkdir(parents=True)
-    report.write_text("# Report\n", encoding="utf-8")
+    report.write_text(valid_chained_report(), encoding="utf-8")
     ledger.record_tool_call("write_chained_vulnerability_report")
 
     assert ledger.validate_completion(tmp_path) == []
     assert ledger.observed_artifacts == [
         "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
     ]
+
+
+def test_task_ledger_rejects_invalid_chained_report_shape(tmp_path: Path) -> None:
+    contract = select_mission_contract(
+        prompt="scan for chained vulnerabilities",
+        loaded_skill_ids=("chained-vulnerability-static-audit",),
+    )
+    assert contract is not None
+    ledger = TaskLedger.start(contract)
+    ledger.record_tool_call("write_chained_vulnerability_report")
+    report = tmp_path / "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
+    report.parent.mkdir(parents=True)
+    report.write_text("# Report\n", encoding="utf-8")
+
+    failures = ledger.validate_completion(tmp_path)
+
+    assert "report validation failed: missing Candidate Chain Ledger section" in failures
+    assert "report validation failed: missing fenced JSON candidate ledger" in failures
 
 
 def test_system_prompt_includes_mission_contract_context(tmp_path: Path) -> None:
@@ -79,3 +97,34 @@ def test_system_prompt_includes_mission_contract_context(tmp_path: Path) -> None
 
     assert "Active mission contract" in prompt
     assert "Mission: Chained audit" in prompt
+
+
+def valid_chained_report() -> str:
+    return """# Chained Vulnerabilities Review
+
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "authorization",
+      "source": [{"path": "app.py", "symbol": "create", "line": 10}],
+      "hop": [{"path": "app.py", "symbol": "lookup", "line": 20}],
+      "sink": [{"path": "app.py", "symbol": "delete", "line": 30}],
+      "safe_controls": [
+        {
+          "path": "app.py",
+          "symbol": "require_login",
+          "line": 5,
+          "classification": "nearby_only"
+        }
+      ],
+      "confidence": "High",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+"""

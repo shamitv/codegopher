@@ -55,13 +55,70 @@ async def test_update_todo_tool_starts_and_completes_existing_todo(
 
 
 @pytest.mark.asyncio
+async def test_update_todo_tool_updates_metadata_and_blocks_todo(
+    tmp_path: Path,
+) -> None:
+    context = make_context(tmp_path)
+    assert context.todo_state is not None
+    item = context.todo_state.add("Map source families", source="user")
+
+    updated = await UpdateTodoTool().execute(
+        {
+            "action": "update",
+            "id": item.id,
+            "reason": "Need line evidence",
+            "related_files": ["app.py"],
+            "evidence_refs": ["app.py:10"],
+        },
+        context,
+    )
+    blocked = await UpdateTodoTool().execute(
+        {"action": "block", "id": item.id, "reason": "Waiting on discovery"},
+        context,
+    )
+
+    current = context.todo_state.list()[0]
+    assert updated.is_error is False
+    assert updated.content == f"Updated TODO {item.id}"
+    assert blocked.is_error is False
+    assert current.status == "blocked"
+    assert current.reason == "Waiting on discovery"
+    assert current.related_files == ["app.py"]
+    assert current.evidence_refs == ["app.py:10"]
+
+
+@pytest.mark.asyncio
+async def test_update_todo_tool_unblocks_and_cancels_todo(tmp_path: Path) -> None:
+    context = make_context(tmp_path)
+    assert context.todo_state is not None
+    item = context.todo_state.add("Check candidate", status="blocked")
+
+    unblocked = await UpdateTodoTool().execute(
+        {"action": "unblock", "id": item.id},
+        context,
+    )
+    cancelled = await UpdateTodoTool().execute(
+        {"action": "cancel", "id": item.id, "reason": "No longer relevant"},
+        context,
+    )
+
+    assert unblocked.content == f"Updated TODO {item.id} to pending"
+    assert cancelled.content == f"Updated TODO {item.id} to cancelled"
+    assert context.todo_state.list()[0].status == "cancelled"
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("arguments", "expected"),
     [
         ({"action": "add", "text": " "}, "text is required for add"),
+        ({"action": "update"}, "id is required for update"),
         ({"action": "start"}, "id is required for start"),
         ({"action": "done", "id": "todo-missing"}, "TODO not found: todo-missing"),
-        ({"action": "delete", "id": "todo-1"}, "action must be 'add', 'start', or 'done'"),
+        (
+            {"action": "delete", "id": "todo-1"},
+            "action must be 'add', 'update', 'start', 'block', 'unblock', 'done', or 'cancel'",
+        ),
     ],
 )
 async def test_update_todo_tool_rejects_invalid_arguments(
