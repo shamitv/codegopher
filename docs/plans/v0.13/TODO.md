@@ -103,7 +103,9 @@ validity. Remote Qwen regressed from `16/19` to `11/19` component recall and
 from `6/8` to `4/8` complete-chain recall on the focused subset. The first
 local Responses API model alias `Qwen 3.5 35B` run was invalidated by a
 CodeGopher Responses replay bug that sent untyped assistant-history items to the
-local proxy. A post-fix `app-05` probe produced a generated report with `4/7`
-component recall, `1/3` complete-chain recall, and a valid ledger. Full
-validation is blocked until the Qwen report-completion and malformed-tool-call
-regressions are repaired and the local focused subset is rerun.
+local proxy. After the typed Responses replay fix and targeted skill patch, the
+local focused rerun completed without provider-error or timeout outcomes and
+produced `12/19` component recall, `5/8` complete-chain recall, and `2/3` valid
+ledgers. Full validation remains blocked because local Qwen still failed
+`app-05` with malformed tool arguments and no report, while remote Qwen also
+regressed on focused recall.
