@@ -71,6 +71,11 @@ def _response_function_tool(tool: ToolSchema) -> dict[str, Any]:
     return response_tool
 
 
+def _message_item(role: str, content: str) -> dict[str, Any]:
+    content_type = "output_text" if role == "assistant" else "input_text"
+    return {"type": "message", "role": role, "content": [{"type": content_type, "text": content}]}
+
+
 def _responses_input(messages: list[Message]) -> tuple[str | None, list[dict[str, Any]]]:
     instructions: list[str] = []
     input_items: list[dict[str, Any]] = []
@@ -96,7 +101,7 @@ def _responses_input(messages: list[Message]) -> tuple[str | None, list[dict[str
             if response_items:
                 continue
             if content:
-                input_items.append({"role": "assistant", "content": content})
+                input_items.append(_message_item("assistant", content))
             for tool_call in message.get("tool_calls", []) or []:
                 function = _get(tool_call, "function", {})
                 input_items.append(
@@ -109,7 +114,7 @@ def _responses_input(messages: list[Message]) -> tuple[str | None, list[dict[str
                 )
             continue
         if role == "user":
-            input_items.append({"role": "user", "content": content or ""})
+            input_items.append(_message_item("user", content or ""))
     return "\n\n".join(instructions) or None, input_items
 
 

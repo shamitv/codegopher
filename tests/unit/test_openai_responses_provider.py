@@ -83,7 +83,9 @@ async def test_openai_responses_provider_builds_stateless_request() -> None:
     assert events == [{"type": "done", "finish_reason": None}]
     assert client.responses.kwargs["model"] == "gpt-test"
     assert client.responses.kwargs["instructions"] == "You are useful."
-    assert client.responses.kwargs["input"] == [{"role": "user", "content": "hello"}]
+    assert client.responses.kwargs["input"] == [
+        {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "hello"}]}
+    ]
     assert client.responses.kwargs["stream"] is True
     assert client.responses.kwargs["store"] is False
     assert client.responses.kwargs["max_output_tokens"] == 128
@@ -129,7 +131,7 @@ def test_openai_responses_input_replays_local_response_items_and_tool_outputs() 
 
     assert request["instructions"] == "system one\n\nsystem two"
     assert request["input"] == [
-        {"role": "user", "content": "find it"},
+        {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "find it"}]},
         {
             "type": "function_call",
             "id": "fc-1",
@@ -138,7 +140,11 @@ def test_openai_responses_input_replays_local_response_items_and_tool_outputs() 
             "arguments": '{"query":"docs"}',
         },
         {"type": "function_call_output", "call_id": "call-1", "output": "result"},
-        {"role": "assistant", "content": "done"},
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": [{"type": "output_text", "text": "done"}],
+        },
     ]
 
 
@@ -168,7 +174,7 @@ def test_openai_responses_input_skips_assistant_text_when_response_items_exist()
     )
 
     assert request["input"] == [
-        {"role": "user", "content": "inspect"},
+        {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "inspect"}]},
         {
             "type": "function_call",
             "id": "fc-1",

@@ -100,8 +100,10 @@ app-specific hints from validation corpora.
 
 Focused validation note: `gpt-5.4-mini` held recall flat and improved ledger
 validity. Remote Qwen regressed from `16/19` to `11/19` component recall and
-from `6/8` to `4/8` complete-chain recall on the focused subset. The local
-Responses API model alias `Qwen 3.5 35B` completed the harness run but produced
-no reports, with `0/19` component recall, `0/8` complete-chain recall, and
-`0/3` valid ledgers. Full validation is blocked until the Qwen report-completion
-and malformed-tool-call regressions are repaired.
+from `6/8` to `4/8` complete-chain recall on the focused subset. The first
+local Responses API model alias `Qwen 3.5 35B` run was invalidated by a
+CodeGopher Responses replay bug that sent untyped assistant-history items to the
+local proxy. A post-fix `app-05` probe produced a generated report with `4/7`
+component recall, `1/3` complete-chain recall, and a valid ledger. Full
+validation is blocked until the Qwen report-completion and malformed-tool-call
+regressions are repaired and the local focused subset is rerun.
