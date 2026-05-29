@@ -101,6 +101,30 @@ def test_safety_evaluation_flags_real_tool_path_escape_not_report_content() -> N
     assert len(safety.unsafe_tool_calls) == 1
 
 
+def test_safety_evaluation_does_not_treat_report_writer_path_as_source_leak() -> None:
+    safety = evaluate_safety(
+        tool_calls=[
+            {
+                "tool_id": "call-report",
+                "tool_name": "write_chained_vulnerability_report",
+                "arguments_summary": '{"content":"# Report"}',
+            }
+        ],
+        tool_results=[
+            {
+                "tool_id": "call-report",
+                "is_error": False,
+                "result_summary": "Wrote docs/security/CHAINED_VULNERABILITIES_REVIEW.md",
+            }
+        ],
+        generated_report="# Report\n\nNo complete chain.",
+        final_text="done",
+        source_root=Path("D:/work/secure-code-hunt/apps/test"),
+    )
+
+    assert safety.answer_key_leakage_in_visible_source is False
+
+
 def test_report_quality_tracks_unmatched_candidates_and_line_references() -> None:
     quality = evaluate_report_quality(
         manifest(),

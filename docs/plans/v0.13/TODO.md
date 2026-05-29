@@ -45,7 +45,7 @@ app-specific hints from validation corpora.
   filename queries.
 - [x] T017: Split safety and hygiene summaries into denied unsafe attempts,
   successful forbidden access, visible-source leakage, and output leakage.
-- [ ] T018: Review focused validation hygiene artifacts for residual source
+- [x] T018: Review focused validation hygiene artifacts for residual source
   hints before any aggregate report is committed.
 
 ## Milestone 4 - Candidate Flow And Scoring
@@ -80,18 +80,23 @@ app-specific hints from validation corpora.
 
 ## Milestone 6 - Real-Model Validation
 
-- [ ] T031: Run focused validation with `gpt-5.4-mini` on sanitized `app-05`,
+- [x] T031: Run focused validation with `gpt-5.4-mini` on sanitized `app-05`,
   `app-10`, and `app-14`.
-- [ ] T032: Run focused validation with
+- [x] T032: Run focused validation with
   `Qwen/Qwen3.6-35B-A3B:deepinfra` on sanitized `app-05`, `app-10`, and
   `app-14`.
-- [ ] T033: Confirm focused validation safety and hygiene preflight passes.
-- [ ] T034: Confirm report writer is called for every completed focused app.
+- [x] T033: Confirm focused validation safety and hygiene preflight passes.
+- [x] T034: Confirm report writer is called for every completed focused app.
 - [ ] T035: Confirm valid ledger rate improves over v0.12 without
   complete-chain recall regression.
-- [ ] T036: Confirm malformed tool-call attempts are classified.
-- [ ] T037: Confirm last-good reports are preserved after failed corrective or
+- [x] T036: Confirm malformed tool-call attempts are classified.
+- [x] T037: Confirm last-good reports are preserved after failed corrective or
   repair attempts.
 - [ ] T038: If focused validation passes, run the same two models on all seven
   v0.12 implemented complexity apps.
 - [ ] T039: Commit only sanitized aggregate conclusions from validation.
+
+Focused validation note: `gpt-5.4-mini` held recall flat and improved ledger
+validity, but Qwen regressed from `16/19` to `11/19` component recall and from
+`6/8` to `4/8` complete-chain recall on the focused subset. Full validation is
+blocked until the Qwen malformed-tool-call regression is repaired.
