@@ -2,11 +2,11 @@
 
 > A Python-native, provider-agnostic AI coding agent for your terminal.
 
-CodeGopher includes both the original headless command and an interactive Textual TUI for iterative project work. It can stream through OpenAI Chat Completions or Responses API, connect configured MCP stdio/SSE servers as approval-gated tools, expand file mentions, manage context, compact long sessions, save memory, load Markdown skills, track session TODOs, and resume local terminal sessions. The current 0.2.1 release also includes repository documentation skills, static security audit skills, chained-vulnerability reporting, and mission contracts that help long-running skill tasks finish with explicit artifacts instead of silent partial results.
+CodeGopher includes both the original headless command and an interactive Textual TUI for iterative project work. It can stream through OpenAI Chat Completions or Responses API, connect configured MCP stdio/SSE servers as approval-gated tools, expand file mentions, manage context, compact long sessions, save memory, load Markdown skills, track session TODOs, and resume local terminal sessions. The current 0.3.0 release also includes task-local episode memory, richer TODO lifecycle controls, stricter chained-audit report gates, static-audit tool hardening, and provider/benchmark reliability improvements for long-running skill workflows.
 
 ## Release Status
 
-Version 0.2.1 is an alpha release. The CLI, TUI, VS Code chat bridge, MCP integration, documentation skills, static security skills, and chained-vulnerability audit path are implemented and locally verified. The development benchmark tooling used to measure audit quality is internal and is not exposed as a public `cgopher` subcommand.
+Version 0.3.0 is an alpha release. The CLI, TUI, VS Code chat bridge, MCP integration, documentation skills, static security skills, and chained-vulnerability audit path are implemented and locally verified. Episode memory and richer TODO/task evidence tracking now improve continuity through retries and context compaction. The development benchmark tooling used to measure audit quality remains internal and is not exposed as a public `cgopher` subcommand.
 
 ## Usage
 
@@ -137,7 +137,7 @@ These examples were run on sanitized source-only copies of two benchmark-style s
 | Chained vulnerability audit | Banking Transaction Service and Charity Donation Platform | Generated chained audit reports for both apps and matched evaluator ground truth for 4/4 chains and 12/12 components after retrying the larger Banking audit with a higher iteration budget. |
 | Code change | Charity Donation Platform | Added a refund audit log call in the sanitized copy and verified Python syntax; no focused test was added because the sanitized app copy did not contain a test suite. |
 
-Detailed release example reports are kept in `docs/release/examples/0.2.1/`.
+Detailed release example reports are kept in `docs/release/examples/`.
 
 ## Development
 
