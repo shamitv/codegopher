@@ -39,9 +39,13 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
         f"- Temp workspace: `{summary['workspace']}`",
         f"- Return code: {summary['returncode']}",
         f"- Attempts: {summary['attempt_count']}",
+        f"- Selected attempt: {summary.get('selected_attempt', 'n/a')}",
+        f"- Last good attempt: {summary.get('last_good_attempt', {}).get('attempt', 'n/a')}",
         f"- Corrective second pass: {'yes' if summary.get('corrective_pass_used') else 'no'}",
+        f"- Ledger repair pass: {'yes' if summary.get('ledger_repair_used') else 'no'}",
         f"- Generated report: {'yes' if summary['generated_report_exists'] else 'no'}",
         f"- Report writer called: {'yes' if summary['write_report_called'] else 'no'}",
+        f"- Composite quality score: {summary.get('composite_quality_score', 0.0):.4f}",
         "",
         "## Event Counts",
         "",
@@ -50,8 +54,18 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
     ]
     for event_type, count in summary["event_counts"].items():
         lines.append(f"| `{event_type}` | {count} |")
+    lines.extend(["", "## Attempt Outcomes", ""])
+    outcome_counts = summary.get("attempt_outcome_counts", {})
+    if outcome_counts:
+        lines.extend(["| Outcome | Count |", "|---|---:|"])
+        for outcome, count in outcome_counts.items():
+            if count:
+                lines.append(f"| `{outcome}` | {count} |")
+    else:
+        lines.append("- None")
     lines.extend(["", "## Safety", ""])
     safety = summary["safety"]
+    safety_breakdown = summary.get("safety_hygiene_breakdown", {})
     lines.extend(
         [
             f"- Compromised run: {'yes' if safety['compromised'] else 'no'}",
@@ -59,6 +73,11 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"- Parent/original-root refs in tool calls: {', '.join(safety['parent_or_absolute_refs_in_tool_calls']) or 'none'}",
             f"- Unsafe tool calls: {len(safety['unsafe_tool_calls'])}",
             f"- Denied or unknown tool results: {len(safety['denied_or_unknown_tool_results'])}",
+            f"- Policy-denied metadata searches: {safety_breakdown.get('denied_unsafe_attempts', 0)}",
+            f"- Successful forbidden access: {safety_breakdown.get('successful_forbidden_access', 0)}",
+            "- Answer-key leakage in visible source: "
+            f"{'yes' if safety_breakdown.get('answer_key_leakage_in_visible_source') else 'no'}",
+            f"- Output leakage: {'yes' if safety_breakdown.get('output_leakage') else 'no'}",
             f"- Output mentions removed docs: {'yes' if safety['mentions_removed_docs_in_output'] else 'no'}",
             f"- Output mentions original root: {'yes' if safety['mentions_original_root_in_output'] else 'no'}",
         ]
@@ -109,6 +128,7 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
         lines.append("")
     quality = summary["report_quality"]
     discovery = summary.get("discovery_quality", {})
+    candidate_flow = summary.get("candidate_flow_coverage", {})
     lines.extend(
         [
             "## Report Quality",
@@ -122,8 +142,10 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"- Safe control classifications: {_safe_control_summary(quality.get('safe_control_counts', {}))}",
             f"- Safe controls missing classification: {quality.get('safe_control_missing_classification_count', 0)}",
             f"- Focus coverage: {_coverage_label(summary.get('focus_coverage', {}))}",
+            f"- Candidate-flow coverage: {_candidate_flow_label(candidate_flow)}",
             f"- High-signal focus gaps: {', '.join(summary.get('focus_coverage', {}).get('high_signal_uncovered_categories', [])) or 'none'}",
             f"- Corrective reasons: {', '.join(summary.get('corrective_reasons', [])) or 'none'}",
+            f"- Ledger repair reasons: {', '.join(summary.get('ledger_repair_reasons', [])) or 'none'}",
             "- Corrective reason categories: "
             + _format_reason_categories(summary.get("corrective_reason_categories", {})),
             f"- Ground-truth components with location and method cited: {quality['components_with_location_and_method']} / {quality['total_components']}",
@@ -139,6 +161,14 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             "- Representative high-risk paths covered: "
             f"{discovery.get('covered_representative_high_risk_paths', 0)} / "
             f"{discovery.get('representative_high_risk_paths', 0)}",
+            "",
+            "## Candidate Flow Coverage",
+            "",
+            f"- Candidate flow complete: {'yes' if candidate_flow.get('candidate_flow_complete') else 'no'}",
+            "- Candidate-flow high-risk paths: "
+            f"{candidate_flow.get('candidate_representative_high_risk_paths', 0)} / "
+            f"{candidate_flow.get('representative_high_risk_paths', 0)}",
+            f"- Candidate-flow gaps: {', '.join(candidate_flow.get('missing_high_risk_families', [])) or 'none'}",
             "",
             "## Tool Calls",
             "",
@@ -236,8 +266,8 @@ def render_aggregate_report(
     lines.extend(["", "## Quality Dimensions", ""])
     lines.extend(
         [
-            "| App | Safety Quality | Report Quality | Discovery Quality | Hidden Recall |",
-            "|---|---|---|---|---|",
+            "| App | Composite | Safety Quality | Report Quality | Discovery Quality | Candidate Flow | Hidden Recall |",
+            "|---|---:|---|---|---|---|---|",
         ]
     )
     for summary in summaries:
@@ -268,11 +298,13 @@ def render_aggregate_report(
             )
         )
         lines.append(
-            "| {app} | {safety} | {report} | {discovery} | {recall} |".format(
+            "| {app} | {score:.4f} | {safety} | {report} | {discovery} | {flow} | {recall} |".format(
                 app=summary["app"],
+                score=float(summary.get("composite_quality_score", 0.0)),
                 safety="clean" if not summary["safety"]["compromised"] else "compromised",
                 report=report_quality,
                 discovery=discovery_quality,
+                flow=_candidate_flow_label(summary.get("candidate_flow_coverage", {})),
                 recall=(
                     f"{ground_truth.get('full_chains', 0)}/{ground_truth.get('total_chains', 0)} chains; "
                     f"{ground_truth['detected_components']}/{ground_truth['total_components']} components"
@@ -303,6 +335,7 @@ def render_aggregate_report(
             "- `logs/*.events.jsonl`: raw CodeGopher event streams.",
             "- `logs/*.stderr.log`: process stderr.",
             "- `outputs/*.generated_report.md`: generated chained audit reports or missing-report notes.",
+            "- `outputs/*.attemptN.generated_report.md`: per-attempt generated report snapshots.",
             "- `outputs/*.final_text.md`: final assistant text.",
             "- `analysis/*.analysis.md`: per-app human analysis.",
             "- `analysis/*.summary.json`: machine-readable per-app summaries.",
@@ -336,6 +369,15 @@ def _coverage_label(value: object) -> str:
     covered = value.get("covered_items", 0)
     total = value.get("total_items", 0)
     return f"{covered}/{total}"
+
+
+def _candidate_flow_label(value: object) -> str:
+    if not isinstance(value, dict):
+        return "n/a"
+    covered = value.get("candidate_representative_high_risk_paths", 0)
+    total = value.get("representative_high_risk_paths", 0)
+    suffix = "complete" if value.get("candidate_flow_complete") else "gaps"
+    return f"{covered}/{total} {suffix}"
 
 
 def _append_group_summary(lines: list[str], title: str, groups: dict[str, object]) -> None:

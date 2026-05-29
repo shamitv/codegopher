@@ -73,6 +73,13 @@ def test_aggregate_report_marks_dev_only_and_unmatched_candidates() -> None:
                     "representative_high_risk_paths": 2,
                     "covered_representative_high_risk_paths": 1,
                 },
+                "candidate_flow_coverage": {
+                    "candidate_flow_complete": False,
+                    "candidate_representative_high_risk_paths": 1,
+                    "representative_high_risk_paths": 2,
+                    "missing_high_risk_families": ["repositories_query"],
+                },
+                "composite_quality_score": 0.875,
             }
         ],
     )
@@ -88,6 +95,7 @@ def test_aggregate_report_marks_dev_only_and_unmatched_candidates() -> None:
     )
     assert "## Quality Dimensions" in report
     assert (
-        "| app-test | clean | valid ledger, exact evidence 2/2 | "
-        "repair repositories_query | 1/1 chains; 1/1 components |"
+        "| app-test | 0.8750 | clean | valid ledger, exact evidence 2/2 | "
+        "repair repositories_query | 1/2 gaps | 1/1 chains; 1/1 components |"
     ) in report
+    assert "`outputs/*.attemptN.generated_report.md`" in report

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from codegopher.devtools.benchmark.coverage import (
+    candidate_flow_coverage_to_dict,
     discovery_quality_to_dict,
+    evaluate_candidate_flow_coverage,
     evaluate_discovery_quality,
     evaluate_focus_coverage,
     focus_coverage_to_dict,
@@ -170,3 +172,64 @@ def test_discovery_quality_flags_under_reviewed_large_families() -> None:
     assert discovery.missing_high_risk_families == ()
     assert discovery.weak_high_risk_families == ("controllers_routes",)
     assert discovery.discovery_complete is False
+
+
+def test_candidate_flow_coverage_requires_source_hop_sink_candidates() -> None:
+    report = """
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "idor",
+      "source": {"path": "src/controllers/orders.py", "symbol": "show", "line": "10"},
+      "hop": {"path": "src/services/orders.py", "symbol": "lookup", "line": "18"},
+      "sink": {"path": "src/repositories/orders.py", "symbol": "find", "line": "22"},
+      "safe_controls": [],
+      "confidence": "high",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+"""
+
+    flow = evaluate_candidate_flow_coverage(queue(), report_text=report)
+
+    assert flow.candidate_flow_complete is True
+    assert flow.represented_high_risk_families == (
+        "controllers_routes",
+        "repositories_query",
+    )
+    assert flow.candidate_representative_high_risk_paths == 2
+    payload = candidate_flow_coverage_to_dict(flow)
+    assert payload["candidate_flow_complete"] is True
+    assert payload["coverage"] == 1.0
+
+
+def test_candidate_flow_coverage_reports_missing_reviewed_family() -> None:
+    report = """
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "rejected",
+      "family": "idor",
+      "source": {"path": "src/controllers/orders.py", "symbol": "show", "line": "10"},
+      "hop": {"path": "src/controllers/orders.py", "symbol": "guard", "line": "11"},
+      "sink": {"path": "src/controllers/orders.py", "symbol": "return", "line": "12"},
+      "safe_controls": [],
+      "confidence": "low",
+      "missing_evidence": ["query sink"]
+    }
+  ]
+}
+```
+"""
+
+    flow = evaluate_candidate_flow_coverage(queue(), report_text=report)
+
+    assert flow.candidate_flow_complete is False
+    assert flow.missing_high_risk_families == ("repositories_query",)

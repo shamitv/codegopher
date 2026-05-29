@@ -128,6 +128,22 @@ async def test_chained_audit_policy_blocks_answer_key_search_terms(tmp_path: Pat
 
 
 @pytest.mark.asyncio
+async def test_chained_audit_policy_blocks_escaped_metadata_filename_search(
+    tmp_path: Path,
+) -> None:
+    registry = create_static_audit_registry(create_default_registry())
+    tool = registry.get("grep_search")
+
+    result = await tool.execute(
+        {"query": r"\\.vulns", "_tool_call_id": "call-1"},
+        ToolContext(cwd=tmp_path),
+    )
+
+    assert result.is_error is True
+    assert "answer-key terminology" in result.content
+
+
+@pytest.mark.asyncio
 async def test_chained_audit_policy_blocks_parent_traversal(tmp_path: Path) -> None:
     registry = create_static_audit_registry(create_default_registry())
     tool = registry.get("list_dir")

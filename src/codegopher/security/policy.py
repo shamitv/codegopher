@@ -38,6 +38,7 @@ STATIC_AUDIT_BLOCKED_QUERY_TERMS = (
     "vulnerabilities",
     "vulnerable",
 )
+STATIC_AUDIT_BLOCKED_QUERY_NAMES = tuple(sorted(STATIC_AUDIT_BLOCKED_NAMES))
 
 
 def create_static_audit_registry(source: ToolRegistry) -> ToolRegistry:
@@ -92,6 +93,13 @@ def _static_audit_violation(tool_name: str, arguments: dict[str, Any]) -> str | 
     if tool_name == "grep_search":
         query = str(arguments.get("query", ""))
         normalized = query.lower()
+        metadata_query = _normalize_metadata_query(query)
+        for name in STATIC_AUDIT_BLOCKED_QUERY_NAMES:
+            if name.lower() in metadata_query:
+                return (
+                    "Static audit search denied: query appears to target evaluator "
+                    "metadata or answer-key terminology"
+                )
         for term in STATIC_AUDIT_BLOCKED_QUERY_TERMS:
             if term in normalized:
                 return (
@@ -99,6 +107,16 @@ def _static_audit_violation(tool_name: str, arguments: dict[str, Any]) -> str | 
                     "metadata or answer-key terminology"
                 )
     return None
+
+
+def _normalize_metadata_query(query: str) -> str:
+    return (
+        query.lower()
+        .replace("\\", "")
+        .replace('"', "")
+        .replace("'", "")
+        .replace("`", "")
+    )
 
 
 def _argument_path_values(arguments: dict[str, Any]) -> list[str]:
