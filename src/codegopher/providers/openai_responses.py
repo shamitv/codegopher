@@ -93,10 +93,10 @@ def _responses_input(messages: list[Message]) -> tuple[str | None, list[dict[str
         if role == "assistant":
             response_items = message.get("response_items", [])
             input_items.extend(response_items)
-            if content:
-                input_items.append({"role": "assistant", "content": content})
             if response_items:
                 continue
+            if content:
+                input_items.append({"role": "assistant", "content": content})
             for tool_call in message.get("tool_calls", []) or []:
                 function = _get(tool_call, "function", {})
                 input_items.append(

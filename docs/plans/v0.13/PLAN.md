@@ -162,13 +162,14 @@ The score intentionally excludes cost and wall time for v0.13.
 
 Focused validation comes first:
 
-- Models: `gpt-5.4-mini` and `Qwen/Qwen3.6-35B-A3B:deepinfra`.
+- Models: `gpt-5.4-mini`, `Qwen/Qwen3.6-35B-A3B:deepinfra`, and the
+  locally hosted Responses API model alias `Qwen 3.5 35B`.
 - Apps: sanitized `app-05`, `app-10`, and `app-14`.
 
 Full validation comes second only if focused validation improves ledger validity
 without complete-chain recall regression:
 
-- Models: the same two models.
+- Models: the focused model set that passes the no-regression gate.
 - Apps: all seven v0.12 implemented complexity apps.
 
 Success criteria:
@@ -180,6 +181,8 @@ Success criteria:
 - Malformed tool-call attempts are classified.
 - Last-good reports are preserved.
 - Committed summaries remain sanitized.
+- Local-model summaries identify only the model alias and API family; raw
+  endpoint URLs remain out of committed docs.
 
 ## Assumptions
 

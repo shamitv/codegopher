@@ -142,6 +142,44 @@ def test_openai_responses_input_replays_local_response_items_and_tool_outputs() 
     ]
 
 
+def test_openai_responses_input_skips_assistant_text_when_response_items_exist() -> None:
+    request = build_responses_request_preview(
+        [
+            {"role": "user", "content": "inspect"},
+            {
+                "role": "assistant",
+                "content": "I will inspect the files.",
+                "response_items": [
+                    {
+                        "type": "function_call",
+                        "id": "fc-1",
+                        "call_id": "call-1",
+                        "name": "list_dir",
+                        "arguments": '{"path":"."}',
+                    }
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call-1", "content": "app.py"},
+        ],
+        [],
+        model="gpt-test",
+        temperature=1.0,
+        max_output_tokens=64,
+    )
+
+    assert request["input"] == [
+        {"role": "user", "content": "inspect"},
+        {
+            "type": "function_call",
+            "id": "fc-1",
+            "call_id": "call-1",
+            "name": "list_dir",
+            "arguments": '{"path":"."}',
+        },
+        {"type": "function_call_output", "call_id": "call-1", "output": "app.py"},
+    ]
+
+
 def test_openai_responses_input_synthesizes_chat_tool_history_without_metadata() -> None:
     request = build_responses_request_preview(
         [

@@ -85,18 +85,23 @@ app-specific hints from validation corpora.
 - [x] T032: Run focused validation with
   `Qwen/Qwen3.6-35B-A3B:deepinfra` on sanitized `app-05`, `app-10`, and
   `app-14`.
-- [x] T033: Confirm focused validation safety and hygiene preflight passes.
-- [x] T034: Confirm report writer is called for every completed focused app.
+- [x] T033: Run focused validation with local Responses API model alias
+  `Qwen 3.5 35B` on sanitized `app-05`, `app-10`, and `app-14`.
+- [x] T034: Confirm focused validation safety and hygiene preflight passes.
 - [ ] T035: Confirm valid ledger rate improves over v0.12 without
   complete-chain recall regression.
-- [x] T036: Confirm malformed tool-call attempts are classified.
-- [x] T037: Confirm last-good reports are preserved after failed corrective or
+- [x] T036: Confirm report writer is called for every completed focused app.
+- [x] T037: Confirm malformed tool-call attempts are classified.
+- [x] T038: Confirm last-good reports are preserved after failed corrective or
   repair attempts.
-- [ ] T038: If focused validation passes, run the same two models on all seven
-  v0.12 implemented complexity apps.
-- [ ] T039: Commit only sanitized aggregate conclusions from validation.
+- [ ] T039: If focused validation passes, run the selected model set on all
+  seven v0.12 implemented complexity apps.
+- [ ] T040: Commit only sanitized aggregate conclusions from validation.
 
 Focused validation note: `gpt-5.4-mini` held recall flat and improved ledger
-validity, but Qwen regressed from `16/19` to `11/19` component recall and from
-`6/8` to `4/8` complete-chain recall on the focused subset. Full validation is
-blocked until the Qwen malformed-tool-call regression is repaired.
+validity. Remote Qwen regressed from `16/19` to `11/19` component recall and
+from `6/8` to `4/8` complete-chain recall on the focused subset. The local
+Responses API model alias `Qwen 3.5 35B` completed the harness run but produced
+no reports, with `0/19` component recall, `0/8` complete-chain recall, and
+`0/3` valid ledgers. Full validation is blocked until the Qwen report-completion
+and malformed-tool-call regressions are repaired.
