@@ -128,16 +128,16 @@ SOURCE_FAMILY_LABELS = {
     "general": "general source",
 }
 SOURCE_FAMILY_DISCOVERY_ORDER = (
-    "controllers_routes",
     "auth_session",
+    "state_changing",
+    "repositories_query",
+    "webhooks_outbound",
+    "controllers_routes",
     "config_secrets",
     "validators",
     "uploads",
-    "repositories_query",
-    "state_changing",
     "tsx_render_sink",
     "static_js_sink",
-    "webhooks_outbound",
     "jobs",
     "static_html_signal",
 )
@@ -370,6 +370,7 @@ def render_static_focus_queue(queue: StaticFocusQueue) -> str:
             "### Coverage Instructions",
             "",
             "- Review focus items by category and connect only source-supported source-hop-sink paths.",
+            "- Prioritize final-hop bridge review for auth/session, privileged state-changing paths, repository/query sinks, and webhook/outbound-call flows.",
             "- Treat safe controls as path-specific: decide whether they block the exact candidate path or are merely nearby.",
             "- Use full repository-relative paths and line numbers from this queue when re-reading evidence.",
         ]

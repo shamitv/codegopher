@@ -165,6 +165,77 @@ else:
     return script
 
 
+def write_candidate_flow_repair_fake_cgopher(
+    path: Path,
+    *,
+    repair_calls_writer: bool,
+) -> Path:
+    script = path / (
+        "fake_cgopher_candidate_flow_writer.py"
+        if repair_calls_writer
+        else "fake_cgopher_candidate_flow_no_writer.py"
+    )
+    script.write_text(
+        f"""
+from pathlib import Path
+import json
+import sys
+
+stdin_text = sys.stdin.read()
+prompt = " ".join(sys.argv) + "\\n" + stdin_text
+target = Path("docs/security/CHAINED_VULNERABILITIES_REVIEW.md")
+target.parent.mkdir(parents=True, exist_ok=True)
+
+def report(include_repository):
+    candidates = [
+        {{
+            "status": "incomplete",
+            "family": "idor",
+            "source": {{"path": "controllers.py", "symbol": "create_item", "line": "1"}},
+            "hop": {{"path": "controllers.py", "symbol": "create_item", "line": "2"}},
+            "sink": {{"path": "controllers.py", "symbol": "create_item", "line": "2"}},
+            "safe_controls": [],
+            "confidence": "medium",
+            "missing_evidence": ["repository sink not represented yet"],
+        }}
+    ]
+    if include_repository:
+        candidates.append(
+            {{
+                "status": "incomplete",
+                "family": "query",
+                "source": {{"path": "controllers.py", "symbol": "create_item", "line": "1"}},
+                "hop": {{"path": "controllers.py", "symbol": "create_item", "line": "2"}},
+                "sink": {{"path": "repository.py", "symbol": "load_item", "line": "1"}},
+                "safe_controls": [],
+                "confidence": "medium",
+                "missing_evidence": ["authorization guard not proven"],
+            }}
+        )
+    ledger = json.dumps({{"candidate_chains": candidates}}, indent=2)
+    return "# Report\\n\\n" + "## Candidate Chain Ledger\\n\\n" + "```json\\n" + ledger + "\\n```\\n\\nEvidence: controllers.py:1 create_item.\\n"
+
+if "Repair only Candidate Chain Ledger coverage" in prompt:
+    print(json.dumps({{"type": "tool_call", "tool_id": "call-r1", "tool_name": "read_file", "arguments_summary": "{{\\"path\\":\\"repository.py\\"}}"}}))
+    print(json.dumps({{"type": "tool_result", "tool_id": "call-r1", "is_error": False, "result_summary": "def load_item(item_id): return db.execute(...)"}}))
+    if {str(repair_calls_writer)}:
+        target.write_text(report(True), encoding="utf-8")
+        print(json.dumps({{"type": "tool_call", "tool_id": "call-r2", "tool_name": "write_chained_vulnerability_report", "arguments_summary": "{{\\"content\\":\\"# Report\\"}}"}}))
+        print(json.dumps({{"type": "tool_result", "tool_id": "call-r2", "is_error": False, "result_summary": "Wrote docs/security/CHAINED_VULNERABILITIES_REVIEW.md"}}))
+else:
+    target.write_text(report(False), encoding="utf-8")
+    print(json.dumps({{"type": "tool_call", "tool_id": "call-1", "tool_name": "read_file", "arguments_summary": "{{\\"path\\":\\"controllers.py\\"}}"}}))
+    print(json.dumps({{"type": "tool_call", "tool_id": "call-2", "tool_name": "read_file", "arguments_summary": "{{\\"path\\":\\"repository.py\\"}}"}}))
+    print(json.dumps({{"type": "tool_call", "tool_id": "call-3", "tool_name": "write_chained_vulnerability_report", "arguments_summary": "{{\\"content\\":\\"# Report\\"}}"}}))
+    print(json.dumps({{"type": "tool_result", "tool_id": "call-3", "is_error": False, "result_summary": "Wrote docs/security/CHAINED_VULNERABILITIES_REVIEW.md"}}))
+
+print(json.dumps({{"type": "turn_complete", "final_text": "done"}}))
+""".strip(),
+        encoding="utf-8",
+    )
+    return script
+
+
 def test_prepare_workspace_removes_agent_visible_docs(tmp_path: Path) -> None:
     app = write_app(tmp_path)
     case = BenchmarkCase(
@@ -179,7 +250,7 @@ def test_prepare_workspace_removes_agent_visible_docs(tmp_path: Path) -> None:
             output_dir=tmp_path / "out",
             cgopher_command=(sys.executable, "unused.py"),
             model="model",
-            base_url="http://localhost/v1",
+            base_url="https://example.test/v1",
             temp_root=tmp_path / "tmp",
         )
     )
@@ -226,7 +297,7 @@ def test_prepare_workspace_sanitizes_source_hints(tmp_path: Path) -> None:
             output_dir=tmp_path / "out",
             cgopher_command=(sys.executable, "unused.py"),
             model="model",
-            base_url="http://localhost/v1",
+            base_url="https://example.test/v1",
             temp_root=tmp_path / "tmp",
             sanitize_source_hints=True,
             ledger_repair_pass=False,
@@ -278,7 +349,7 @@ def test_prepare_workspace_removes_tests_and_metadata_filename_refs(
             output_dir=tmp_path / "out",
             cgopher_command=(sys.executable, "unused.py"),
             model="model",
-            base_url="http://localhost/v1",
+            base_url="https://example.test/v1",
             temp_root=tmp_path / "tmp",
             sanitize_source_hints=True,
             ledger_repair_pass=False,
@@ -312,7 +383,7 @@ def test_harness_run_creates_expected_artifacts(tmp_path: Path) -> None:
             output_dir=tmp_path / "out",
             cgopher_command=(sys.executable, str(fake)),
             model="model",
-            base_url="http://localhost/v1",
+            base_url="https://example.test/v1",
             replay_reasoning_content=True,
             temp_root=tmp_path / "tmp",
             sanitize_source_hints=True,
@@ -419,7 +490,7 @@ def test_ledger_repair_failure_preserves_last_good_report(tmp_path: Path) -> Non
             output_dir=tmp_path / "out",
             cgopher_command=(sys.executable, str(fake)),
             model="model",
-            base_url="http://localhost/v1",
+            base_url="https://example.test/v1",
             temp_root=tmp_path / "tmp",
             sanitize_source_hints=True,
             corrective_second_pass=False,
@@ -532,6 +603,102 @@ Evidence: controllers.py:2 create_item.
     assert "candidate-flow coverage" in reasons[0]
     assert "Candidate-flow repair worklist" in prompt
     assert "repository.py" in prompt
+    assert "Continue from the current report and TODO state" in prompt
+    assert "write_chained_vulnerability_report" in prompt
+
+
+def test_candidate_flow_repair_missing_writer_is_classified_and_preserves_last_good(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    (app / "controllers.py").write_text(
+        "@app.route('/items')\ndef create_item(): return repository.load_item(request.args['id'])\n",
+        encoding="utf-8",
+    )
+    (app / "repository.py").write_text(
+        "def load_item(item_id): return db.execute('SELECT * FROM items WHERE id=' + item_id)\n",
+        encoding="utf-8",
+    )
+    fake = write_candidate_flow_repair_fake_cgopher(
+        tmp_path,
+        repair_calls_writer=False,
+    )
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, str(fake)),
+            model="model",
+            base_url="https://example.test/v1",
+            temp_root=tmp_path / "tmp",
+            sanitize_source_hints=True,
+            corrective_second_pass=False,
+            ledger_repair_pass=False,
+        )
+    )
+
+    harness.run()
+
+    summary = json.loads((tmp_path / "out/analysis/app-test.summary.json").read_text())
+    repair = summary["candidate_flow_repair_summary"]
+    assert summary["candidate_flow_repair_used"] is True
+    assert summary["selected_attempt"] == 1
+    assert repair["outcome"] == "failed_missing_writer_call"
+    assert repair["attempt_outcome"] == "missing_writer_call"
+    assert repair["missing_families_before"] == ["repositories_query"]
+    assert repair["added_families"] == []
+    assert repair["family_statuses_after"]["repositories_query"]["status"] == "missing"
+
+
+def test_candidate_flow_repair_reports_added_family_statuses(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    (app / "controllers.py").write_text(
+        "@app.route('/items')\ndef create_item(): return repository.load_item(request.args['id'])\n",
+        encoding="utf-8",
+    )
+    (app / "repository.py").write_text(
+        "def load_item(item_id): return db.execute('SELECT * FROM items WHERE id=' + item_id)\n",
+        encoding="utf-8",
+    )
+    fake = write_candidate_flow_repair_fake_cgopher(
+        tmp_path,
+        repair_calls_writer=True,
+    )
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, str(fake)),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+            sanitize_source_hints=True,
+            corrective_second_pass=False,
+            ledger_repair_pass=False,
+        )
+    )
+
+    harness.run()
+
+    summary = json.loads((tmp_path / "out/analysis/app-test.summary.json").read_text())
+    repair = summary["candidate_flow_repair_summary"]
+    assert summary["candidate_flow_repair_outcome"] == "improved"
+    assert summary["candidate_flow_repair_added_families"] == ["repositories_query"]
+    assert repair["family_statuses_after"]["repositories_query"]["status"] == "incomplete"
 
 
 def test_attempt_classification_covers_missing_report_writer_and_quality_gate() -> None:

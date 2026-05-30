@@ -268,6 +268,7 @@ _CHAINED_VULNERABILITY_AUDIT = MissionContract(
     required_todos=[
         "Map attack surface: routes, handlers, auth/session, config, jobs, uploads, and external calls.",
         "Review high-risk source families before final conclusions: controllers/routes, auth/session, validators, state-changing endpoints, query sinks, external calls, uploads, jobs, and render sinks.",
+        "Prioritize uncovered auth/session, privileged state-changing, repository/query, and webhook/outbound families as final-hop bridge targets.",
         "Inventory weaknesses, safe decoys, and source-controlled assumptions.",
         "Use incomplete findings as pivots into adjacent source, such as secret keys to session/auth/role checks.",
         "Maintain a working Candidate Chain Ledger with complete, incomplete, and rejected candidates.",
@@ -285,6 +286,8 @@ _CHAINED_VULNERABILITY_AUDIT = MissionContract(
         "No-chain reports must include rejected or incomplete candidates with negative evidence.",
         "The Candidate Chain Ledger must include fenced JSON with a top-level candidate_chains array.",
         "If high-risk source families were not reviewed, state that discovery is incomplete instead of presenting a completed no-chain result.",
+        "Before marking a partial chain incomplete, cite the missing final source hop or the negative evidence that blocks it.",
+        "When the report writer is available, arbitrary file writes do not satisfy report completion.",
     ],
     completion_gates=[
         "write_chained_vulnerability_report called",

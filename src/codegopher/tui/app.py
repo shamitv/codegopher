@@ -1025,6 +1025,7 @@ class CodeGopherApp(App[None]):
             cwd=self.cwd,
             registry=self.registry,
             approval_mode=self.settings.approval_mode,
+            max_replay_messages=self.settings.context.max_replay_messages,
             skills=self.skill_manager.context_items(),
             todo_items=self.todo_state.context_items()
             if self.settings.todo.enabled

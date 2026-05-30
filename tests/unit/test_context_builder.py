@@ -5,6 +5,7 @@ from pathlib import Path
 from codegopher.config.schema import ApprovalMode
 from codegopher.core.context import build_messages, build_system_prompt
 from codegopher.core.conversation import Conversation
+from codegopher.tools.base import ToolResult
 from codegopher.tools.registry import create_default_registry
 
 
@@ -100,3 +101,88 @@ def test_context_builder_mentions_only_implemented_v0_1_features(tmp_path: Path)
     for future_feature in ("TUI", "MCP", "sub-agents"):
         assert future_feature not in prompt
     assert "Loaded skills" not in prompt
+
+
+def test_context_builder_replay_message_cap_keeps_recent_messages(tmp_path: Path) -> None:
+    conversation = Conversation()
+    conversation.append_user("one")
+    conversation.append_user("two")
+    conversation.append_user("three")
+
+    messages = build_messages(
+        conversation,
+        cwd=tmp_path,
+        registry=create_default_registry(),
+        approval_mode=ApprovalMode.review,
+        max_replay_messages=2,
+    )
+
+    assert messages[0]["role"] == "system"
+    assert messages[1] == {"role": "user", "content": "two"}
+    assert messages[2] == {"role": "user", "content": "three"}
+
+
+def test_context_builder_replay_message_cap_preserves_tool_turn_boundary(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("inspect")
+    conversation.append_assistant(
+        None,
+        [
+            {
+                "id": "call-1",
+                "name": "read_file",
+                "arguments": {"path": "README.md"},
+            }
+        ],
+    )
+    conversation.append_tool_result(
+        ToolResult(tool_call_id="call-1", content="project notes")
+    )
+
+    messages = build_messages(
+        conversation,
+        cwd=tmp_path,
+        registry=create_default_registry(),
+        approval_mode=ApprovalMode.review,
+        max_replay_messages=1,
+    )
+
+    assert [message["role"] for message in messages] == ["system", "assistant", "tool"]
+    assert messages[1]["tool_calls"][0]["id"] == "call-1"
+    assert messages[2]["tool_call_id"] == "call-1"
+
+
+def test_context_builder_replay_message_cap_preserves_response_item_tool_boundary(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("inspect")
+    conversation.append_assistant(
+        None,
+        response_items=[
+            {
+                "type": "function_call",
+                "id": "fc-1",
+                "call_id": "call-1",
+                "name": "read_file",
+                "arguments": '{"path":"README.md"}',
+            }
+        ],
+    )
+    conversation.append_tool_result(
+        ToolResult(tool_call_id="call-1", content="project notes")
+    )
+
+    messages = build_messages(
+        conversation,
+        cwd=tmp_path,
+        registry=create_default_registry(),
+        approval_mode=ApprovalMode.review,
+        max_replay_messages=1,
+    )
+
+    assert [message["role"] for message in messages] == ["system", "assistant", "tool"]
+    assert messages[1]["response_items"][0]["call_id"] == "call-1"
+    assert messages[2]["tool_call_id"] == "call-1"

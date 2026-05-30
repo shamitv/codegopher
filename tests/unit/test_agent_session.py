@@ -4,7 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from codegopher.config.schema import ApprovalMode, ModelConfig, ProviderEntry, Settings
+from codegopher.config.schema import (
+    ApprovalMode,
+    ContextConfig,
+    ModelConfig,
+    ProviderEntry,
+    Settings,
+)
 from codegopher.core.agent import AgentCallbacks, AgentResult, AgentSession
 from codegopher.core.approval import ApprovalRequest, ApprovalResult
 from codegopher.core.conversation import Conversation
@@ -61,6 +67,38 @@ async def test_agent_session_preserves_text_conversation_across_turns(tmp_path: 
         {"role": "user", "content": "first question"},
         {"role": "assistant", "content": "first answer"},
         {"role": "user", "content": "second question"},
+    ]
+
+
+@pytest.mark.asyncio
+async def test_agent_session_context_budget_uses_replay_cap_for_auto_compaction(
+    tmp_path: Path,
+) -> None:
+    conversation = Conversation()
+    conversation.append_user("old context " * 2000)
+    conversation.append_assistant("old answer")
+    provider = MockProvider(
+        [[{"type": "text_delta", "content": "current answer"}, {"type": "done"}]]
+    )
+    settings = Settings(
+        model=ModelConfig(provider="openai", name="tiny"),
+        providers={"openai": [ProviderEntry(id="tiny", name="Tiny", context_window=800)]},
+        context=ContextConfig(max_replay_messages=2),
+    )
+    session = make_session(
+        tmp_path,
+        provider,
+        settings=settings,
+        conversation=conversation,
+    )
+
+    result = await session.run_turn("current question")
+
+    assert result.final_text == "current answer"
+    assert len(provider.calls) == 1
+    assert provider.calls[0][1:] == [
+        {"role": "assistant", "content": "old answer"},
+        {"role": "user", "content": "current question"},
     ]
 
 

@@ -154,6 +154,10 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"- Ledger repair reasons: {', '.join(summary.get('ledger_repair_reasons', [])) or 'none'}",
             "- Candidate-flow repair reasons: "
             f"{', '.join(summary.get('candidate_flow_repair_reasons', [])) or 'none'}",
+            "- Candidate-flow repair outcome: "
+            f"{summary.get('candidate_flow_repair_outcome', 'not_run')}",
+            "- Candidate-flow repair added families: "
+            f"{', '.join(summary.get('candidate_flow_repair_added_families', [])) or 'none'}",
             f"- Provider recovery attempts: {summary.get('provider_recovery_attempts', 0)}",
             f"- Tool-call parse errors: {summary.get('tool_call_parse_errors', 0)}",
             "- Recovered malformed tool-call attempts: "
@@ -181,6 +185,10 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"{candidate_flow.get('candidate_representative_high_risk_paths', 0)} / "
             f"{candidate_flow.get('representative_high_risk_paths', 0)}",
             f"- Candidate-flow gaps: {', '.join(candidate_flow.get('missing_high_risk_families', [])) or 'none'}",
+            "- Candidate-flow repair family statuses: "
+            + _format_repair_family_statuses(
+                summary.get("candidate_flow_repair_summary", {})
+            ),
             "",
             "## Tool Calls",
             "",
@@ -505,6 +513,23 @@ def _format_reason_categories(categories: Any) -> str:
         for name in ordered
         if int(categories.get(name, 0))
     ) or "none"
+
+
+def _format_repair_family_statuses(summary: object) -> str:
+    if not isinstance(summary, dict):
+        return "none"
+    statuses = summary.get("family_statuses_after")
+    if not isinstance(statuses, dict) or not statuses:
+        return "none"
+    parts = []
+    for family, payload in sorted(statuses.items()):
+        if not isinstance(payload, dict):
+            continue
+        status = payload.get("status", "missing")
+        paths = payload.get("candidate_paths", [])
+        count = len(paths) if isinstance(paths, list) else 0
+        parts.append(f"{family}={status}({count})")
+    return ", ".join(parts) or "none"
 
 
 def _recall_label(summary: dict[str, Any]) -> str:

@@ -23,6 +23,7 @@ def test_settings_defaults() -> None:
     assert settings.context.warning_threshold == 0.70
     assert settings.context.compaction_threshold == 0.80
     assert settings.context.token_encoding == "cl100k_base"
+    assert settings.context.max_replay_messages is None
     assert settings.memory.enabled is True
     assert settings.memory.session_enabled is True
     assert settings.memory.project_enabled is True
@@ -138,6 +139,11 @@ def test_settings_rejects_invalid_context_threshold_order() -> None:
 def test_settings_rejects_invalid_context_threshold_bounds() -> None:
     with pytest.raises(ValidationError):
         Settings.model_validate({"context": {"warning_threshold": 0.0}})
+
+
+def test_settings_rejects_invalid_context_replay_cap() -> None:
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"context": {"max_replay_messages": 0}})
 
 
 def test_settings_rejects_invalid_memory_limits() -> None:

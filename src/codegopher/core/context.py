@@ -67,12 +67,18 @@ def build_messages(
     cwd: Path,
     registry: ToolRegistry,
     approval_mode: ApprovalMode,
+    max_replay_messages: int | None = None,
     memories: Iterable[str] = (),
     episode_items: Iterable[str] = (),
     skills: Iterable[str] = (),
     todo_items: Iterable[str] = (),
     mission_items: Iterable[str] = (),
 ) -> list[Message]:
+    replay_messages = capped_replay_messages(
+        conversation.provider_messages(),
+        max_replay_messages=max_replay_messages,
+    )
+
     return [
         {
             "role": "system",
@@ -87,5 +93,40 @@ def build_messages(
                 mission_items=mission_items,
             ),
         },
-        *conversation.provider_messages(),
+        *replay_messages,
     ]
+
+
+def capped_replay_messages(
+    messages: list[Message],
+    *,
+    max_replay_messages: int | None,
+) -> list[Message]:
+    replay_messages = list(messages)
+    if max_replay_messages is None or len(replay_messages) <= max_replay_messages:
+        return replay_messages
+
+    start = len(replay_messages) - max_replay_messages
+    while start > 0 and _is_tool_result(replay_messages[start]):
+        previous = start - 1
+        while previous > 0 and _is_tool_result(replay_messages[previous]):
+            previous -= 1
+        if not _message_has_tool_calls(replay_messages[previous]):
+            break
+        start = previous
+    return replay_messages[start:]
+
+
+def _is_tool_result(message: Message) -> bool:
+    return message.get("role") == "tool"
+
+
+def _message_has_tool_calls(message: Message) -> bool:
+    if message.get("role") != "assistant":
+        return False
+    if message.get("tool_calls"):
+        return True
+    for item in message.get("response_items", []) or []:
+        if isinstance(item, dict) and item.get("type") == "function_call":
+            return True
+    return False

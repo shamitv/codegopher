@@ -96,13 +96,16 @@ Report requirements:
 - Cite code evidence as `relative/path.ext:line` or `relative/path.ext:line-line`.
 - Use full repository-relative paths and exact method/symbol names in every final evidence row. Do not abbreviate citations to `File.java:line` when the full path is known.
 - If no complete chain is provable, still call the report writer and include reviewed areas, rejected candidates, missing evidence, and incomplete chains.
+- Prioritize uncovered final-hop bridge review for auth/session, privileged state-changing paths, repository/query sinks, and webhook/outbound-call flows before closing a partial chain.
 """.strip()
 CORRECTIVE_BENCHMARK_PROMPT = """
 Continue the same static-only chained vulnerability review. The current audit is missing one or more generic quality gates: line-numbered evidence, a Candidate Chain Ledger, or a clear complete-chain/incomplete-chain conclusion.
 
-Do not use hidden manifests, removed evaluator files, dotfiles, parent directories, live probes, dynamic scanners, shell commands, or files outside this workspace.
+Continue from the current mission state and preserve existing TODO evidence. Do not restart the whole audit unless visible source proves the previous direction is wrong.
 
-Use only source-derived evidence. Re-read the minimum necessary source files with `read_file` and `include_line_numbers=true`, then update the final report with `write_chained_vulnerability_report` to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
+Do not use hidden manifests, removed evaluator files, dotfiles, parent directories, live probes, dynamic scanners, shell commands, arbitrary write tools, or files outside this workspace.
+
+Use only source-derived evidence. Re-read the minimum necessary source files with `read_file` and `include_line_numbers=true`, bridge any missing final source hop, then update the final report with `write_chained_vulnerability_report` to `docs/security/CHAINED_VULNERABILITIES_REVIEW.md`.
 
 Every final evidence row must cite the full repository-relative path, exact symbol or method name, and line or line range. Replace abbreviated citations such as `Controller.java:40-47` with full citations such as `src/main/java/example/Controller.java:40-47`.
 
@@ -136,9 +139,11 @@ The repaired fenced JSON ledger must have top-level `candidate_chains`. Every ca
 CANDIDATE_FLOW_REPAIR_BENCHMARK_PROMPT = """
 Repair only Candidate Chain Ledger coverage for reviewed high-risk source families.
 
-Do not restart discovery, broaden scope, use hidden manifests, read removed evaluator files, inspect dotfiles, traverse parent directories, run shell commands, use live probes, or write any artifact except `docs/security/CHAINED_VULNERABILITIES_REVIEW.md` through `write_chained_vulnerability_report`.
+Continue from the current report and TODO state. Do not restart discovery, broaden scope, use hidden manifests, read removed evaluator files, inspect dotfiles, traverse parent directories, run shell commands, use live probes, use arbitrary write tools, or write any artifact except `docs/security/CHAINED_VULNERABILITIES_REVIEW.md` through `write_chained_vulnerability_report`.
 
 The current ledger is structurally valid, but reviewed high-risk source families are not represented by complete, incomplete, or rejected source-hop-sink candidates. Re-read only the minimum source files needed for the listed gaps. Add or update incomplete/rejected candidates with exact `path`, `symbol`, and `line` or `line_range`, explicit `missing_evidence`, and safe-control classifications. Preserve existing complete chains unless a cited source line proves a correction.
+
+For each listed family, add a `complete`, `incomplete`, or `rejected` candidate, or preserve an existing candidate and explain why it covers the family. Bridge the missing final source hop before marking a candidate incomplete; if the hop cannot be proven, record the exact missing evidence or negative evidence.
 
 You must call `write_chained_vulnerability_report` to write the repaired report before finishing. If no candidate-flow update is possible from visible source, still call the report writer and record the remaining missing evidence.
 """.strip()
@@ -1102,6 +1107,12 @@ class BenchmarkHarness:
             )
             for outcome in ATTEMPT_OUTCOMES
         }
+        candidate_flow_repair_summary = self._candidate_flow_repair_summary(
+            case=case,
+            attempts=attempts,
+            repair_used=candidate_flow_repair_used,
+            focus_queue=self._focus_queues.get(case.key),
+        )
         return {
             "app": case.key,
             "display_name": case.display_name,
@@ -1119,6 +1130,11 @@ class BenchmarkHarness:
             "ledger_repair_reasons": list(ledger_repair_reasons),
             "candidate_flow_repair_used": candidate_flow_repair_used,
             "candidate_flow_repair_reasons": list(candidate_flow_repair_reasons),
+            "candidate_flow_repair_summary": candidate_flow_repair_summary,
+            "candidate_flow_repair_outcome": candidate_flow_repair_summary["outcome"],
+            "candidate_flow_repair_added_families": candidate_flow_repair_summary[
+                "added_families"
+            ],
             "attempt_summaries": attempt_summaries,
             "attempt_outcome_counts": attempt_outcome_counts,
             "last_good_attempt": {
@@ -1255,6 +1271,87 @@ class BenchmarkHarness:
             "generated_report_snapshot_exists": bool(report_snapshot),
             "generated_report_snapshot_length": len(report_snapshot),
             "stderr_length": len(attempt.stderr),
+        }
+
+    def _candidate_flow_repair_summary(
+        self,
+        *,
+        case: BenchmarkCase,
+        attempts: list[ProcessAttempt],
+        repair_used: bool,
+        focus_queue: StaticFocusQueue | None,
+    ) -> dict[str, Any]:
+        empty = {
+            "used": repair_used,
+            "outcome": "not_run",
+            "attempt": None,
+            "attempt_outcome": None,
+            "missing_families_before": [],
+            "added_families": [],
+            "remaining_families": [],
+            "family_statuses_after": {},
+        }
+        if not repair_used or focus_queue is None or not attempts:
+            return empty
+
+        repair_attempt = attempts[-1]
+        before_attempt = attempts[-2] if len(attempts) >= 2 else None
+        repair_attempt_summary = self._attempt_summary(
+            case_key=case.key,
+            attempt=repair_attempt,
+        )
+        before_report = (
+            self._read_attempt_report_snapshot(case.key, before_attempt)
+            if before_attempt is not None
+            else ""
+        )
+        before_flow = evaluate_candidate_flow_coverage(
+            focus_queue,
+            report_text=before_report,
+        )
+        missing_before = tuple(before_flow.missing_high_risk_families)
+
+        repair_report = ""
+        if repair_attempt_summary["write_report_called"]:
+            repair_report = self._read_attempt_report_snapshot(case.key, repair_attempt)
+        after_flow = evaluate_candidate_flow_coverage(
+            focus_queue,
+            report_text=repair_report or before_report,
+        )
+        before_represented = set(before_flow.represented_high_risk_families)
+        after_represented = set(after_flow.represented_high_risk_families)
+        added_families = tuple(
+            sorted(
+                (after_represented - before_represented) & set(missing_before),
+                key=_source_family_order,
+            )
+        )
+        remaining_families = tuple(after_flow.missing_high_risk_families)
+        outcome = _candidate_flow_repair_outcome(
+            attempt_outcome=str(repair_attempt_summary["outcome"]),
+            writer_called=bool(repair_attempt_summary["write_report_called"]),
+            added_families=added_families,
+            missing_before=missing_before,
+            remaining_families=remaining_families,
+        )
+        tracked_families = tuple(
+            sorted(
+                set(missing_before) | set(added_families) | set(remaining_families),
+                key=_source_family_order,
+            )
+        )
+        return {
+            "used": True,
+            "outcome": outcome,
+            "attempt": repair_attempt.attempt,
+            "attempt_outcome": repair_attempt_summary["outcome"],
+            "missing_families_before": list(missing_before),
+            "added_families": list(added_families),
+            "remaining_families": list(remaining_families),
+            "family_statuses_after": _candidate_flow_family_statuses(
+                after_flow,
+                tracked_families,
+            ),
         }
 
     def _read_workspace_report(self, workspace: Path) -> str:
@@ -1605,6 +1702,52 @@ def _format_counts(value: object) -> str:
         if isinstance(count, int) and count
     ]
     return ", ".join(parts) or "none"
+
+
+def _candidate_flow_repair_outcome(
+    *,
+    attempt_outcome: str,
+    writer_called: bool,
+    added_families: tuple[str, ...],
+    missing_before: tuple[str, ...],
+    remaining_families: tuple[str, ...],
+) -> str:
+    if not writer_called:
+        return "failed_missing_writer_call"
+    if attempt_outcome != "complete":
+        return f"failed_{attempt_outcome}"
+    if added_families:
+        return "improved"
+    if set(remaining_families) < set(missing_before):
+        return "improved"
+    return "no_change"
+
+
+def _candidate_flow_family_statuses(
+    candidate_flow: Any,
+    families: tuple[str, ...],
+) -> dict[str, dict[str, Any]]:
+    statuses: dict[str, dict[str, Any]] = {}
+    family_set = set(families)
+    for family in getattr(candidate_flow, "source_families", ()):
+        if family.family not in family_set:
+            continue
+        represented_statuses = []
+        if family.complete_paths:
+            represented_statuses.append("complete")
+        if family.incomplete_paths:
+            represented_statuses.append("incomplete")
+        if family.rejected_paths:
+            represented_statuses.append("rejected")
+        statuses[family.family] = {
+            "label": family.label,
+            "status": "+".join(represented_statuses) if represented_statuses else "missing",
+            "candidate_paths": list(family.candidate_paths),
+            "complete_paths": list(family.complete_paths),
+            "incomplete_paths": list(family.incomplete_paths),
+            "rejected_paths": list(family.rejected_paths),
+        }
+    return statuses
 
 
 def _redact_benchmark_text(text: str, replacements: dict[str, str]) -> str:
