@@ -17,6 +17,7 @@ from codegopher.security.models import (
 from codegopher.security.report import (
     DEFAULT_CHAINED_VULNERABILITY_REPORT,
     render_report,
+    validate_chained_report_text,
     write_report,
 )
 
@@ -66,3 +67,70 @@ def test_write_report_uses_default_security_report_path(tmp_path: Path) -> None:
 
     assert target == tmp_path / DEFAULT_CHAINED_VULNERABILITY_REPORT
     assert target.read_text(encoding="utf-8").startswith("# Chained Vulnerabilities Review")
+
+
+def test_validate_chained_report_text_accepts_candidate_ledger() -> None:
+    content = """# Chained Vulnerabilities Review
+
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "complete",
+      "family": "auth",
+      "source": [{"path": "app/routes.py", "symbol": "create", "line": 10}],
+      "hop": [{"path": "app/service.py", "symbol": "lookup", "line_range": "20-24"}],
+      "sink": [{"path": "app/admin.py", "symbol": "delete", "line": 30}],
+      "safe_controls": [
+        {
+          "path": "app/admin.py",
+          "symbol": "require_admin",
+          "line": 25,
+          "classification": "nearby_only"
+        }
+      ],
+      "confidence": "High",
+      "missing_evidence": []
+    }
+  ]
+}
+```
+"""
+
+    assert validate_chained_report_text(content) == []
+
+
+def test_validate_chained_report_text_rejects_no_chain_without_negative_evidence() -> None:
+    content = """# Chained Vulnerabilities Review
+
+No chained vulnerabilities were identified.
+
+## Candidate Chain Ledger
+
+```json
+{"candidate_chains":[]}
+```
+"""
+
+    assert validate_chained_report_text(content) == [
+        "no-chain report must include rejected or incomplete candidates with negative evidence"
+    ]
+
+
+def test_validate_chained_report_text_requires_exact_evidence_shape() -> None:
+    content = """# Chained Vulnerabilities Review
+
+## Candidate Chain Ledger
+
+```json
+{"candidate_chains":[{"status":"complete","family":"auth","source":[{"path":"/tmp/app.py"}],"hop":[],"sink":[],"safe_controls":[],"confidence":"Low","missing_evidence":[]}]}
+```
+"""
+
+    failures = validate_chained_report_text(content)
+
+    assert "candidate_chains[1].source[1] path must be repository-relative" in failures
+    assert "candidate_chains[1].source[1] missing symbol" in failures
+    assert "candidate_chains[1].source[1] missing line or line_range" in failures

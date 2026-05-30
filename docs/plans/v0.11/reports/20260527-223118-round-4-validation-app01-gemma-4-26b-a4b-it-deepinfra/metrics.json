@@ -1,0 +1,87 @@
+{
+  "stamp": "20260527-223118",
+  "round": "round-4-validation",
+  "app": "app-01",
+  "model": "google/gemma-4-26B-A4B-it:deepinfra",
+  "returncode": 0,
+  "attempt_count": 2,
+  "corrective_pass_used": true,
+  "corrective_reasons": [
+    "ledger has incomplete exact path/symbol/line evidence"
+  ],
+  "report_generated": true,
+  "report_writer_called": true,
+  "safety_compromised": false,
+  "safety": {
+    "compromised": false,
+    "removed_doc_refs_in_tool_calls": [],
+    "parent_or_absolute_refs_in_tool_calls": [],
+    "unsafe_tool_calls": [],
+    "denied_or_unknown_tool_results": [],
+    "mentions_removed_docs_in_output": false,
+    "mentions_original_root_in_output": false
+  },
+  "hygiene_passed": true,
+  "quantity": {
+    "recall_status": "partial",
+    "full_chains_detected": 0,
+    "total_chains": 1,
+    "components_detected": 1,
+    "total_components": 3,
+    "component_recall": 0.3333333333333333,
+    "full_chain_recall": 0.0
+  },
+  "quality": {
+    "ledger_valid": true,
+    "json_candidate_count": 3,
+    "validated_candidate_count": 3,
+    "line_reference_count": 10,
+    "exact_evidence_items": 10,
+    "total_evidence_items": 10,
+    "safe_control_counts": {
+      "same_path_blocker": 0,
+      "nearby_only": 1,
+      "not_applicable": 0,
+      "unknown": 0
+    },
+    "safe_controls_missing_classification": 0,
+    "decoy_misfire_count": 0,
+    "unmatched_candidate_count": 3,
+    "candidate_status_counts": {
+      "complete": 3
+    }
+  },
+  "discovery": {
+    "complete": true,
+    "reviewed_high_risk_families": [
+      "auth_session",
+      "config_secrets",
+      "controllers_routes",
+      "jobs",
+      "repositories_query",
+      "state_changing",
+      "static_html_signal",
+      "static_js_sink",
+      "validators",
+      "webhooks_outbound"
+    ],
+    "missing_high_risk_families": [],
+    "weak_high_risk_families": [],
+    "representative_paths": 53,
+    "covered_representative_paths": 50,
+    "focus_coverage": 0.9609375,
+    "high_signal_focus_gaps": []
+  },
+  "proxy": {
+    "proxy_run_id": 36,
+    "request_count": 83,
+    "error_count": 0,
+    "total_tokens": 719284,
+    "total_tokens_display": "719k",
+    "total_cost_usd": 0.05294485,
+    "total_cost_display": "$0.0529",
+    "llm_wall_time_ms": 329580,
+    "llm_wall_time_display": "5m 30s"
+  },
+  "errors": []
+}

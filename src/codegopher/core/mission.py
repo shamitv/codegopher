@@ -8,6 +8,11 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from codegopher.security.report import (
+    DEFAULT_CHAINED_VULNERABILITY_REPORT,
+    validate_chained_report_text,
+)
+
 MissionStatus = Literal["active", "completed", "incomplete"]
 
 
@@ -76,6 +81,13 @@ class TaskLedger(BaseModel):
             target = cwd / artifact
             if target.exists():
                 self.record_artifact(artifact)
+                if artifact == DEFAULT_CHAINED_VULNERABILITY_REPORT.as_posix():
+                    failures.extend(
+                        f"report validation failed: {failure}"
+                        for failure in validate_chained_report_text(
+                            target.read_text(encoding="utf-8", errors="replace")
+                        )
+                    )
             else:
                 failures.append(f"required artifact is missing: {artifact}")
         self.gate_failures = failures
@@ -255,8 +267,12 @@ _CHAINED_VULNERABILITY_AUDIT = MissionContract(
     goal="Complete a static attack-chain review and write the chained vulnerability report artifact.",
     required_todos=[
         "Map attack surface: routes, handlers, auth/session, config, jobs, uploads, and external calls.",
+        "Review high-risk source families before final conclusions: controllers/routes, auth/session, validators, state-changing endpoints, query sinks, external calls, uploads, jobs, and render sinks.",
         "Inventory weaknesses, safe decoys, and source-controlled assumptions.",
+        "Use incomplete findings as pivots into adjacent source, such as secret keys to session/auth/role checks.",
+        "Maintain a working Candidate Chain Ledger with complete, incomplete, and rejected candidates.",
         "Synthesize source-hop-sink chains with file, symbol, and line evidence.",
+        "Record negative evidence and missing proof before any no-chain conclusion.",
         "Calibrate confidence, remediation, unknowns, and no-chain findings.",
         "Write and self-check docs/security/CHAINED_VULNERABILITIES_REVIEW.md.",
     ],
@@ -265,7 +281,10 @@ _CHAINED_VULNERABILITY_AUDIT = MissionContract(
     evidence_requirements=[
         "Every chain link needs file path, line or line range, symbol, and evidence.",
         "Safe decoy evidence must be rejected explicitly when it appears near a vulnerable flow.",
-        "If no complete chains are found, still write a no-chains report.",
+        "If no complete chains are found after adequate discovery, write a no-chains report.",
+        "No-chain reports must include rejected or incomplete candidates with negative evidence.",
+        "The Candidate Chain Ledger must include fenced JSON with a top-level candidate_chains array.",
+        "If high-risk source families were not reviewed, state that discovery is incomplete instead of presenting a completed no-chain result.",
     ],
     completion_gates=[
         "write_chained_vulnerability_report called",

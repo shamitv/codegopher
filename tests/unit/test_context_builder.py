@@ -77,6 +77,22 @@ def test_context_builder_includes_active_todos(tmp_path: Path) -> None:
     assert "[todo-1] pending: Write TODO tests" in str(messages[0]["content"])
 
 
+def test_context_builder_includes_runtime_episode_memory(tmp_path: Path) -> None:
+    conversation = Conversation()
+
+    messages = build_messages(
+        conversation,
+        cwd=tmp_path,
+        registry=create_default_registry(),
+        approval_mode=ApprovalMode.review,
+        episode_items=["[episode-1] file_read: Read app.py"],
+    )
+
+    assert "Runtime episode memory" in str(messages[0]["content"])
+    assert "[episode-1] file_read: Read app.py" in str(messages[0]["content"])
+    assert "not persistent memory" in str(messages[0]["content"])
+
+
 def test_context_builder_mentions_only_implemented_v0_1_features(tmp_path: Path) -> None:
     prompt = build_system_prompt(tmp_path, create_default_registry(), ApprovalMode.review)
 

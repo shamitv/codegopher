@@ -17,6 +17,7 @@ from codegopher.events.protocol import (
     McpServerPayload,
     McpServerSavedEvent,
     McpServersEvent,
+    ProviderRecoveryEvent,
     SessionStartedEvent,
     TaskContractCompletedEvent,
     TaskContractGateFailedEvent,
@@ -37,6 +38,15 @@ from codegopher.providers.base import ProviderCapabilities
 from codegopher.providers.mock import MockProvider
 from codegopher.tools.base import ToolContext, ToolResult
 from codegopher.tools.registry import ToolRegistry
+
+VALID_CHAINED_REPORT = """# Chained Vulnerabilities Review
+
+## Candidate Chain Ledger
+
+```json
+{"candidate_chains":[{"status":"complete","family":"auth","source":[{"path":"app.py","symbol":"route","line":1}],"hop":[{"path":"app.py","symbol":"check","line":2}],"sink":[{"path":"app.py","symbol":"sink","line":3}],"safe_controls":[{"path":"app.py","symbol":"guard","line":4,"classification":"nearby_only"}],"confidence":"High","missing_evidence":[]}]}
+```
+"""
 
 
 def make_settings(approval_mode: ApprovalMode = ApprovalMode.yolo) -> Settings:
@@ -145,6 +155,47 @@ async def test_events_session_emits_turn_protocol_events_in_order(
     assert session.events[5].result_summary == "project notes"
     assert isinstance(session.events[-1], TurnCompleteEvent)
     assert session.events[-1].final_text == "done"
+
+
+@pytest.mark.asyncio
+async def test_events_session_emits_provider_recovery_event_for_malformed_tool_json(
+    tmp_path: Path,
+) -> None:
+    provider = MockProvider(
+        [
+            [
+                {
+                    "type": "error",
+                    "code": "malformed_tool_arguments",
+                    "message": "Malformed JSON in tool arguments: Unterminated string",
+                    "tool_name": "read_file",
+                    "tool_call_id": "call-read",
+                    "tool_call_parse_error": {
+                        "position": 12,
+                        "payload_length": 40,
+                    },
+                }
+            ],
+            [{"type": "text_delta", "content": "recovered"}, {"type": "done"}],
+        ]
+    )
+    session = EventsSession(
+        settings=make_settings(),
+        cwd=tmp_path,
+        provider_factory=lambda _settings: provider,
+    )
+
+    result = await session.run_turn("inspect", turn_id="turn-1")
+
+    recovery = next(
+        event for event in session.events if isinstance(event, ProviderRecoveryEvent)
+    )
+    assert result.final_text == "recovered"
+    assert recovery.tool_name == "read_file"
+    assert recovery.tool_call_id == "call-read"
+    assert recovery.recovery_attempt == 1
+    assert recovery.will_retry is True
+    assert recovery.parse_error["payload_length"] == 40
 
 
 @pytest.mark.asyncio
@@ -346,7 +397,7 @@ async def test_events_session_emits_task_contract_lifecycle_events(
                     "tool_call": {
                         "id": "call-report",
                         "name": "write_chained_vulnerability_report",
-                        "arguments": {"content": "# Report\n"},
+                        "arguments": {"content": VALID_CHAINED_REPORT},
                     },
                 },
                 {"type": "done"},

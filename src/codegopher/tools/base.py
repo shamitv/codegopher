@@ -26,6 +26,7 @@ class ToolContext:
     settings: Settings = field(default_factory=Settings)
     memory_store: MemoryStore | None = None
     todo_state: TodoState | None = None
+    episode_state: Any | None = None
     session_id: str | None = None
     access: AccessTracker = field(init=False)
 

@@ -216,6 +216,42 @@ async def test_agent_loop_replays_reasoning_content_when_enabled(tmp_path: Path)
 
 
 @pytest.mark.asyncio
+async def test_agent_loop_replays_reasoning_content_for_deepseek_model(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("project notes\n", encoding="utf-8")
+    provider = MockProvider(
+        [
+            [
+                {"type": "reasoning_delta", "content": "need file"},
+                {
+                    "type": "tool_call",
+                    "tool_call": {
+                        "id": "call-1",
+                        "name": "read_file",
+                        "arguments": {"path": "README.md"},
+                    },
+                },
+                {"type": "done"},
+            ],
+            [{"type": "text_delta", "content": "done"}, {"type": "done"}],
+        ]
+    )
+
+    await run_agent(
+        prompt="Inspect",
+        provider=provider,
+        registry=create_default_registry(),
+        settings=Settings(
+            approval_mode=ApprovalMode.yolo,
+            model={"name": "deepseek-v4-flash"},
+        ),
+        cwd=tmp_path,
+    )
+
+    assistant_message = provider.calls[1][2]
+    assert assistant_message["reasoning_content"] == "need file"
+
+
+@pytest.mark.asyncio
 async def test_agent_loop_does_not_replay_reasoning_content_for_responses_api(
     tmp_path: Path,
 ) -> None:
@@ -768,6 +804,16 @@ def test_agent_result_has_structured_cli_shape() -> None:
     }
 
 
+VALID_CHAINED_REPORT = """# Chained Vulnerabilities Review
+
+## Candidate Chain Ledger
+
+```json
+{"candidate_chains":[{"status":"complete","family":"auth","source":[{"path":"app.py","symbol":"route","line":1}],"hop":[{"path":"app.py","symbol":"check","line":2}],"sink":[{"path":"app.py","symbol":"sink","line":3}],"safe_controls":[{"path":"app.py","symbol":"guard","line":4,"classification":"nearby_only"}],"confidence":"High","missing_evidence":[]}]}
+```
+"""
+
+
 @pytest.mark.asyncio
 async def test_chained_audit_contract_recovers_when_report_is_missing(
     tmp_path: Path,
@@ -781,7 +827,7 @@ async def test_chained_audit_contract_recovers_when_report_is_missing(
                     "tool_call": {
                         "id": "call-report",
                         "name": "write_chained_vulnerability_report",
-                        "arguments": {"content": "# Chained report\n"},
+                        "arguments": {"content": VALID_CHAINED_REPORT},
                     },
                 },
                 {"type": "done"},
@@ -803,7 +849,7 @@ async def test_chained_audit_contract_recovers_when_report_is_missing(
     assert "not complete yet" in str(provider.calls[1][-1]["content"])
     assert (
         tmp_path / "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
-    ).read_text(encoding="utf-8") == "# Chained report\n"
+    ).read_text(encoding="utf-8") == VALID_CHAINED_REPORT
 
 
 @pytest.mark.asyncio
@@ -824,7 +870,7 @@ async def test_active_contract_recovers_malformed_tool_call_json(
                     "tool_call": {
                         "id": "call-report",
                         "name": "write_chained_vulnerability_report",
-                        "arguments": {"content": "# Report after repair\n"},
+                        "arguments": {"content": VALID_CHAINED_REPORT},
                     },
                 },
                 {"type": "done"},
@@ -842,9 +888,8 @@ async def test_active_contract_recovers_malformed_tool_call_json(
     )
 
     assert result.final_text == "recovered"
-    assert "provider returned malformed tool-call JSON" in str(
-        provider.calls[1][-1]["content"]
-    )
+    assert "malformed JSON for a tool call" in str(provider.calls[1][-1]["content"])
+    assert "tool schema below" in str(provider.calls[1][-1]["content"])
     assert (
         tmp_path / "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
-    ).read_text(encoding="utf-8") == "# Report after repair\n"
+    ).read_text(encoding="utf-8") == VALID_CHAINED_REPORT

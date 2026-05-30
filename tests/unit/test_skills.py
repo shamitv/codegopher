@@ -194,6 +194,9 @@ def test_chained_vulnerability_skill_keeps_static_only_boundary() -> None:
     assert "always call it" in content
     assert "no chains detected" in content
     assert "cross-cutting weaknesses" in content
+    assert "high-risk source families" in content
+    assert "discovery is incomplete" in content
+    assert "incomplete findings as pivots" in content
 
 
 def test_builtin_discovery_can_be_disabled() -> None:

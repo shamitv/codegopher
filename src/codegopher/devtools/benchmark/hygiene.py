@@ -3,17 +3,26 @@
 from __future__ import annotations
 
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
 REMOVED_NAMES = ("README.md", "impl_plan.md", ".vulns", "vulns.json", "scenarios.md")
+REMOVED_DIR_NAMES = ("tests", "__tests__")
+REMOVED_PATH_SUFFIXES = ("src/test",)
 
 HINT_PATTERN = re.compile(
     r"(?<![A-Za-z0-9])(?:planted|vulnerabilit(?:y|ies)|vulnerable|owasp|cwe|"
-    r"a(?:0[1-9]|10)|decoy|ground\s+truth|sandbox|security\s+analysis|"
+    r"a(?:0[1-9]|10)|chain\s+link|decoy|ground\s+truth|sandbox|security\s+analysis|"
     r"visualizer|target\s+a(?:0[1-9]|10)|idor|xss|cross-site\s+scripting|"
     r"cross\s+site\s+scripting|trivially\s+enumerable|prerequisite|"
-    r"links\s+that\s+follow|exploit)(?![A-Za-z0-9])",
+    r"links\s+that\s+follow|exploit|\.vulns|vulns\.json|scenarios\.md|"
+    r"impl_plan\.md)(?![A-Za-z0-9])",
+    re.IGNORECASE,
+)
+REMOVED_FILENAME_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9])(?:README\.md|impl_plan\.md|\.vulns|vulns\.json|"
+    r"scenarios\.md)(?![A-Za-z0-9])",
     re.IGNORECASE,
 )
 
@@ -56,8 +65,33 @@ def is_removed_name(name: str) -> bool:
     return name.lower() in {removed.lower() for removed in REMOVED_NAMES}
 
 
+def is_removed_path(path: Path | str) -> bool:
+    value = Path(path).as_posix().strip("/")
+    parts = tuple(part.lower() for part in value.split("/") if part)
+    if any(part in {name.lower() for name in REMOVED_NAMES} for part in parts):
+        return True
+    if any(part in {name.lower() for name in REMOVED_DIR_NAMES} for part in parts):
+        return True
+    lowered = "/".join(parts)
+    if any(lowered.endswith(suffix) for suffix in REMOVED_PATH_SUFFIXES):
+        return True
+    return any(
+        "/".join(parts[index : index + 2]) in REMOVED_PATH_SUFFIXES
+        for index in range(len(parts) - 1)
+    )
+
+
 def remove_agent_visible_files(workspace: Path) -> tuple[str, ...]:
     removed = []
+    for path in sorted(
+        (item for item in workspace.rglob("*") if item.is_dir()),
+        key=lambda item: len(item.parts),
+        reverse=True,
+    ):
+        relative = path.relative_to(workspace)
+        if _is_removed_dir(relative):
+            removed.append(relative.as_posix())
+            shutil.rmtree(path)
     for path in sorted(workspace.rglob("*")):
         if path.is_file() and is_removed_name(path.name):
             removed.append(path.relative_to(workspace).as_posix())
@@ -169,7 +203,19 @@ def render_hygiene_report(*, app_key: str, report: HygieneReport) -> str:
     return "\n".join(lines)
 
 
+def _is_removed_dir(relative: Path) -> bool:
+    value = relative.as_posix().strip("/")
+    parts = tuple(part.lower() for part in value.split("/") if part)
+    if not parts:
+        return False
+    if parts[-1] in {name.lower() for name in REMOVED_DIR_NAMES}:
+        return True
+    return any(value.lower().endswith(suffix) for suffix in REMOVED_PATH_SUFFIXES)
+
+
 def _sanitize_line(line: str) -> tuple[str | None, str | None]:
+    if REMOVED_FILENAME_PATTERN.search(line):
+        return None, "removed-metadata-reference"
     if not HINT_PATTERN.search(line):
         return line, None
     stripped = line.lstrip()
@@ -199,7 +245,7 @@ def _is_hint_only_text(stripped: str) -> bool:
     return bool(
         re.match(
             r"^(?:a(?:0[1-9]|10)|owasp|cwe|vulnerabilit|visualizer|"
-            r"security\s+analysis|target\s+a(?:0[1-9]|10)|idor|xss)",
+            r"security\s+analysis|target\s+a(?:0[1-9]|10)|chain\s+link|idor|xss)",
             stripped,
             re.I,
         )

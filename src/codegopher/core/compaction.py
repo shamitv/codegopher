@@ -47,6 +47,7 @@ def build_compaction_prompt(
     cwd: Path,
     instructions: str | None = None,
     memories: Iterable[str] = (),
+    episode_items: Iterable[str] = (),
     skills: Iterable[str] = (),
     todo_items: Iterable[str] = (),
     mission_items: Iterable[str] = (),
@@ -75,6 +76,11 @@ def build_compaction_prompt(
         sections.append(
             "Active mission contract and task ledger:\n"
             + "\n".join(f"- {item}" for item in mission)
+        )
+    if episodes := list(episode_items):
+        sections.append(
+            "Runtime episode memory to preserve:\n"
+            + "\n".join(f"- {item}" for item in episodes)
         )
     if memory_items := list(memories):
         sections.append("Selected memories:\n" + "\n".join(f"- {item}" for item in memory_items))

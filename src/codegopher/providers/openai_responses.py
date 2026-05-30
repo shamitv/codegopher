@@ -71,6 +71,11 @@ def _response_function_tool(tool: ToolSchema) -> dict[str, Any]:
     return response_tool
 
 
+def _message_item(role: str, content: str) -> dict[str, Any]:
+    content_type = "output_text" if role == "assistant" else "input_text"
+    return {"type": "message", "role": role, "content": [{"type": content_type, "text": content}]}
+
+
 def _responses_input(messages: list[Message]) -> tuple[str | None, list[dict[str, Any]]]:
     instructions: list[str] = []
     input_items: list[dict[str, Any]] = []
@@ -93,10 +98,10 @@ def _responses_input(messages: list[Message]) -> tuple[str | None, list[dict[str
         if role == "assistant":
             response_items = message.get("response_items", [])
             input_items.extend(response_items)
-            if content:
-                input_items.append({"role": "assistant", "content": content})
             if response_items:
                 continue
+            if content:
+                input_items.append(_message_item("assistant", content))
             for tool_call in message.get("tool_calls", []) or []:
                 function = _get(tool_call, "function", {})
                 input_items.append(
@@ -109,7 +114,7 @@ def _responses_input(messages: list[Message]) -> tuple[str | None, list[dict[str
                 )
             continue
         if role == "user":
-            input_items.append({"role": "user", "content": content or ""})
+            input_items.append(_message_item("user", content or ""))
     return "\n\n".join(instructions) or None, input_items
 
 
@@ -183,6 +188,7 @@ class OpenAIResponsesProvider:
             return
 
         argument_buffers: dict[str, str] = {}
+        argument_done_keys: set[str] = set()
         response_items: list[dict[str, Any]] = []
         completed_reason: str | None = None
         try:
@@ -205,15 +211,24 @@ class OpenAIResponsesProvider:
                     key = _item_key(event)
                     if key:
                         argument_buffers[key] = str(_get(event, "arguments", argument_buffers.get(key, "")))
+                        argument_done_keys.add(key)
                 elif event_type == "response.output_item.done":
                     item = _get(event, "item", {})
                     if metadata := _metadata_item(item):
                         response_items.append(metadata)
                     if str(_get(item, "type", "")) == "function_call":
                         try:
-                            yield self._tool_call_event(item, argument_buffers)
+                            yield self._tool_call_event(
+                                item,
+                                argument_buffers,
+                            )
                         except JsonPayloadError as exc:
-                            yield {"type": "error", "message": str(exc)}
+                            yield self._tool_call_parse_error_event(
+                                item,
+                                argument_buffers,
+                                argument_done_keys,
+                                exc,
+                            )
                 elif event_type == "response.completed":
                     completed_reason = str(_get(event, "finish_reason", "stop"))
                 elif event_type in {"error", "response.failed", "response.incomplete"}:
@@ -253,6 +268,39 @@ class OpenAIResponsesProvider:
                 "id": call_id,
                 "name": str(_get(item, "name", "")),
                 "arguments": loads_object(arguments_payload, source="tool arguments"),
+            },
+        }
+
+    def _tool_call_parse_error_event(
+        self,
+        item: Any,
+        argument_buffers: dict[str, str],
+        argument_done_keys: set[str],
+        exc: JsonPayloadError,
+    ) -> StreamEvent:
+        item_id = str(_get(item, "id", ""))
+        call_id = str(_get(item, "call_id", "") or item_id)
+        arguments_payload = str(
+            _get(item, "arguments")
+            or argument_buffers.get(item_id)
+            or argument_buffers.get(call_id)
+            or ""
+        )
+        return {
+            "type": "error",
+            "code": "malformed_tool_arguments",
+            "message": str(exc),
+            "tool_name": str(_get(item, "name", "")) or None,
+            "tool_call_id": call_id or None,
+            "tool_call_parse_error": {
+                **exc.to_metadata(),
+                "item_id": item_id or None,
+                "call_id": call_id or None,
+                "tool_name": str(_get(item, "name", "")) or None,
+                "stream_arguments_done": (
+                    item_id in argument_done_keys or call_id in argument_done_keys
+                ),
+                "payload_length": len(arguments_payload),
             },
         }
 

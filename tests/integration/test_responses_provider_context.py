@@ -67,7 +67,11 @@ async def test_headless_responses_provider_runs_text_turn(tmp_path: Path) -> Non
     assert result.final_text == "hello"
     assert client.responses.calls[0]["store"] is False
     assert client.responses.calls[0]["stream"] is True
-    assert client.responses.calls[0]["input"][-1] == {"role": "user", "content": "say hello"}
+    assert client.responses.calls[0]["input"][-1] == {
+        "type": "message",
+        "role": "user",
+        "content": [{"type": "input_text", "text": "say hello"}],
+    }
 
 
 async def test_headless_responses_provider_runs_tool_loop(tmp_path: Path) -> None:

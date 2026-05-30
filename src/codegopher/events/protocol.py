@@ -181,6 +181,19 @@ class ErrorEvent(ProtocolEvent):
     message: str = Field(min_length=1)
 
 
+class ProviderRecoveryEvent(ProtocolEvent):
+    type: Literal["provider_recovery"] = "provider_recovery"
+    turn_id: str = Field(min_length=1)
+    code: str = Field(min_length=1)
+    message: str = Field(min_length=1)
+    recovery_attempt: int = Field(default=0, ge=0)
+    will_retry: bool = True
+    fallback_to_report: bool = False
+    tool_name: str | None = None
+    tool_call_id: str | None = None
+    parse_error: dict[str, Any] = Field(default_factory=dict)
+
+
 class TurnCompleteEvent(ProtocolEvent):
     type: Literal["turn_complete"] = "turn_complete"
     turn_id: str = Field(min_length=1)
@@ -284,6 +297,7 @@ _PROTOCOL_MODELS: dict[str, type[ProtocolModel]] = {
     "approval_request": ApprovalRequestEvent,
     "tool_result": ToolResultEvent,
     "error": ErrorEvent,
+    "provider_recovery": ProviderRecoveryEvent,
     "turn_complete": TurnCompleteEvent,
     "task_contract_started": TaskContractStartedEvent,
     "task_contract_updated": TaskContractUpdatedEvent,

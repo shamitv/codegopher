@@ -53,7 +53,7 @@ from pathlib import Path
 import json
 target = Path("docs/security/CHAINED_VULNERABILITIES_REVIEW.md")
 target.parent.mkdir(parents=True, exist_ok=True)
-target.write_text("# Report\\n\\n### Known Chain\\nEvidence: app.py:1 vulnerable.\\n", encoding="utf-8")
+target.write_text("# Report\\n\\n## Candidate Chain Ledger\\n\\n| Status | Source | Hop | Sink | File | Symbol | Line | Confidence | Missing Evidence | Safe Control |\\n|---|---|---|---|---|---|---|---|---|---|\\n| complete | input | none | vulnerable | app.py | vulnerable | app.py:1 | high | none | none |\\n\\n### Known Chain\\nEvidence: app.py:1 vulnerable.\\n", encoding="utf-8")
 print(json.dumps({"type": "tool_call", "tool_id": "call-1", "tool_name": "write_chained_vulnerability_report", "arguments_summary": "{\\"content\\":\\"# Report\\"}"}))
 print(json.dumps({"type": "tool_result", "tool_id": "call-1", "is_error": False, "result_summary": "Wrote docs/security/CHAINED_VULNERABILITIES_REVIEW.md"}))
 print(json.dumps({"type": "turn_complete", "final_text": "done"}))

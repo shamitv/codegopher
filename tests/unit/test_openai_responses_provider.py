@@ -83,7 +83,9 @@ async def test_openai_responses_provider_builds_stateless_request() -> None:
     assert events == [{"type": "done", "finish_reason": None}]
     assert client.responses.kwargs["model"] == "gpt-test"
     assert client.responses.kwargs["instructions"] == "You are useful."
-    assert client.responses.kwargs["input"] == [{"role": "user", "content": "hello"}]
+    assert client.responses.kwargs["input"] == [
+        {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "hello"}]}
+    ]
     assert client.responses.kwargs["stream"] is True
     assert client.responses.kwargs["store"] is False
     assert client.responses.kwargs["max_output_tokens"] == 128
@@ -129,7 +131,7 @@ def test_openai_responses_input_replays_local_response_items_and_tool_outputs() 
 
     assert request["instructions"] == "system one\n\nsystem two"
     assert request["input"] == [
-        {"role": "user", "content": "find it"},
+        {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "find it"}]},
         {
             "type": "function_call",
             "id": "fc-1",
@@ -138,7 +140,49 @@ def test_openai_responses_input_replays_local_response_items_and_tool_outputs() 
             "arguments": '{"query":"docs"}',
         },
         {"type": "function_call_output", "call_id": "call-1", "output": "result"},
-        {"role": "assistant", "content": "done"},
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": [{"type": "output_text", "text": "done"}],
+        },
+    ]
+
+
+def test_openai_responses_input_skips_assistant_text_when_response_items_exist() -> None:
+    request = build_responses_request_preview(
+        [
+            {"role": "user", "content": "inspect"},
+            {
+                "role": "assistant",
+                "content": "I will inspect the files.",
+                "response_items": [
+                    {
+                        "type": "function_call",
+                        "id": "fc-1",
+                        "call_id": "call-1",
+                        "name": "list_dir",
+                        "arguments": '{"path":"."}',
+                    }
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call-1", "content": "app.py"},
+        ],
+        [],
+        model="gpt-test",
+        temperature=1.0,
+        max_output_tokens=64,
+    )
+
+    assert request["input"] == [
+        {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "inspect"}]},
+        {
+            "type": "function_call",
+            "id": "fc-1",
+            "call_id": "call-1",
+            "name": "list_dir",
+            "arguments": '{"path":"."}',
+        },
+        {"type": "function_call_output", "call_id": "call-1", "output": "app.py"},
     ]
 
 
@@ -269,7 +313,12 @@ async def test_openai_responses_provider_reports_malformed_tool_arguments() -> N
     events = [event async for event in provider.stream([], [], model="m", temperature=0, max_output_tokens=1)]
 
     assert events[0]["type"] == "error"
+    assert events[0]["code"] == "malformed_tool_arguments"
+    assert events[0]["tool_name"] == "read_file"
+    assert events[0]["tool_call_id"] == "call-1"
     assert "Malformed JSON" in events[0]["message"]
+    assert events[0]["tool_call_parse_error"]["position"] == 1
+    assert events[0]["tool_call_parse_error"]["payload_length"] == 1
 
 
 @pytest.mark.asyncio

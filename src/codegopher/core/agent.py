@@ -28,8 +28,9 @@ from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError, ToolExecutionError
 from codegopher.core.mission import TaskLedger, select_mission_contract, todo_source
 from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
-from codegopher.memory import MemoryStore
+from codegopher.memory import EpisodeState, MemoryStore
 from codegopher.providers.base import Provider
+from codegopher.providers.openai_compat import model_requires_reasoning_content_replay
 from codegopher.security.policy import (
     create_static_audit_registry,
     uses_chained_vulnerability_skill,
@@ -56,6 +57,7 @@ class AgentCallbacks:
     on_approval_request: Callable[[ApprovalRequest], Awaitable[ApprovalResult]] | None = None
     on_compaction: Callable[[CompactionEntry], Awaitable[None]] | None = None
     on_error: Callable[[str], Awaitable[None]] | None = None
+    on_provider_recovery: Callable[[dict[str, Any]], Awaitable[None]] | None = None
     on_complete: Callable[[AgentResult], Awaitable[None]] | None = None
     on_task_contract_started: Callable[[TaskLedger], Awaitable[None]] | None = None
     on_task_contract_updated: Callable[[TaskLedger], Awaitable[None]] | None = None
@@ -105,6 +107,7 @@ class AgentSession:
         memory_context: list[str] | None = None,
         skill_context: list[str] | None = None,
         todo_context: list[str] | None = None,
+        episode_context: list[str] | None = None,
         skill_manager: SkillManager | None = None,
         task_ledgers: list[TaskLedger] | None = None,
     ) -> None:
@@ -121,6 +124,8 @@ class AgentSession:
         self.tool_context.settings = settings
         if self.tool_context.todo_state is None:
             self.tool_context.todo_state = TodoState(max_items=settings.todo.max_items)
+        if self.tool_context.episode_state is None:
+            self.tool_context.episode_state = EpisodeState()
         self.conversation = conversation or Conversation()
         self.memory_context = memory_context or []
         self._memory_context_override = memory_context is not None
@@ -128,17 +133,23 @@ class AgentSession:
         self._skill_context_override = skill_context is not None
         self.todo_context = todo_context or []
         self._todo_context_override = todo_context is not None
+        self.episode_context = episode_context or []
+        self._episode_context_override = episode_context is not None
         self.skill_manager = skill_manager or SkillManager(
             discover_skills(cwd=cwd, settings=settings).catalog,
             autoload=settings.skills.autoload,
         )
         self.task_ledgers = list(task_ledgers or [])
         self.active_task_ledger: TaskLedger | None = self._latest_active_task_ledger()
+        self._provider_recovery_attempts = 0
+        self._provider_report_fallback_used = False
 
     async def run_turn(self, prompt: str) -> AgentResult:
         if not self.provider.capabilities.tool_calls:
             raise ProviderError("Provider does not support tool calls")
 
+        self._provider_recovery_attempts = 0
+        self._provider_report_fallback_used = False
         self._load_skills_for_prompt(prompt)
         await self._activate_mission_for_prompt(prompt)
         self._seed_mission_todos()
@@ -163,6 +174,7 @@ class AgentSession:
                     skills=self._current_skill_context(),
                     todo_items=self._current_todo_context(),
                     mission_items=self._current_mission_context(),
+                    episode_items=self._current_episode_context(),
                 ),
                 active_registry.schemas(),
                 model=self.settings.model.name,
@@ -195,7 +207,8 @@ class AgentSession:
                     response_items.extend(event["response_items"])
                 elif event["type"] == "error":
                     recovery_prompt = await self._provider_error_recovery_prompt(
-                        event["message"]
+                        event,
+                        active_registry,
                     )
                     if recovery_prompt is not None:
                         break
@@ -213,6 +226,7 @@ class AgentSession:
             final_text = "".join(text_parts)
             reasoning_content = self._reasoning_content_for_replay(reasoning_parts)
             if not tool_calls:
+                self._record_episode_final_text(final_text)
                 self.conversation.append_assistant(
                     final_text,
                     response_items=response_items,
@@ -257,6 +271,7 @@ class AgentSession:
                     )
                     all_tool_results.append(tool_result)
                     self.conversation.append_tool_result(tool_result)
+                    self._record_episode_tool_result(tool_call, tool_result)
                     await _emit_callback(
                         "on_tool_result",
                         self.callbacks.on_tool_result if self.callbacks else None,
@@ -298,6 +313,7 @@ class AgentSession:
                     tool_result = await tool.execute(arguments, self.tool_context)
                 all_tool_results.append(tool_result)
                 self.conversation.append_tool_result(tool_result)
+                self._record_episode_tool_result(tool_call, tool_result)
                 await self._record_task_tool_result(tool_result)
                 await _emit_callback(
                     "on_tool_result",
@@ -323,6 +339,7 @@ class AgentSession:
                 skills=self._current_skill_context(),
                 todo_items=self._current_todo_context(),
                 mission_items=self._current_mission_context(),
+                episode_items=self._current_episode_context(),
             ),
             settings=self.settings,
         )
@@ -352,6 +369,7 @@ class AgentSession:
             skills=self._current_skill_context(),
             todo_items=self._current_todo_context(),
             mission_items=self._current_mission_context(),
+            episode_items=self._current_episode_context(),
         )
         summary = await self._run_compaction_prompt(prompt)
         entry = CompactionEntry(
@@ -439,7 +457,12 @@ class AgentSession:
                 if source not in ledger.seeded_todo_sources:
                     ledger.seeded_todo_sources.append(source)
                 continue
-            self.tool_context.todo_state.add(text, source=source)
+            self.tool_context.todo_state.add(
+                text,
+                source=source,
+                reason=f"Mission contract: {ledger.contract.title}",
+                evidence_refs=ledger.contract.required_artifacts,
+            )
             ledger.seeded_todo_sources.append(source)
         ledger.touch()
 
@@ -498,12 +521,110 @@ class AgentSession:
         )
         return prompt
 
-    async def _provider_error_recovery_prompt(self, message: str) -> str | None:
-        ledger = self.active_task_ledger
-        if ledger is None or "Malformed JSON in tool arguments" not in message:
+    async def _provider_error_recovery_prompt(
+        self,
+        event: dict[str, Any],
+        registry: ToolRegistry,
+    ) -> str | None:
+        message = str(event.get("message", ""))
+        if "Malformed JSON in tool arguments" not in message:
             return None
-        return await self._mission_recovery_prompt(
-            [f"provider returned malformed tool-call JSON: {message}"]
+        tool_name = event.get("tool_name")
+        parse_error = event.get("tool_call_parse_error") or {}
+        metadata = {
+            "code": "malformed_tool_arguments",
+            "message": message,
+            "tool_name": tool_name,
+            "tool_call_id": event.get("tool_call_id"),
+            "parse_error": parse_error if isinstance(parse_error, dict) else {},
+            "recovery_attempt": self._provider_recovery_attempts + 1,
+            "will_retry": True,
+            "fallback_to_report": False,
+        }
+        if self._provider_recovery_attempts >= 2 and self._can_fallback_to_report_writer():
+            if not self._provider_report_fallback_used:
+                self._provider_report_fallback_used = True
+                self._provider_recovery_attempts += 1
+                metadata["recovery_attempt"] = self._provider_recovery_attempts
+                metadata["fallback_to_report"] = True
+                await self._emit_provider_recovery(metadata)
+                return self._current_state_report_fallback_prompt(message, registry)
+            metadata["will_retry"] = False
+            await self._emit_provider_recovery(metadata)
+            ledger = self.active_task_ledger
+            if ledger is not None:
+                ledger.mark_incomplete([f"provider returned malformed tool-call JSON: {message}"])
+            return None
+        if self._provider_recovery_attempts >= 2:
+            metadata["will_retry"] = False
+            await self._emit_provider_recovery(metadata)
+            ledger = self.active_task_ledger
+            if ledger is not None:
+                ledger.mark_incomplete([f"provider returned malformed tool-call JSON: {message}"])
+            return None
+        self._provider_recovery_attempts += 1
+        metadata["recovery_attempt"] = self._provider_recovery_attempts
+        await self._emit_provider_recovery(metadata)
+        schema_text = self._tool_schema_text_for_recovery(registry, tool_name)
+        return (
+            "The previous provider turn emitted malformed JSON for a tool call, so "
+            "CodeGopher could not execute it.\n\n"
+            f"Error: {message}\n\n"
+            "Reissue the needed tool call with strict JSON arguments only. Do not "
+            "wrap the arguments in Markdown or add comments. Use the exact tool "
+            "schema below:\n"
+            f"{schema_text}\n\n"
+            "Continue from the current task state after the corrected tool call."
+        )
+
+    async def _emit_provider_recovery(self, metadata: dict[str, Any]) -> None:
+        await _emit_callback(
+            "on_provider_recovery",
+            self.callbacks.on_provider_recovery if self.callbacks else None,
+            metadata,
+        )
+
+    def _tool_schema_text_for_recovery(
+        self,
+        registry: ToolRegistry,
+        tool_name: object,
+    ) -> str:
+        if isinstance(tool_name, str) and tool_name:
+            for schema in registry.schemas():
+                function = schema.get("function", {})
+                if function.get("name") == tool_name:
+                    return dumps_json(schema)
+        return dumps_json(registry.schemas())
+
+    def _can_fallback_to_report_writer(self) -> bool:
+        ledger = self.active_task_ledger
+        return bool(
+            ledger is not None
+            and ledger.status == "active"
+            and ledger.contract.id == "chained-vulnerability-static-audit"
+        )
+
+    def _current_state_report_fallback_prompt(
+        self,
+        message: str,
+        registry: ToolRegistry,
+    ) -> str:
+        report_schema = self._tool_schema_text_for_recovery(
+            registry,
+            "write_chained_vulnerability_report",
+        )
+        return (
+            "The provider repeatedly emitted malformed JSON for tool calls. Do not "
+            "restart discovery. Stop broadening the audit and write the best "
+            "current-state static report now.\n\n"
+            f"Last tool-call JSON error: {message}\n\n"
+            "Call `write_chained_vulnerability_report` with valid JSON only. Include "
+            "all verified source-derived evidence already gathered, incomplete or "
+            "rejected candidates, safe-control classifications, missing evidence, "
+            "and any remaining uncertainty. If a complete chain is not currently "
+            "provable, say so clearly instead of inventing one.\n\n"
+            "Use this exact report-writer schema:\n"
+            f"{report_schema}"
         )
 
     async def _mark_mission_completed_if_ready(self, failures: list[str]) -> None:
@@ -547,6 +668,16 @@ class AgentSession:
         ]
         return list(self.memory_context)
 
+    def _current_episode_context(self) -> list[str]:
+        if self._episode_context_override:
+            return list(self.episode_context)
+        state = self.tool_context.episode_state
+        if state is None:
+            self.episode_context = []
+            return []
+        self.episode_context = state.context_items()
+        return list(self.episode_context)
+
     def _load_skills_for_prompt(self, prompt: str) -> None:
         if self._skill_context_override:
             return
@@ -560,11 +691,12 @@ class AgentSession:
 
     def _reasoning_content_for_replay(self, reasoning_parts: list[str]) -> str | None:
         entry = selected_provider_entry(self.settings)
-        if (
-            entry is None
-            or entry.api_family is not ProviderApiFamily.chat_completions
-            or not entry.replay_reasoning_content
-        ):
+        api_family = entry.api_family if entry is not None else ProviderApiFamily.chat_completions
+        should_replay = (
+            bool(entry and entry.replay_reasoning_content)
+            or model_requires_reasoning_content_replay(self.settings.model.name)
+        )
+        if api_family is not ProviderApiFamily.chat_completions or not should_replay:
             return None
         reasoning_content = "".join(reasoning_parts)
         return reasoning_content or None
@@ -583,6 +715,21 @@ class AgentSession:
             return []
         self.todo_context = self.tool_context.todo_state.context_items()
         return list(self.todo_context)
+
+    def _record_episode_tool_result(
+        self,
+        tool_call: ToolCall,
+        tool_result: ToolResult,
+    ) -> None:
+        state = self.tool_context.episode_state
+        if state is None:
+            return
+        state.record_tool_result(tool_call, tool_result, cwd=self.cwd)
+
+    def _record_episode_final_text(self, final_text: str) -> None:
+        state = self.tool_context.episode_state
+        if state is not None:
+            state.record_final_text(final_text)
 
 
 async def run_agent(

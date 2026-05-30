@@ -34,6 +34,19 @@ def _chat_messages(
     ]
 
 
+def model_requires_reasoning_content_replay(model: str) -> bool:
+    """Return true for Chat Completions upstreams that require reasoning replay."""
+
+    return model.lower().startswith("deepseek")
+
+
+def _token_limit_parameter(model: str) -> str:
+    model_l = model.lower()
+    if model_l.startswith(("gpt-5", "o1", "o3", "o4")):
+        return "max_completion_tokens"
+    return "max_tokens"
+
+
 class OpenAICompatProvider:
     capabilities = ProviderCapabilities(streaming=True, tool_calls=True, token_counting=True)
 
@@ -65,20 +78,31 @@ class OpenAICompatProvider:
         max_output_tokens: int,
     ) -> AsyncIterator[StreamEvent]:
         try:
+            replay_reasoning_content = (
+                self.replay_reasoning_content
+                or model_requires_reasoning_content_replay(model)
+            )
             request_args: dict[str, Any] = {
                 "model": model,
                 "messages": _chat_messages(
                     messages,
-                    replay_reasoning_content=self.replay_reasoning_content,
+                    replay_reasoning_content=replay_reasoning_content,
                 ),
                 "temperature": temperature,
-                "max_tokens": max_output_tokens,
                 "stream": True,
             }
+            request_args[_token_limit_parameter(model)] = max_output_tokens
             if tools:
                 request_args["tools"] = tools
                 request_args["tool_choice"] = "auto"
-            stream = await self._client.chat.completions.create(**request_args)
+            request_args["stream_options"] = {"include_usage": True}
+            try:
+                stream = await self._client.chat.completions.create(**request_args)
+            except Exception as exc:
+                if not _is_stream_options_unsupported(exc):
+                    raise
+                request_args.pop("stream_options", None)
+                stream = await self._client.chat.completions.create(**request_args)
         except Exception as exc:
             yield {"type": "error", "message": f"Provider request failed: {exc}"}
             yield {"type": "done"}
@@ -114,7 +138,20 @@ class OpenAICompatProvider:
             try:
                 arguments = loads_object(buffer["arguments"] or "{}", source="tool arguments")
             except JsonPayloadError as exc:
-                yield {"type": "error", "message": str(exc)}
+                yield {
+                    "type": "error",
+                    "code": "malformed_tool_arguments",
+                    "message": str(exc),
+                    "tool_name": buffer["name"] or None,
+                    "tool_call_id": buffer["id"] or None,
+                    "tool_call_parse_error": {
+                        **exc.to_metadata(),
+                        "tool_name": buffer["name"] or None,
+                        "call_id": buffer["id"] or None,
+                        "stream_arguments_done": False,
+                        "payload_length": len(buffer["arguments"] or "{}"),
+                    },
+                }
                 continue
             yield {
                 "type": "tool_call",
@@ -125,3 +162,8 @@ class OpenAICompatProvider:
                 },
             }
         yield {"type": "done"}
+
+
+def _is_stream_options_unsupported(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return "stream_options" in message or "include_usage" in message
