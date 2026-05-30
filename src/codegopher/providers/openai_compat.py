@@ -138,7 +138,20 @@ class OpenAICompatProvider:
             try:
                 arguments = loads_object(buffer["arguments"] or "{}", source="tool arguments")
             except JsonPayloadError as exc:
-                yield {"type": "error", "message": str(exc)}
+                yield {
+                    "type": "error",
+                    "code": "malformed_tool_arguments",
+                    "message": str(exc),
+                    "tool_name": buffer["name"] or None,
+                    "tool_call_id": buffer["id"] or None,
+                    "tool_call_parse_error": {
+                        **exc.to_metadata(),
+                        "tool_name": buffer["name"] or None,
+                        "call_id": buffer["id"] or None,
+                        "stream_arguments_done": False,
+                        "payload_length": len(buffer["arguments"] or "{}"),
+                    },
+                }
                 continue
             yield {
                 "type": "tool_call",

@@ -889,7 +889,7 @@ async def test_active_contract_recovers_malformed_tool_call_json(
 
     assert result.final_text == "recovered"
     assert "malformed JSON for a tool call" in str(provider.calls[1][-1]["content"])
-    assert "tool schemas" in str(provider.calls[1][-1]["content"])
+    assert "tool schema below" in str(provider.calls[1][-1]["content"])
     assert (
         tmp_path / "docs/security/CHAINED_VULNERABILITIES_REVIEW.md"
     ).read_text(encoding="utf-8") == VALID_CHAINED_REPORT

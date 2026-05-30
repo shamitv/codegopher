@@ -57,6 +57,7 @@ class AgentCallbacks:
     on_approval_request: Callable[[ApprovalRequest], Awaitable[ApprovalResult]] | None = None
     on_compaction: Callable[[CompactionEntry], Awaitable[None]] | None = None
     on_error: Callable[[str], Awaitable[None]] | None = None
+    on_provider_recovery: Callable[[dict[str, Any]], Awaitable[None]] | None = None
     on_complete: Callable[[AgentResult], Awaitable[None]] | None = None
     on_task_contract_started: Callable[[TaskLedger], Awaitable[None]] | None = None
     on_task_contract_updated: Callable[[TaskLedger], Awaitable[None]] | None = None
@@ -141,12 +142,14 @@ class AgentSession:
         self.task_ledgers = list(task_ledgers or [])
         self.active_task_ledger: TaskLedger | None = self._latest_active_task_ledger()
         self._provider_recovery_attempts = 0
+        self._provider_report_fallback_used = False
 
     async def run_turn(self, prompt: str) -> AgentResult:
         if not self.provider.capabilities.tool_calls:
             raise ProviderError("Provider does not support tool calls")
 
         self._provider_recovery_attempts = 0
+        self._provider_report_fallback_used = False
         self._load_skills_for_prompt(prompt)
         await self._activate_mission_for_prompt(prompt)
         self._seed_mission_todos()
@@ -204,7 +207,7 @@ class AgentSession:
                     response_items.extend(event["response_items"])
                 elif event["type"] == "error":
                     recovery_prompt = await self._provider_error_recovery_prompt(
-                        event["message"],
+                        event,
                         active_registry,
                     )
                     if recovery_prompt is not None:
@@ -520,26 +523,108 @@ class AgentSession:
 
     async def _provider_error_recovery_prompt(
         self,
-        message: str,
+        event: dict[str, Any],
         registry: ToolRegistry,
     ) -> str | None:
+        message = str(event.get("message", ""))
         if "Malformed JSON in tool arguments" not in message:
             return None
+        tool_name = event.get("tool_name")
+        parse_error = event.get("tool_call_parse_error") or {}
+        metadata = {
+            "code": "malformed_tool_arguments",
+            "message": message,
+            "tool_name": tool_name,
+            "tool_call_id": event.get("tool_call_id"),
+            "parse_error": parse_error if isinstance(parse_error, dict) else {},
+            "recovery_attempt": self._provider_recovery_attempts + 1,
+            "will_retry": True,
+            "fallback_to_report": False,
+        }
+        if self._provider_recovery_attempts >= 2 and self._can_fallback_to_report_writer():
+            if not self._provider_report_fallback_used:
+                self._provider_report_fallback_used = True
+                self._provider_recovery_attempts += 1
+                metadata["recovery_attempt"] = self._provider_recovery_attempts
+                metadata["fallback_to_report"] = True
+                await self._emit_provider_recovery(metadata)
+                return self._current_state_report_fallback_prompt(message, registry)
+            metadata["will_retry"] = False
+            await self._emit_provider_recovery(metadata)
+            ledger = self.active_task_ledger
+            if ledger is not None:
+                ledger.mark_incomplete([f"provider returned malformed tool-call JSON: {message}"])
+            return None
         if self._provider_recovery_attempts >= 2:
+            metadata["will_retry"] = False
+            await self._emit_provider_recovery(metadata)
             ledger = self.active_task_ledger
             if ledger is not None:
                 ledger.mark_incomplete([f"provider returned malformed tool-call JSON: {message}"])
             return None
         self._provider_recovery_attempts += 1
+        metadata["recovery_attempt"] = self._provider_recovery_attempts
+        await self._emit_provider_recovery(metadata)
+        schema_text = self._tool_schema_text_for_recovery(registry, tool_name)
         return (
             "The previous provider turn emitted malformed JSON for a tool call, so "
             "CodeGopher could not execute it.\n\n"
             f"Error: {message}\n\n"
             "Reissue the needed tool call with strict JSON arguments only. Do not "
-            "wrap the arguments in Markdown or add comments. Use one of these exact "
-            "tool schemas:\n"
-            f"{dumps_json(registry.schemas())}\n\n"
+            "wrap the arguments in Markdown or add comments. Use the exact tool "
+            "schema below:\n"
+            f"{schema_text}\n\n"
             "Continue from the current task state after the corrected tool call."
+        )
+
+    async def _emit_provider_recovery(self, metadata: dict[str, Any]) -> None:
+        await _emit_callback(
+            "on_provider_recovery",
+            self.callbacks.on_provider_recovery if self.callbacks else None,
+            metadata,
+        )
+
+    def _tool_schema_text_for_recovery(
+        self,
+        registry: ToolRegistry,
+        tool_name: object,
+    ) -> str:
+        if isinstance(tool_name, str) and tool_name:
+            for schema in registry.schemas():
+                function = schema.get("function", {})
+                if function.get("name") == tool_name:
+                    return dumps_json(schema)
+        return dumps_json(registry.schemas())
+
+    def _can_fallback_to_report_writer(self) -> bool:
+        ledger = self.active_task_ledger
+        return bool(
+            ledger is not None
+            and ledger.status == "active"
+            and ledger.contract.id == "chained-vulnerability-static-audit"
+        )
+
+    def _current_state_report_fallback_prompt(
+        self,
+        message: str,
+        registry: ToolRegistry,
+    ) -> str:
+        report_schema = self._tool_schema_text_for_recovery(
+            registry,
+            "write_chained_vulnerability_report",
+        )
+        return (
+            "The provider repeatedly emitted malformed JSON for tool calls. Do not "
+            "restart discovery. Stop broadening the audit and write the best "
+            "current-state static report now.\n\n"
+            f"Last tool-call JSON error: {message}\n\n"
+            "Call `write_chained_vulnerability_report` with valid JSON only. Include "
+            "all verified source-derived evidence already gathered, incomplete or "
+            "rejected candidates, safe-control classifications, missing evidence, "
+            "and any remaining uncertainty. If a complete chain is not currently "
+            "provable, say so clearly instead of inventing one.\n\n"
+            "Use this exact report-writer schema:\n"
+            f"{report_schema}"
         )
 
     async def _mark_mission_completed_if_ready(self, failures: list[str]) -> None:

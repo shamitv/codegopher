@@ -73,6 +73,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Disable the bounded final Candidate Chain Ledger repair pass.",
     )
+    parser.add_argument(
+        "--no-candidate-flow-repair-pass",
+        action="store_true",
+        help="Disable the bounded candidate-flow coverage repair pass.",
+    )
     args = parser.parse_args(argv)
 
     cases = _cases_from_args(args.suite, args.app)
@@ -114,6 +119,7 @@ def main(argv: list[str] | None = None) -> int:
             structured_prepass=not args.no_structured_prepass,
             corrective_second_pass=not args.no_corrective_second_pass,
             ledger_repair_pass=not args.no_ledger_repair_pass,
+            candidate_flow_repair_pass=not args.no_candidate_flow_repair_pass,
         )
         result = BenchmarkHarness(config).run()
         print(f"Wrote {result.report_path}")

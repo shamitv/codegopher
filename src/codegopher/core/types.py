@@ -65,6 +65,10 @@ class DoneEvent(TypedDict):
 class ErrorEvent(TypedDict):
     type: Literal["error"]
     message: str
+    code: NotRequired[str]
+    tool_name: NotRequired[str | None]
+    tool_call_id: NotRequired[str | None]
+    tool_call_parse_error: NotRequired[dict[str, Any]]
 
 
 class ResponseMetadataEvent(TypedDict):

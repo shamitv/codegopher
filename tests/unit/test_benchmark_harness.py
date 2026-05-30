@@ -441,6 +441,99 @@ def test_ledger_repair_failure_preserves_last_good_report(tmp_path: Path) -> Non
     assert "Corrupt repair output" not in final_report
 
 
+def test_candidate_flow_repair_reasons_require_valid_ledger_and_complete_discovery(
+    tmp_path: Path,
+) -> None:
+    app = write_app(tmp_path)
+    (app / "controllers.py").write_text(
+        "@app.route('/items')\ndef create_item(): return repository.load_item(request.args['id'])\n",
+        encoding="utf-8",
+    )
+    (app / "repository.py").write_text(
+        "def load_item(item_id): return db.execute('SELECT * FROM items WHERE id=' + item_id)\n",
+        encoding="utf-8",
+    )
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="http://localhost/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+    workspace = harness.prepare_workspace(case)
+    harness._build_prepass(case, workspace)
+    focus_queue = harness._focus_queues[case.key]
+    report_path = workspace / DEFAULT_CHAINED_VULNERABILITY_REPORT
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        """
+# Report
+
+## Candidate Chain Ledger
+
+```json
+{
+  "candidate_chains": [
+    {
+      "status": "incomplete",
+      "family": "idor",
+      "source": {"path": "controllers.py", "symbol": "create_item", "line": "2"},
+      "hop": {"path": "controllers.py", "symbol": "create_item", "line": "2"},
+      "sink": {"path": "controllers.py", "symbol": "create_item", "line": "2"},
+      "safe_controls": [],
+      "confidence": "medium",
+      "missing_evidence": ["repository sink not represented yet"]
+    }
+  ]
+}
+```
+
+Evidence: controllers.py:2 create_item.
+""",
+        encoding="utf-8",
+    )
+    reviewed_paths = sorted(
+        {
+            item.path
+            for category in focus_queue.categories
+            for item in category.items
+        }
+    )
+    tool_calls = [
+        {
+            "tool_name": "read_file",
+            "arguments_summary": json.dumps({"path": path}),
+        }
+        for path in reviewed_paths
+    ]
+
+    reasons = harness._candidate_flow_repair_reasons(
+        workspace,
+        focus_queue,
+        tool_calls,
+    )
+    prompt = harness._build_candidate_flow_repair_prompt(
+        workspace,
+        reasons,
+        focus_queue,
+        tool_calls,
+    )
+
+    assert reasons
+    assert "candidate-flow coverage" in reasons[0]
+    assert "Candidate-flow repair worklist" in prompt
+    assert "repository.py" in prompt
+
+
 def test_attempt_classification_covers_missing_report_writer_and_quality_gate() -> None:
     complete = ProcessAttempt(
         attempt=1,

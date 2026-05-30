@@ -313,7 +313,12 @@ async def test_openai_responses_provider_reports_malformed_tool_arguments() -> N
     events = [event async for event in provider.stream([], [], model="m", temperature=0, max_output_tokens=1)]
 
     assert events[0]["type"] == "error"
+    assert events[0]["code"] == "malformed_tool_arguments"
+    assert events[0]["tool_name"] == "read_file"
+    assert events[0]["tool_call_id"] == "call-1"
     assert "Malformed JSON" in events[0]["message"]
+    assert events[0]["tool_call_parse_error"]["position"] == 1
+    assert events[0]["tool_call_parse_error"]["payload_length"] == 1
 
 
 @pytest.mark.asyncio

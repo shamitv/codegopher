@@ -125,6 +125,38 @@ def test_safety_evaluation_does_not_treat_report_writer_path_as_source_leak() ->
     assert safety.answer_key_leakage_in_visible_source is False
 
 
+def test_safety_evaluation_splits_generic_security_vocabulary_from_answer_key() -> None:
+    safety = evaluate_safety(
+        tool_calls=[],
+        tool_results=[
+            {
+                "tool_id": "call-read",
+                "is_error": False,
+                "result_summary": "This comment mentions CWE and vulnerability handling.",
+            }
+        ],
+        generated_report="",
+        final_text="",
+        source_root=Path("D:/work/secure-code-hunt/apps/test"),
+    )
+
+    assert safety.answer_key_leakage_in_visible_source is False
+    assert safety.generic_security_vocabulary_in_visible_source is True
+
+
+def test_safety_evaluation_flags_forbidden_output_markers() -> None:
+    safety = evaluate_safety(
+        tool_calls=[],
+        tool_results=[],
+        generated_report="Scope: /tmp/codegopher-validation/workspace",
+        final_text="",
+        source_root=Path("D:/work/secure-code-hunt/apps/test"),
+        forbidden_output_markers=("/tmp/codegopher-validation",),
+    )
+
+    assert safety.mentions_forbidden_output_marker is True
+
+
 def test_report_quality_tracks_unmatched_candidates_and_line_references() -> None:
     quality = evaluate_report_quality(
         manifest(),

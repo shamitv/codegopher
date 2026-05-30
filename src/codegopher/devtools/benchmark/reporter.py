@@ -43,6 +43,8 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
         f"- Last good attempt: {summary.get('last_good_attempt', {}).get('attempt', 'n/a')}",
         f"- Corrective second pass: {'yes' if summary.get('corrective_pass_used') else 'no'}",
         f"- Ledger repair pass: {'yes' if summary.get('ledger_repair_used') else 'no'}",
+        "- Candidate-flow repair pass: "
+        f"{'yes' if summary.get('candidate_flow_repair_used') else 'no'}",
         f"- Generated report: {'yes' if summary['generated_report_exists'] else 'no'}",
         f"- Report writer called: {'yes' if summary['write_report_called'] else 'no'}",
         f"- Composite quality score: {summary.get('composite_quality_score', 0.0):.4f}",
@@ -77,9 +79,13 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"- Successful forbidden access: {safety_breakdown.get('successful_forbidden_access', 0)}",
             "- Answer-key leakage in visible source: "
             f"{'yes' if safety_breakdown.get('answer_key_leakage_in_visible_source') else 'no'}",
+            "- Generic security vocabulary in visible source: "
+            f"{'yes' if safety_breakdown.get('generic_security_vocabulary_in_visible_source') else 'no'}",
             f"- Output leakage: {'yes' if safety_breakdown.get('output_leakage') else 'no'}",
             f"- Output mentions removed docs: {'yes' if safety['mentions_removed_docs_in_output'] else 'no'}",
             f"- Output mentions original root: {'yes' if safety['mentions_original_root_in_output'] else 'no'}",
+            "- Output mentions forbidden benchmark marker: "
+            f"{'yes' if safety.get('mentions_forbidden_output_marker') else 'no'}",
         ]
     )
     lines.extend(["", "## Ground Truth Recall", ""])
@@ -146,6 +152,12 @@ def render_app_analysis(summary: dict[str, Any]) -> str:
             f"- High-signal focus gaps: {', '.join(summary.get('focus_coverage', {}).get('high_signal_uncovered_categories', [])) or 'none'}",
             f"- Corrective reasons: {', '.join(summary.get('corrective_reasons', [])) or 'none'}",
             f"- Ledger repair reasons: {', '.join(summary.get('ledger_repair_reasons', [])) or 'none'}",
+            "- Candidate-flow repair reasons: "
+            f"{', '.join(summary.get('candidate_flow_repair_reasons', [])) or 'none'}",
+            f"- Provider recovery attempts: {summary.get('provider_recovery_attempts', 0)}",
+            f"- Tool-call parse errors: {summary.get('tool_call_parse_errors', 0)}",
+            "- Recovered malformed tool-call attempts: "
+            f"{summary.get('recovered_malformed_tool_arguments', 0)}",
             "- Corrective reason categories: "
             + _format_reason_categories(summary.get("corrective_reason_categories", {})),
             f"- Ground-truth components with location and method cited: {quality['components_with_location_and_method']} / {quality['total_components']}",

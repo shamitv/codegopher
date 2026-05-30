@@ -42,6 +42,7 @@ from codegopher.events.protocol import (
     McpServersEvent,
     McpServerSnapshotPayload,
     ProtocolEvent,
+    ProviderRecoveryEvent,
     ReasoningDeltaEvent,
     SessionStartedEvent,
     TaskContractCompletedEvent,
@@ -459,6 +460,9 @@ class EventsSession:
             on_tool_result=lambda result: self._on_tool_result(turn_id, result),
             on_approval_request=lambda request: self._on_approval_request(turn_id, request),
             on_error=lambda message: self._on_agent_error(turn_id, message),
+            on_provider_recovery=lambda metadata: self._on_provider_recovery(
+                turn_id, metadata
+            ),
             on_complete=lambda result: self._on_complete(turn_id, result),
             on_task_contract_started=lambda ledger: self._on_task_contract_started(
                 turn_id, ledger
@@ -577,6 +581,26 @@ class EventsSession:
 
     async def _on_agent_error(self, turn_id: str, message: str) -> None:
         await self._emit_turn_error(provider_error, message, turn_id=turn_id)
+
+    async def _on_provider_recovery(
+        self,
+        turn_id: str,
+        metadata: dict[str, Any],
+    ) -> None:
+        await self._emit(
+            ProviderRecoveryEvent(
+                session_id=self.session_id,
+                turn_id=turn_id,
+                code=str(metadata.get("code") or "provider_recovery"),
+                message=str(metadata.get("message") or "provider recovery"),
+                recovery_attempt=int(metadata.get("recovery_attempt") or 0),
+                will_retry=bool(metadata.get("will_retry", True)),
+                fallback_to_report=bool(metadata.get("fallback_to_report", False)),
+                tool_name=metadata.get("tool_name"),
+                tool_call_id=metadata.get("tool_call_id"),
+                parse_error=dict(metadata.get("parse_error") or {}),
+            )
+        )
 
     async def _on_complete(self, turn_id: str, result: AgentResult) -> None:
         await self._emit(
