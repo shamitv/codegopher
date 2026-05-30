@@ -148,5 +148,11 @@ metrics, app display names, and placeholder endpoint/proxy values only. Do not c
 raw local endpoints, proxy admin URLs, API keys, temp directories, usernames, raw
 event logs, or generated per-app workspaces.
 
+When required, an internal LLM proxy may be used for benchmark analysis and
+troubleshooting (for example, routing verification, retry diagnostics, and
+token/cost trend analysis). Follow:
+
+`docs/devguide/llm/LLM_PROXY_TESTING_ANALYSIS.md`
+
 The current chained-audit evaluation is useful for analyst-assisted review and
 evidence collection. Do not present it as unattended security signoff.
