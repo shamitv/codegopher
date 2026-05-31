@@ -45,6 +45,7 @@ node_modules/
 .yarn/unplugged/
 extensions/vscode/.vscode-test/
 extensions/vscode/out/
+extensions/vscode/*.vsix
 
 # IDE
 .vscode/settings.json

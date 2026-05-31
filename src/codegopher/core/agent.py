@@ -27,7 +27,7 @@ from codegopher.core.context_budget import calculate_context_budget, selected_pr
 from codegopher.core.conversation import Conversation
 from codegopher.core.errors import AgentLoopError, ProviderError, ToolExecutionError
 from codegopher.core.mission import TaskLedger, select_mission_contract, todo_source
-from codegopher.core.types import CompactionEntry, CompactionReason, Message, ToolCall
+from codegopher.core.types import CompactionEntry, CompactionReason, ErrorEvent, Message, ToolCall
 from codegopher.memory import EpisodeState, MemoryStore
 from codegopher.providers.base import Provider
 from codegopher.providers.openai_compat import model_requires_reasoning_content_replay
@@ -525,7 +525,7 @@ class AgentSession:
 
     async def _provider_error_recovery_prompt(
         self,
-        event: dict[str, Any],
+        event: ErrorEvent,
         registry: ToolRegistry,
     ) -> str | None:
         message = str(event.get("message", ""))

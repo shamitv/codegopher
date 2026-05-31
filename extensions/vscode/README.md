@@ -1,6 +1,6 @@
 # CodeGopher VS Code Extension
 
-This package is the VS Code extension shell for CodeGopher. The v0.6 extension exposes the `@codegopher` chat participant and command-palette flows while the Python CLI remains authoritative for agent execution, configuration, MCP management, approvals, and filesystem safety.
+This package is the VS Code extension shell for CodeGopher. The extension exposes the `@codegopher` chat participant and command-palette flows while the Python CLI remains authoritative for agent execution, configuration, MCP management, approvals, and filesystem safety.
 
 The extension launches `cgopher --events` in the selected workspace root and communicates with it over newline-delimited JSON. VS Code owns chat rendering, command routing, progress, approvals, cancellation, restart, and user-facing error recovery; Python owns provider selection, tool execution, config validation, MCP lifecycle, redaction, and workspace safety.
 
