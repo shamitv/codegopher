@@ -79,6 +79,7 @@ def test_load_settings_applies_environment_overrides(tmp_path: Path) -> None:
             "CODEGOPHER_API_KEY_ENV": "LOCAL_API_KEY",
             "CODEGOPHER_API_FAMILY": "responses",
             "CODEGOPHER_REPLAY_REASONING_CONTENT": "true",
+            "CODEGOPHER_MAX_OUTPUT_TOKENS": "16384",
             "CODEGOPHER_DEBUG": "true",
         },
     )
@@ -91,6 +92,7 @@ def test_load_settings_applies_environment_overrides(tmp_path: Path) -> None:
     assert settings.providers["local"][0].api_key_env == "LOCAL_API_KEY"
     assert settings.providers["local"][0].api_family.value == "responses"
     assert settings.providers["local"][0].replay_reasoning_content is True
+    assert settings.model.max_output_tokens == 16384
 
 
 def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -> None:
@@ -106,6 +108,7 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
             replay_reasoning_content=True,
             approval_mode="auto",
             max_iterations=24,
+            max_output_tokens=12288,
             debug=True,
         ),
     )
@@ -114,6 +117,7 @@ def test_load_settings_applies_cli_overrides_after_environment(tmp_path: Path) -
     assert settings.model.provider == "openai"
     assert settings.approval_mode.value == "auto"
     assert settings.agent.max_iterations == 24
+    assert settings.model.max_output_tokens == 12288
     assert settings.debug is True
     assert settings.providers["openai"][0].base_url == "http://localhost:8000/v1"
     assert settings.providers["openai"][0].api_family.value == "responses"

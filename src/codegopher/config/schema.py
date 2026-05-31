@@ -75,6 +75,7 @@ class ContextConfig(BaseModel):
     warning_threshold: float = Field(default=0.70, gt=0.0, lt=1.0)
     compaction_threshold: float = Field(default=0.80, gt=0.0, lt=1.0)
     token_encoding: str = Field(default="cl100k_base", min_length=1)
+    max_replay_messages: int | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def validate_threshold_order(self) -> Self:

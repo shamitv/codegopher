@@ -36,6 +36,7 @@ def main(argv: list[str] | None = None) -> int:
         default=[],
         help="Additional command prefix argument before CodeGopher flags. For tests only.",
     )
+    parser.add_argument("--provider", default="openai")
     parser.add_argument("--model", required=True)
     parser.add_argument("--base-url", required=True)
     parser.add_argument(
@@ -46,6 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--api-key-env", default="OPENAI_API_KEY")
     parser.add_argument("--api-key-value", default="dummy-key")
     parser.add_argument("--replay-reasoning-content", action="store_true")
+    parser.add_argument("--max-output-tokens", type=int)
     parser.add_argument("--timeout-seconds", type=int, default=900)
     parser.add_argument("--retries", type=int, default=1)
     parser.add_argument("--temp-root", type=Path)
@@ -106,10 +108,12 @@ def main(argv: list[str] | None = None) -> int:
             cgopher_command=(args.cgopher, *args.cgopher_arg),
             model=args.model,
             base_url=args.base_url,
+            provider=args.provider,
             api_family=args.api_family,
             api_key_env=args.api_key_env,
             api_key_value=args.api_key_value,
             replay_reasoning_content=args.replay_reasoning_content,
+            max_output_tokens=args.max_output_tokens,
             timeout_seconds=args.timeout_seconds,
             retries=args.retries,
             temp_root=args.temp_root,
