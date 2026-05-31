@@ -13,6 +13,8 @@ The focused run completed successfully. The benchmark created one proxy stats ru
 
 GPT-5.4-mini found `5/8` complete chains and `15/19` required components. The strongest result was `app-14`, where it found all three chains and all required components after one corrective pass. The main misses were chain-bridging gaps in `app-05` and `app-10`, especially around auth/session and state-changing paths.
 
+The proxy-reported run cost was `$0.3544` for `26` successful model requests and `425,615` total tokens. Approximate per-app attribution is included below; it maps proxy requests in chronological order to the benchmark's sequential app attempts.
+
 ## Aggregate Stats
 
 | Metric | Result |
@@ -41,6 +43,25 @@ GPT-5.4-mini found `5/8` complete chains and `15/19` required components. The st
 | Proxy-reported cost | $0.3544 |
 | Proxy LLM wall time | 3m 8s |
 | Proxy run duration | 3m 10s |
+
+## Cost And Token Accounting
+
+The aggregate cost below is proxy-reported. Per-app rows are approximate attribution from the sequential benchmark attempt order and are rounded to four decimal places.
+
+| Scope | Requests | Input Tokens | Output Tokens | Total Tokens | Cost |
+|---|---:|---:|---:|---:|---:|
+| app-05 | 7 | 123,859 | 4,355 | 128,214 | $0.1025 |
+| app-10 | 7 | 123,080 | 5,266 | 128,346 | $0.1084 |
+| app-14 attempt 1 | 7 | 107,252 | 4,054 | 111,306 | $0.0855 |
+| app-14 corrective attempt | 5 | 51,995 | 5,754 | 57,749 | $0.0580 |
+| app-14 total | 12 | 159,247 | 9,808 | 169,055 | $0.1435 |
+| Total run | 26 | 406,186 | 19,429 | 425,615 | $0.3544 |
+
+Derived cost views:
+
+- Cost per scanned app: `$0.1181`.
+- Cost per complete chain found: `$0.0709`.
+- Cost per required component found: `$0.0236`.
 
 ## Per-App Results
 
