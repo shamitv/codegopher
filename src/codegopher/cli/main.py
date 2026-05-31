@@ -164,6 +164,11 @@ async def _run_headless_agent(
     help="Maximum agent loop iterations for one turn.",
 )
 @click.option(
+    "--max-output-tokens",
+    type=click.IntRange(min=1),
+    help="Maximum model output tokens for one provider response.",
+)
+@click.option(
     "--no-project-init",
     is_flag=True,
     help="Do not create default project guidance on first use.",
@@ -182,6 +187,7 @@ def app(
     replay_reasoning_content: bool | None,
     approval_mode: str | None,
     max_iterations: int | None,
+    max_output_tokens: int | None,
     no_project_init: bool,
     debug: bool,
     as_json: bool,
@@ -203,6 +209,7 @@ def app(
                 replay_reasoning_content=replay_reasoning_content,
                 approval_mode=approval_mode,
                 max_iterations=max_iterations,
+                max_output_tokens=max_output_tokens,
                 debug=debug if debug else None,
             )
         )

@@ -69,7 +69,9 @@ BASE_BENCHMARK_PROMPT = (
     "vulnerability review of this codebase. Inspect only the current working directory. "
     "Do not use live probes, dynamic scanners, shell commands, hidden evaluator "
     "metadata, dotfiles, or files outside this workspace. Write the final report with "
-    "write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md."
+    "write_chained_vulnerability_report to docs/security/CHAINED_VULNERABILITIES_REVIEW.md. "
+    "For local or slow Responses models, keep the final report concise and evidence-dense; "
+    "do not spend extra reasoning on prose before the writer call."
 )
 CHAIN_FAMILY_CHECKLIST = """
 Use this generic chain-family checklist; do not assume any item exists unless source evidence supports it:
@@ -169,10 +171,12 @@ class BenchmarkConfig:
     cgopher_command: tuple[str, ...]
     model: str
     base_url: str
+    provider: str = "openai"
     api_family: str = "chat_completions"
     api_key_env: str = "OPENAI_API_KEY"
     api_key_value: str = "dummy-key"
     replay_reasoning_content: bool = False
+    max_output_tokens: int | None = None
     approval_mode: str = "yolo"
     timeout_seconds: int = 900
     retries: int = 1
@@ -410,6 +414,7 @@ class BenchmarkHarness:
         )
         env = dict(os.environ)
         env.pop("CODEGOPHER_TEST_MOCK_RESPONSE", None)
+        env["CODEGOPHER_API_KEY_ENV"] = self.config.api_key_env
         env[self.config.api_key_env] = self.config.api_key_value
         print(f"[{_now()}] Running {case.key} attempt {attempt}", flush=True)
         try:
@@ -452,6 +457,8 @@ class BenchmarkHarness:
             "--no-project-init",
             "--approval-mode",
             self.config.approval_mode,
+            "--provider",
+            self.config.provider,
             "--model",
             self.config.model,
             "--base-url",
@@ -461,6 +468,8 @@ class BenchmarkHarness:
         ]
         if self.config.replay_reasoning_content:
             command.append("--replay-reasoning-content")
+        if self.config.max_output_tokens is not None:
+            command.extend(["--max-output-tokens", str(self.config.max_output_tokens)])
         return command
 
     def _build_prepass(self, case: BenchmarkCase, workspace: Path) -> str:

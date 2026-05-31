@@ -31,6 +31,9 @@ def build_system_prompt(
         "Safety rules: read files before editing existing files, inspect a parent directory "
         "before creating files, and obey approval results for write and shell tools."
     )
+    skill_items = list(skills)
+    if skill_items:
+        prompt += "\nLoaded skills:\n" + "\n\n".join(skill_items)
     memory_items = list(memories)
     if memory_items:
         prompt += "\nSelected memories:\n" + "\n".join(
@@ -45,9 +48,6 @@ def build_system_prompt(
             "to long-term memory unless the user explicitly asks.\n"
             + "\n".join(f"- {item}" for item in episode_context)
         )
-    skill_items = list(skills)
-    if skill_items:
-        prompt += "\nLoaded skills:\n" + "\n\n".join(skill_items)
     active_todo_items = list(todo_items)
     if active_todo_items:
         prompt += "\nActive TODOs:\n" + "\n".join(

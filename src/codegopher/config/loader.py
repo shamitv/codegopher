@@ -25,6 +25,7 @@ class CliOverrides:
     replay_reasoning_content: bool | None = None
     approval_mode: str | None = None
     max_iterations: int | None = None
+    max_output_tokens: int | None = None
     debug: bool | None = None
 
 
@@ -93,6 +94,8 @@ def _env_overrides(environ: Mapping[str, str]) -> dict[str, Any]:
         data = _merge(data, {"model": {"name": model}})
     if provider := environ.get("CODEGOPHER_PROVIDER"):
         data = _merge(data, {"model": {"provider": provider}})
+    if max_output_tokens := environ.get("CODEGOPHER_MAX_OUTPUT_TOKENS"):
+        data = _merge(data, {"model": {"max_output_tokens": max_output_tokens}})
     if approval_mode := environ.get("CODEGOPHER_APPROVAL_MODE"):
         data["approval_mode"] = approval_mode
     if debug := environ.get("CODEGOPHER_DEBUG"):
@@ -112,6 +115,11 @@ def _cli_overrides(overrides: CliOverrides | None) -> dict[str, Any]:
         data["approval_mode"] = overrides.approval_mode
     if overrides.max_iterations is not None:
         data = _merge(data, {"agent": {"max_iterations": overrides.max_iterations}})
+    if overrides.max_output_tokens is not None:
+        data = _merge(
+            data,
+            {"model": {"max_output_tokens": overrides.max_output_tokens}},
+        )
     if overrides.debug is not None:
         data["debug"] = overrides.debug
     return data
@@ -164,6 +172,8 @@ def _has_cli_overrides(overrides: CliOverrides | None) -> bool:
             overrides.api_family,
             overrides.replay_reasoning_content is not None,
             overrides.approval_mode,
+            overrides.max_iterations is not None,
+            overrides.max_output_tokens is not None,
             overrides.debug is not None,
         )
     )

@@ -94,6 +94,26 @@ def test_context_builder_includes_runtime_episode_memory(tmp_path: Path) -> None
     assert "not persistent memory" in str(messages[0]["content"])
 
 
+def test_context_builder_keeps_loaded_skills_before_volatile_context(
+    tmp_path: Path,
+) -> None:
+    prompt = build_system_prompt(
+        tmp_path,
+        create_default_registry(),
+        ApprovalMode.review,
+        memories=["[project:mem-1] Volatile memory"],
+        episode_items=["[episode-1] Read app.py"],
+        skills=["## Audit Skill\nStable skill text."],
+        todo_items=["[todo-1] pending: Re-check report"],
+        mission_items=["write docs/security/CHAINED_VULNERABILITIES_REVIEW.md"],
+    )
+
+    assert prompt.index("Loaded skills") < prompt.index("Selected memories")
+    assert prompt.index("Loaded skills") < prompt.index("Runtime episode memory")
+    assert prompt.index("Loaded skills") < prompt.index("Active TODOs")
+    assert prompt.index("Loaded skills") < prompt.index("Active mission contract")
+
+
 def test_context_builder_mentions_only_implemented_v0_1_features(tmp_path: Path) -> None:
     prompt = build_system_prompt(tmp_path, create_default_registry(), ApprovalMode.review)
 

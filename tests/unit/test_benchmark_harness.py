@@ -368,6 +368,58 @@ def test_prepare_workspace_removes_tests_and_metadata_filename_refs(
     assert hygiene["passed"] is True
 
 
+def test_harness_command_passes_max_output_tokens(tmp_path: Path) -> None:
+    app = write_app(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "-m", "codegopher"),
+            model="model",
+            base_url="https://example.test/v1",
+            provider="openai",
+            max_output_tokens=16384,
+            temp_root=tmp_path / "tmp",
+        )
+    )
+
+    command = harness._build_command()
+
+    assert command[command.index("--max-output-tokens") + 1] == "16384"
+    assert command[command.index("--provider") + 1] == "openai"
+
+
+def test_harness_benchmark_prompt_guides_concise_local_reports(tmp_path: Path) -> None:
+    app = write_app(tmp_path)
+    case = BenchmarkCase(
+        key="app-test",
+        display_name="Test App",
+        source=app,
+        manifest=app / ".vulns",
+    )
+    harness = BenchmarkHarness(
+        BenchmarkConfig(
+            cases=(case,),
+            output_dir=tmp_path / "out",
+            cgopher_command=(sys.executable, "unused.py"),
+            model="model",
+            base_url="https://example.test/v1",
+            temp_root=tmp_path / "tmp",
+        )
+    )
+
+    prompt = harness._build_benchmark_prompt("")
+
+    assert "keep the final report concise and evidence-dense" in prompt
+    assert "write_chained_vulnerability_report" in prompt
+
+
 def test_harness_run_creates_expected_artifacts(tmp_path: Path) -> None:
     app = write_app(tmp_path)
     fake = write_fake_cgopher(tmp_path)
