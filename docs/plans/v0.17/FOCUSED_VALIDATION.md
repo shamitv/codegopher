@@ -15,6 +15,8 @@ GPT-5.4-mini found `5/8` complete chains and `15/19` required components. The st
 
 The proxy-reported run cost was `$0.3544` for `26` successful model requests and `425,615` total tokens. Approximate per-app attribution is included below; it maps proxy requests in chronological order to the benchmark's sequential app attempts.
 
+Companion architecture and chain-overlay diagrams are in [FOCUSED_VALIDATION_DIAGRAMS.md](FOCUSED_VALIDATION_DIAGRAMS.md).
+
 ## Aggregate Stats
 
 | Metric | Result |
