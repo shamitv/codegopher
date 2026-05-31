@@ -1,6 +1,6 @@
 # VS Code Extension Testing
 
-This guide describes how to test the planned CodeGopher VS Code integration across macOS, Windows, and Linux. The v0.6 extension package will live under `extensions/vscode`; commands in this guide assume that package exists and has installed npm dependencies.
+This guide describes how to test the CodeGopher VS Code integration across macOS, Windows, and Linux. The extension package lives under `extensions/vscode`; commands in this guide assume that package exists and has installed npm dependencies.
 
 The extension should be tested as a thin VS Code shell over the local Python engine. VS Code and TypeScript own UI, command routing, and subprocess lifecycle. Python remains authoritative for configuration, MCP validation, provider behavior, tool execution, approvals, redaction, and workspace safety.
 

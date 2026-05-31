@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import tomllib
+from pathlib import Path
+
 import codegopher
 from codegopher.skills import discover_builtin_skills
 from codegopher.tui import CodeGopherApp, launch_tui
 
 
 def test_package_import_exposes_version() -> None:
-    assert codegopher.__version__ == "0.1.0"
+    pyproject_path = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    project = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))["project"]
+    assert codegopher.__version__ == project["version"]
 
 
 def test_tui_imports_are_available() -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 from codegopher.security.mermaid import attack_chain_to_mermaid
@@ -208,7 +208,7 @@ def _validate_evidence_object(
     path = evidence.get("path") or evidence.get("file_path")
     if not isinstance(path, str) or not path.strip():
         failures.append(f"{location} missing path")
-    elif Path(path).is_absolute() or ".." in Path(path).parts:
+    elif not _is_repository_relative_path(path):
         failures.append(f"{location} path must be repository-relative")
     symbol = evidence.get("symbol")
     if not isinstance(symbol, str) or not symbol.strip():
@@ -225,3 +225,15 @@ def _validate_evidence_object(
         }:
             failures.append(f"{location} has invalid safe-control classification")
     return failures
+
+
+def _is_repository_relative_path(path: str) -> bool:
+    raw = path.strip()
+    posix_path = PurePosixPath(raw)
+    windows_path = PureWindowsPath(raw)
+    if Path(raw).is_absolute() or posix_path.is_absolute() or windows_path.is_absolute():
+        return False
+    if windows_path.drive or windows_path.root:
+        return False
+    normalized_parts = PurePosixPath(raw.replace("\\", "/")).parts
+    return ".." not in normalized_parts

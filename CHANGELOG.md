@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2026-05-29
+## [0.3.0] - 2026-05-31
 
 ### Added
 - Task-local episode memory that captures concise evidence for file reads, searches, listings, TODO updates, report writes, tool errors, and final decisions without persisting to user/project memory.
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mission contract TODO seeding now includes mission reasons and artifact evidence references.
 - OpenAI-compatible Chat Completions streaming now requests `stream_options.include_usage` and retries without it when unsupported by upstream routes.
 - Internal benchmark proxy startup now fails fast when another active run could contaminate request/token/cost attribution.
-- Architecture docs and release planning docs were updated for v0.12 runtime behavior and verification outcomes.
+- Architecture docs and release planning docs were updated for current runtime behavior and verification outcomes.
 
 ### Fixed
 - Reduced shallow no-chain conclusions in chained-audit workflows by requiring candidate and negative-evidence state in final report validation.

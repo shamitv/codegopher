@@ -20,21 +20,22 @@ Use this checklist before publishing a CodeGopher release.
 - Smoke test MCP SSE with a controlled endpoint; use `headers_env` for sensitive headers and confirm resolved values are not printed or persisted.
 - Smoke test Playwright MCP, when Node.js and browser dependencies are available: `npx @playwright/mcp@latest --headless --isolated`.
 - Smoke test project initialization: `cgopher init` creates `.codegopher/skills/project/SKILL.md` without writing settings or secrets.
-- Smoke test v0.5 skill-pack initialization: `cgopher init --skill-pack repo-docs`, `cgopher init --skill-pack security`, and `cgopher init --skill-pack all` create the expected `.codegopher/skills/*/SKILL.md` files without writing settings or secrets.
+- Smoke test skill-pack initialization: `cgopher init --skill-pack repo-docs`, `cgopher init --skill-pack security`, `cgopher init --skill-pack chained-vulns`, and `cgopher init --skill-pack all` create the expected `.codegopher/skills/*/SKILL.md` files without writing settings or secrets.
 - Smoke test interactive TUI startup with `cgopher` in a real terminal.
 - Smoke test TUI slash commands: `/help`, `/model`, `/mode`, `/stats`, `/clear`, `/compact`, `/memory`, `/forget`, `/skills`, and `/todo`.
 - Smoke test TUI file mentions and `/shell COMMAND` approval/denial flows in a disposable project.
 - Smoke test TUI session auto-resume for the same cwd.
-- Smoke test v0.3 context, memory, skills, and TODO flows:
+- Smoke test context, memory, skills, and TODO flows:
   - `/stats` shows context budget status.
   - `/compact [instructions]` records a visible compaction summary.
   - `save_memory` creates an approved memory and `/memory` lists it.
   - `/skills` lists project/user/built-in skills and `/skills load ID` loads one.
   - `/todo add TEXT` and `/todo done ID` update visible session TODO state.
-- Smoke test v0.5 built-in skills:
+- Smoke test built-in skills:
   - `@skill:repo-domain-docs` reaches provider context and can produce a domain documentation outline.
   - `@skill:repo-tech-docs` reaches provider context and can produce a technical documentation outline.
   - `@skill:crud-owasp-static-audit` reaches provider context and keeps the OWASP Top 10:2025 review static-only.
+  - `@skill:chained-vulnerability-static-audit` reaches provider context and writes `docs/security/CHAINED_VULNERABILITIES_REVIEW.md` through the report writer when available.
 - Smoke test VS Code Extension Development Host in a disposable workspace:
   - `CodeGopher: Open Chat` focuses VS Code Chat with `@codegopher`.
   - `@codegopher /status` shows CLI path, selected workspace root, provider/model settings, approval mode, and subprocess state.

@@ -84,7 +84,7 @@ MCP tools:
 
 ## VS Code Extension
 
-The v0.6 VS Code extension lives in `extensions/vscode` and exposes CodeGopher through native VS Code Chat as `@codegopher`. The extension launches the local Python CLI with `cgopher --events`, so provider setup, config loading, MCP validation, approvals, tool execution, redaction, and filesystem safety remain owned by Python.
+The VS Code extension lives in `extensions/vscode` and exposes CodeGopher through native VS Code Chat as `@codegopher`. The extension launches the local Python CLI with `cgopher --events`, so provider setup, config loading, MCP validation, approvals, tool execution, redaction, and filesystem safety remain owned by Python.
 
 Local setup:
 
